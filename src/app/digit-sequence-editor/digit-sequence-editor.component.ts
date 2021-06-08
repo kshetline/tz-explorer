@@ -227,51 +227,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected getSelectionForEvent(event: MouseEvent): number {
-    return this.getSelectionForXY(event.offsetX, event.offsetY);
-  }
-
-  protected getSelectionForTouchEvent(event: TouchEvent): number {
-    const pt = getXYForTouchEvent(event);
-    return this.getSelectionForXY(pt.x, pt.y);
-  }
-
-  protected getSelectionForXY(x: number, y: number): number {
-    const newSelection = this.hOffsets.findIndex((offset, index) => {
-      return offset <= x && x < this.hOffsets[min(index + 1, this.hOffsets.length - 1)];
-    });
-
-    if (newSelection >= this.items.length)
-      return (y < this.height / 2 ? SPIN_UP : SPIN_DOWN);
-
-    // If this item isn't selectable, move left until a selectable item is found.
-    // If going left doesn't work, try looking to the right.
-    let nextSelection = NO_SELECTION;
-
-    for (let i = newSelection; i >= 0; --i) {
-      if (this.items[i].editable) {
-        nextSelection = i;
-        break;
-      }
-    }
-
-    if (nextSelection === NO_SELECTION) {
-      for (let i = newSelection + 1; i < this.items.length; ++i) {
-        if (this.items[i].editable) {
-          nextSelection = i;
-          break;
-        }
-      }
-    }
-
-    return nextSelection;
-  }
-
   onMouseDown(index: number, event: MouseEvent): void {
     if (this.disabled || this.viewOnly || event.button !== 0)
       return;
 
-    this.startSelectionAction(this.getSelectionForEvent(event));
+    this.startSelectionAction(index);
   }
 
   onMouseLeave(): void {
@@ -282,34 +242,27 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this.disabled || this.viewOnly || !this.touchEnabled)
       return;
 
-    const pt = getXYForTouchEvent(event);
-
-    if (pt.x < 1 || pt.y < 1 || pt.x >= this.width || pt.y >= this.height)
-      return;
-
     if (event.cancelable)
       event.preventDefault();
 
     if (this.useAlternateTouchHandling)
-      this.onTouchStartAlternate(event);
+      this.onTouchStartAlternate(index, event);
     else
-      this.onTouchStartDefault(event);
+      this.onTouchStartDefault(index, event);
   }
 
-  protected onTouchStartDefault(event: TouchEvent): void {
+  protected onTouchStartDefault(index: number, event: TouchEvent): void {
     this.firstTouchPoint = getXYForTouchEvent(event);
     this.touchDeltaY = 0;
-
-    const newSelection = this.getSelectionForTouchEvent(event);
 
 //    if (!this.hasFocus)
 //      this.canvas.focus();
 
-    this.updateSelection(newSelection);
-    this.startSelectionAction(newSelection);
+    this.updateSelection(index);
+    this.startSelectionAction(index);
   }
 
-  protected onTouchStartAlternate(_event: TouchEvent): void {}
+  protected onTouchStartAlternate(_index: number, _event: TouchEvent): void {}
 
   protected startSelectionAction(newSelection: number): void {
     if ((newSelection === SPIN_UP || newSelection === SPIN_DOWN) && !this.clickTimer) {
@@ -372,7 +325,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this.disabled || this.viewOnly)
       return;
 
-    this.updateSelection(this.getSelectionForEvent(event));
+    this.updateSelection(index);
   }
 
   protected updateSelection(newSelection: number): void {

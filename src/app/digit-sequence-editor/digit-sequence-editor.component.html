@@ -1,5 +1,18 @@
-<div *ngFor="let item of items; index as i"
-    class="digit"
-    [style.cursor]="item.editable ? 'pointer' : 'default'"
-    (mousedown)="onMouseDown(i, $event)" (mouseup)="onMouseUp(i) " (click)="onClick(i, $event)"
->{{item.value}}</div>
+<div class="wrapper"
+    [class.no-focus]="disabled"
+    [tabindex]="disabled ? -1 : 0" [attr.contenteditable]="!disabled"
+    autocomplete="off" autocapitalize="off" autocorrect="off"
+    (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp()"
+    (mouseleave)="onMouseLeave()"
+    (keydown)="onKeyDown($event)" (keyup)="onKeyUp()" (keypress)="onKeyPress($event)"
+    (focus)="onFocus(true)" (blur)="onFocus(false)"
+    (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)"
+    [style.background-color]="getStaticBackgroundColor()"
+    [@displayState]="displayState">
+  <div *ngFor="let item of items; index as i"
+      class="digit"
+      [style.background-color]="getBackgroundColorForItem(item, i)"
+      [style.color]="getColorForItem(item, i)"
+      [style.cursor]="item.editable && !disabled && !viewOnly ? 'pointer' : 'default'" (click)="onClick(i)"
+  >{{item.value}}</div>
+</div>

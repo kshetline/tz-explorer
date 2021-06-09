@@ -1,5 +1,11 @@
-:host {
+.wrapper {
+  border: #D8D8D8 solid 1px;
+  caret-color: transparent;
+  cursor: default;
   display: inline-flex;
+  margin: 2px;
+  padding: 0.2em;
+  user-select: none;
 }
 
 .digit {

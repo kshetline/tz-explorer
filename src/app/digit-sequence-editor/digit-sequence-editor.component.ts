@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { abs, min, Point } from '@tubular/math';
-import { eventToKey, isAndroid, isEdge, isIE, isIOS} from '@tubular/util';
+import { abs, Point } from '@tubular/math';
+import { eventToKey, isAndroid, isEdge, isIE, isIOS, isString, toBoolean } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
 import { getXYForTouchEvent } from '../util/touch-events';
 
@@ -53,8 +53,6 @@ const INDICATOR_TEXT       = 'blue';
 const SELECTED_TEXT        = 'white';
 const VIEW_ONLY_TEXT       = '#0F0';
 
-const DEFAULT_BORDER_COLOR = '#D8D8D8';
-
 const touchListener = (): void => {
   DigitSequenceEditorComponent.touchHasOccurred = true;
   document.removeEventListener('touchstart', touchListener);
@@ -64,6 +62,7 @@ document.addEventListener('touchstart', touchListener);
 
 @Component({
   selector: 'tz-digit-sequence-editor',
+  animations: [BACKGROUND_ANIMATIONS],
   templateUrl: './digit-sequence-editor.component.html',
   styleUrls: ['./digit-sequence-editor.component.scss']
 })
@@ -89,6 +88,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private hasCanvasFocus = false;
   private hasHiddenInputFocus = false;
   private getCharFromInputEvent = false;
+  private _disabled = false;
 
   protected hiddenInput: HTMLInputElement;
   protected signDigit = -1;
@@ -106,7 +106,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected selectionHidden = false;
   protected lastTabTime = 0;
 
-  disabled = false;
   displayState = 'normal';
   items: SequenceItemInfo[] = [];
   useAlternateTouchHandling = false;
@@ -114,7 +113,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   get viewOnly(): boolean { return this._viewOnly; }
   @Input() set viewOnly(value: boolean) {
     this._viewOnly = value;
-    this.displayState = value ? 'viewOnly' : (this.disabled ? 'disabled' : 'normal');
+    this.adjustState();
   }
 
   get blank(): boolean { return this._blank; }
@@ -122,6 +121,15 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this._blank !== value) {
       this._blank = value;
     }
+  }
+
+  get disabled(): boolean | string { return this._disabled; }
+  @Input() set disabled(value: boolean | string) {
+    if (isString(value))
+      value = toBoolean(value, false, true);
+
+    this._disabled = value;
+    this.adjustState();
   }
 
   protected checkForWarning(): void {
@@ -160,6 +168,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected createDigits(): void {
     this.selection = 10;
+
     for (let i = 0; i <= 10; ++i) {
       this.items.push({ value: i === 5 ? ':' : i - (i > 5 ? 1 : 0), editable: i !== 5, selected: i === this.selection });
     }
@@ -181,8 +190,24 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return this.font;
   }
 
-  protected getColorForItem(item?: SequenceItemInfo, _index?: number): string {
-    if (this.disabled)
+  getStaticBackgroundColor(): string {
+    if (this._disabled)
+      return DISABLED_BACKGROUND;
+    else if (this._viewOnly)
+      return VIEW_ONLY_BACKGROUND;
+    else
+      return NORMAL_BACKGROUND;
+  }
+
+  getBackgroundColorForItem(item?: SequenceItemInfo, index?: number): string {
+    if (!this._disabled && item && index === this.selection && this.hasFocus)
+      return NORMAL_TEXT;
+    else
+      return this.getStaticBackgroundColor();
+  }
+
+  getColorForItem(item?: SequenceItemInfo, index?: number): string {
+    if (this._disabled)
       return DISABLED_TEXT;
     else if (item && this._viewOnly)
       return VIEW_ONLY_TEXT;
@@ -190,17 +215,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return DISABLED_ARROW_COLOR;
     else if (item && item.indicator)
       return INDICATOR_TEXT;
+    else if (index === this.selection && this.hasFocus)
+      return SELECTED_TEXT;
     else
       return NORMAL_TEXT;
-  }
-
-  protected getStaticBackgroundColor(): string {
-    if (this.disabled)
-      return DISABLED_BACKGROUND;
-    else if (this._viewOnly)
-      return VIEW_ONLY_BACKGROUND;
-    else
-      return NORMAL_BACKGROUND;
   }
 
   ngOnDestroy(): void {
@@ -227,28 +245,28 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMouseDown(index: number, event: MouseEvent): void {
-    if (this.disabled || this.viewOnly || event.button !== 0)
+  onMouseDown(event: MouseEvent): void {
+    if (this._disabled || this.viewOnly || event.button !== 0)
       return;
 
-    this.startSelectionAction(index);
+    this.startSelectionAction(this.selection);
   }
 
   onMouseLeave(): void {
     this.stopClickTimer();
   }
 
-  onTouchStart(index: number, event: TouchEvent): void {
-    if (this.disabled || this.viewOnly || !this.touchEnabled)
+  onTouchStart(event: TouchEvent): void {
+    if (this._disabled || this.viewOnly || !this.touchEnabled)
       return;
 
     if (event.cancelable)
       event.preventDefault();
 
     if (this.useAlternateTouchHandling)
-      this.onTouchStartAlternate(index, event);
+      this.onTouchStartAlternate(this.selection, event);
     else
-      this.onTouchStartDefault(index, event);
+      this.onTouchStartDefault(this.selection, event);
   }
 
   protected onTouchStartDefault(index: number, event: TouchEvent): void {
@@ -275,7 +293,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   onTouchMove(event: TouchEvent): void {
-    if (this.disabled || this.viewOnly || !this.touchEnabled)
+    if (this._disabled || this.viewOnly || !this.touchEnabled)
       return;
 
     event.preventDefault();
@@ -287,8 +305,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMouseUp(index: number): void {
-    if (this.disabled || this.viewOnly)
+  onMouseUp(): void {
+    if (this._disabled || this.viewOnly)
       return;
 
     if (this.clickTimer) {
@@ -304,12 +322,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.touchDeltaY = 0;
     }
 
-    if (this.disabled || this.viewOnly || !this.touchEnabled)
+    if (this._disabled || this.viewOnly || !this.touchEnabled)
       return;
 
     event.preventDefault();
-
-    this.onMouseUp(0); // TODO
+    this.onMouseUp();
 
     if (this.selection >= 0 && this.firstTouchPoint) {
       if (abs(lastDeltaY) >= DIGIT_SWIPE_THRESHOLD) {
@@ -321,15 +338,16 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onClick(index: number, event: MouseEvent): void {
-    if (this.disabled || this.viewOnly)
+  onClick(index: number): void {
+    if (this._disabled || this.viewOnly)
       return;
 
     this.updateSelection(index);
   }
 
   protected updateSelection(newSelection: number): void {
-    if (this.selection !== newSelection && newSelection !== SPIN_UP && newSelection !== SPIN_DOWN) {
+    if (this.selection !== newSelection &&
+        newSelection !== SPIN_UP && newSelection !== SPIN_DOWN && this.items[newSelection].editable) {
       if (this.selection > 0)
         this.items[this.selection].selected = false;
 
@@ -470,7 +488,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   protected onKey(key: string): void {
-    if (this.disabled || this.viewOnly || !this.hasFocus || !this.items[this.selection].editable)
+    if (this._disabled || this.viewOnly || !this.hasFocus || !this.items[this.selection].editable)
       return;
 
     if (this.selection !== this.signDigit) {
@@ -507,7 +525,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   protected onSpin(delta: number): void {
-    if (this.disabled || this.viewOnly)
+    if (this._disabled || this.viewOnly)
       return;
 
     if (delta > 0)
@@ -563,5 +581,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.items[this.selection].value = charCode - 48;
       this.cursorRight();
     }
+  }
+
+  private adjustState(): void {
+    this.displayState = this._viewOnly ? 'viewOnly' : (this._disabled ? 'disabled' : 'normal');
   }
 }

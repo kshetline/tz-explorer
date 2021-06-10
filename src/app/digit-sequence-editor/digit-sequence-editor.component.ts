@@ -3,7 +3,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { abs, Point } from '@tubular/math';
 import { eventToKey, isAndroid, isEdge, isIE, isIOS, isString, toBoolean } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
-import { getXYForTouchEvent } from '../util/touch-events';
+// import { getXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
   editable?: boolean;
@@ -23,7 +23,7 @@ const KEY_REPEAT_RATE  = 100;
 const WARNING_DURATION = 5000;
 const FALSE_REPEAT_THRESHOLD = 50;
 
-const DIGIT_SWIPE_THRESHOLD = 6;
+// const DIGIT_SWIPE_THRESHOLD = 6;
 
 const NO_SELECTION = -1;
 const SPIN_UP      = -2;
@@ -253,10 +253,20 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMouseDown(index: number, evt: MouseEvent): void {
+  onMouseDown(index: number, evt?: MouseEvent): void {
     if (this._disabled || this.viewOnly || evt.button !== 0)
       return;
-    else if ((index === SPIN_UP || index === SPIN_DOWN) && !this.clickTimer) {
+
+    if (this.items[index]?.spinner && evt?.target) {
+      const r = (evt.target as HTMLElement).getBoundingClientRect();
+
+      if (evt.pageY < r.top + r.height / 2)
+        index = SPIN_UP;
+      else
+        index = SPIN_DOWN;
+    }
+
+    if ((index === SPIN_UP || index === SPIN_DOWN) && !this.clickTimer) {
       this.activeSpinner = index;
       this.lastDelta = (index === SPIN_UP ? 1 : -1);
 
@@ -288,9 +298,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   protected updateSelection(newSelection: number): void {
-    if (this.selection !== newSelection &&
-        newSelection !== SPIN_UP && newSelection !== SPIN_DOWN && this.items[newSelection].editable) {
-      if (this.selection > 0)
+    if (this.selection !== newSelection && this.items[newSelection]?.editable) {
+      if (this.selection >= 0)
         this.items[this.selection].selected = false;
 
       this.selection = newSelection;
@@ -448,7 +457,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   protected onKey(key: string): void {
-    if (this._disabled || this.viewOnly || !this.hasFocus || !this.items[this.selection].editable)
+    if (this._disabled || this.viewOnly || !this.hasFocus || !this.items[this.selection]?.editable)
       return;
 
     if (this.selection !== this.signDigit) {
@@ -496,8 +505,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected cursorLeft(): void {
     let nextSelection = NO_SELECTION;
+    const start = (this.selection >= 0 ? this.selection : this.items.length);
 
-    for (let i = this.selection - 1; i >= 0; --i) {
+    for (let i = start - 1; i >= 0; --i) {
       if (this.items[i].editable) {
         nextSelection = i;
         break;
@@ -505,7 +515,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
 
     if (nextSelection !== NO_SELECTION) {
-      this.items[this.selection].selected = false;
+      if (this.selection >= 0)
+        this.items[this.selection].selected = false;
+
       this.selection = nextSelection;
       this.items[this.selection].selected = true;
     }
@@ -513,8 +525,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected cursorRight(): void {
     let nextSelection = -1;
+    const start = (this.selection >= 0 ? this.selection : -1);
 
-    for (let i = this.selection + 1; i < this.items.length; ++i) {
+    for (let i = start + 1; i < this.items.length; ++i) {
       if (this.items[i].editable) {
         nextSelection = i;
         break;
@@ -522,7 +535,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
 
     if (nextSelection >= 0) {
-      this.items[this.selection].selected = false;
+      if (this.selection >= 0)
+        this.items[this.selection].selected = false;
+
       this.selection = nextSelection;
       this.items[this.selection].selected = true;
     }

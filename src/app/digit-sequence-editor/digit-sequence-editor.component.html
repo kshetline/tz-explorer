@@ -19,7 +19,9 @@
       [style.background-color]="getBackgroundColorForItem(item, i)"
       [style.color]="getColorForItem(item, i)"
       [style.cursor]="item.editable && !disabled && !viewOnly ? 'pointer' : 'default'"
-      (click)="!item.spinner && onClick(i)">
+      (click)="!item.spinner && onClick(i)"
+      (mousedown)="item.spinner && onMouseDown(i, $event)"
+      (mouseup)="onMouseUp()">
   <span *ngIf="!item.spinner; else spinner">{{item.value}}</span>
   <ng-template #spinner>
     <svg width="0.627em" height="1em" viewBox="0 0 353 563">

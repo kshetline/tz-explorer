@@ -36,6 +36,9 @@ const ERROR_BACKGROUND     = '#F67';
 const VIEW_ONLY_BACKGROUND = 'black';
 const WARNING_BACKGROUND   = '#FC6';
 
+const addFocusOutline = isEdge() || isIE() || isIOS();
+const disableContentEditable = isEdge() || isIE();
+
 export const BACKGROUND_ANIMATIONS = trigger('displayState', [
   state('error',    style({ backgroundColor: ERROR_BACKGROUND })),
   state('normal',   style({ backgroundColor: NORMAL_BACKGROUND })),
@@ -68,6 +71,8 @@ document.addEventListener('touchstart', touchListener);
   styleUrls: ['./digit-sequence-editor.component.scss']
 })
 export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
+  addFocusOutline = addFocusOutline;
+  disableContentEditable = disableContentEditable;
   SPIN_DOWN = SPIN_DOWN;
   SPIN_UP = SPIN_UP;
 
@@ -75,9 +80,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private static lastKeyKey = '';
   private static useHiddenInput = isAndroid();
   private static checkForRepeatedKeyTimestamps = isIOS();
-  private static disableContentEditable = isEdge() || isIE();
-
-  protected static addFocusOutline = isEdge() || isIE() || isIOS();
 
   static touchHasOccurred = false;
 
@@ -97,7 +99,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private warningTimer: Subscription;
 
   protected font: string;
-  protected hasFocus = false;
   protected height = 17;
   protected hiddenInput: HTMLInputElement;
   protected hOffsets: number[] = [];
@@ -109,6 +110,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected touchEnabled = false;
 
   displayState = 'normal';
+  hasFocus = false;
   items: SequenceItemInfo[] = [];
   useAlternateTouchHandling = false;
 
@@ -296,7 +298,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       if (this.focusTimer) {
         clearTimeout(this.focusTimer);
         this.focusTimer = undefined;
-        this.showFocus = true;
+        this.showFocus = this.hasFocus;
       }
 
       if (this.selection > 0)
@@ -338,11 +340,16 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this.hasFocus !== newFocus) {
       this.hasFocus = newFocus;
 
+      if (this.focusTimer) {
+        clearTimeout(this.focusTimer);
+        this.focusTimer = undefined;
+      }
+
       if (newFocus) {
         this.focusTimer = setTimeout(() => {
           this.focusTimer = undefined;
-          this.showFocus = true;
-        }, 500);
+          this.showFocus = this.hasFocus;
+        }, 250);
         this.gainedFocus();
       }
       else {

@@ -1,7 +1,9 @@
 <!--suppress HtmlUnknownAttribute -->
 <div class="wrapper"
     [class.no-focus]="disabled"
-    [tabindex]="disabled ? -1 : 0" [attr.contenteditable]="!disabled"
+    [class.explicit-focus-outline]="addFocusOutline && hasFocus"
+    [class.clear-focus-outline]="addFocusOutline && !hasFocus"
+    [tabindex]="disabled ? -1 : 0" [attr.contenteditable]="!disabled && !disableContentEditable"
     autocomplete="off" autocapitalize="off" autocorrect="off"
     (keydown)="onKeyDown($event)" (keyup)="onKeyUp()" (keypress)="onKeyPress($event)"
     (focus)="onFocus(true)" (blur)="onFocus(false)"

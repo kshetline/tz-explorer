@@ -1,14 +1,39 @@
 .wrapper {
-  border: #D8D8D8 solid 1px;
+  align-items: baseline;
+  border: #D8D8D8 solid max(1px, 0.0836em);
   caret-color: transparent;
   cursor: default;
   display: inline-flex;
   margin: 2px;
-  padding: 0.2em;
+  padding: max(1px, 0.0836em) 0.2em;
   user-select: none;
 }
 
 .digit {
-  font-family: "Lucida Console", "Andale Mono", monospace;
+  font-family: "Lucida Sans Typewriter", "Lucida Console", Menlo, "Andale Mono", "Courier New", monospace;
   user-select: none;
+}
+
+.spinner {
+  line-height: 0.9em;
+  margin-top: -0.3em;
+  margin-right: -0.1em;
+  padding: 0 0.1em 0 0.15em;
+  position: relative;
+  top: 0.15em;
+}
+
+.fixed-indicator-font {
+  font-size: 0.8em;
+}
+
+.variable-font {
+  font-family: Verdana, Arial, sans-serif;
+  line-height: 1em;
+}
+
+.variable-indicator-font {
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 0.8em;
+  line-height: 1em;
 }

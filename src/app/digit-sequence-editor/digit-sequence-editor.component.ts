@@ -6,13 +6,14 @@ import { Subscription, timer } from 'rxjs';
 import { getXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
-  value: string | number;
-  editable: boolean;
-  selected: boolean;
-  fixedWidth?: boolean;
-  indicator?: boolean;
+  editable?: boolean;
   hidden?: boolean;
+  indicator?: boolean;
+  selected?: boolean;
   sizing?: string | string[];
+  spinner?: boolean;
+  value?: string | number;
+  variableWidth?: boolean;
 }
 
 export const FORWARD_TAB_DELAY = 250;
@@ -67,6 +68,9 @@ document.addEventListener('touchstart', touchListener);
   styleUrls: ['./digit-sequence-editor.component.scss']
 })
 export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
+  SPIN_DOWN = SPIN_DOWN;
+  SPIN_UP = SPIN_UP;
+
   private static lastKeyTimestamp = 0;
   private static lastKeyKey = '';
   private static useHiddenInput = isAndroid();
@@ -77,34 +81,32 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   static touchHasOccurred = false;
 
-  private keyTimer: Subscription;
-  private clickTimer: Subscription;
-  private warningTimer: Subscription;
-  private _viewOnly = false;
+  private activeSpinner = NO_SELECTION;
   private _blank = false;
-  private lastDelta = 1;
+  private clickTimer: Subscription;
+  private _disabled = false;
   private firstTouchPoint: Point;
-  private touchDeltaY = 0;
+  private focusTimer: any;
+  private getCharFromInputEvent = false;
   private hasCanvasFocus = false;
   private hasHiddenInputFocus = false;
-  private getCharFromInputEvent = false;
-  private _disabled = false;
+  private keyTimer: Subscription;
+  private lastDelta = 1;
+  private touchDeltaY = 0;
+  private _viewOnly = false;
+  private warningTimer: Subscription;
 
-  protected hiddenInput: HTMLInputElement;
-  protected signDigit = -1;
-  protected width = 180;
-  protected height = 17;
   protected font: string;
-  protected smallFont: string;
-  protected fixedFont: string;
-  protected smallFixedFont: string;
-  protected hOffsets: number[] = [];
   protected hasFocus = false;
+  protected height = 17;
+  protected hiddenInput: HTMLInputElement;
+  protected hOffsets: number[] = [];
+  protected lastTabTime = 0;
   protected selection = 0;
   protected setupComplete = false;
+  protected showFocus = false;
+  protected signDigit = -1;
   protected touchEnabled = false;
-  protected selectionHidden = false;
-  protected lastTabTime = 0;
 
   displayState = 'normal';
   items: SequenceItemInfo[] = [];
@@ -166,12 +168,19 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.createDigits();
   }
 
+  ngOnDestroy(): void {
+    this.stopKeyTimer();
+    this.stopClickTimer();
+  }
+
   protected createDigits(): void {
     this.selection = 10;
 
     for (let i = 0; i <= 10; ++i) {
       this.items.push({ value: i === 5 ? ':' : i - (i > 5 ? 1 : 0), editable: i !== 5, selected: i === this.selection });
     }
+
+    this.items.push({ spinner: true });
   }
 
   protected createHiddenInput(): void {
@@ -179,15 +188,15 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected getFontForItem(item: SequenceItemInfo): string {
-    if (item.fixedWidth && item.indicator)
-      return this.smallFixedFont;
-    else if (item.fixedWidth)
-      return this.fixedFont;
+  getFontClassForItem(item: SequenceItemInfo): string {
+    if (!item.variableWidth && item.indicator)
+      return 'fixed-indicator-font';
     else if (item.indicator)
-      return this.smallFont;
+      return 'variable-indicator-font';
+    else if (item.variableWidth)
+      return 'variable-font';
     else
-      return this.font;
+      return null;
   }
 
   getStaticBackgroundColor(): string {
@@ -200,7 +209,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   getBackgroundColorForItem(item?: SequenceItemInfo, index?: number): string {
-    if (!this._disabled && item && index === this.selection && this.hasFocus)
+    if (!this._disabled && this.showFocus &&
+        ((item && index === this.selection) || (!item && this.activeSpinner === index)))
       return NORMAL_TEXT;
     else
       return this.getStaticBackgroundColor();
@@ -215,15 +225,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return DISABLED_ARROW_COLOR;
     else if (item && item.indicator)
       return INDICATOR_TEXT;
-    else if (index === this.selection && this.hasFocus)
+    else if (index === this.selection && this.showFocus)
       return SELECTED_TEXT;
     else
       return NORMAL_TEXT;
-  }
-
-  ngOnDestroy(): void {
-    this.stopKeyTimer();
-    this.stopClickTimer();
   }
 
   protected errorFlash(): void {
@@ -240,68 +245,22 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected stopClickTimer(): void {
     if (this.clickTimer) {
+      this.activeSpinner = NO_SELECTION;
       this.clickTimer.unsubscribe();
       this.clickTimer = undefined;
     }
   }
 
-  onMouseDown(event: MouseEvent): void {
-    if (this._disabled || this.viewOnly || event.button !== 0)
+  onMouseDown(index: number, evt: MouseEvent): void {
+    if (this._disabled || this.viewOnly || evt.button !== 0)
       return;
-
-    this.startSelectionAction(this.selection);
-  }
-
-  onMouseLeave(): void {
-    this.stopClickTimer();
-  }
-
-  onTouchStart(event: TouchEvent): void {
-    if (this._disabled || this.viewOnly || !this.touchEnabled)
-      return;
-
-    if (event.cancelable)
-      event.preventDefault();
-
-    if (this.useAlternateTouchHandling)
-      this.onTouchStartAlternate(this.selection, event);
-    else
-      this.onTouchStartDefault(this.selection, event);
-  }
-
-  protected onTouchStartDefault(index: number, event: TouchEvent): void {
-    this.firstTouchPoint = getXYForTouchEvent(event);
-    this.touchDeltaY = 0;
-
-//    if (!this.hasFocus)
-//      this.canvas.focus();
-
-    this.updateSelection(index);
-    this.startSelectionAction(index);
-  }
-
-  protected onTouchStartAlternate(_index: number, _event: TouchEvent): void {}
-
-  protected startSelectionAction(newSelection: number): void {
-    if ((newSelection === SPIN_UP || newSelection === SPIN_DOWN) && !this.clickTimer) {
-      this.lastDelta = newSelection === SPIN_UP ? 1 : -1;
+    else if ((index === SPIN_UP || index === SPIN_DOWN) && !this.clickTimer) {
+      this.activeSpinner = index;
+      this.lastDelta = (index === SPIN_UP ? 1 : -1);
 
       this.clickTimer = timer(KEY_REPEAT_DELAY, KEY_REPEAT_RATE).subscribe(() => {
         this.onSpin(this.lastDelta);
       });
-    }
-  }
-
-  onTouchMove(event: TouchEvent): void {
-    if (this._disabled || this.viewOnly || !this.touchEnabled)
-      return;
-
-    event.preventDefault();
-
-    if (this.selection >= 0 && this.firstTouchPoint) {
-      const pt = getXYForTouchEvent(event);
-
-      this.touchDeltaY = pt.y - this.firstTouchPoint.y;
     }
   }
 
@@ -315,27 +274,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onTouchEnd(event: TouchEvent): void {
-    const lastDeltaY = this.touchDeltaY;
-
-    if (this.touchDeltaY !== 0) {
-      this.touchDeltaY = 0;
-    }
-
-    if (this._disabled || this.viewOnly || !this.touchEnabled)
-      return;
-
-    event.preventDefault();
-    this.onMouseUp();
-
-    if (this.selection >= 0 && this.firstTouchPoint) {
-      if (abs(lastDeltaY) >= DIGIT_SWIPE_THRESHOLD) {
-        if (lastDeltaY < 0)
-          this.increment();
-        else
-          this.decrement();
-      }
-    }
+  onMouseLeave(): void {
+    this.stopClickTimer();
   }
 
   onClick(index: number): void {
@@ -352,6 +292,12 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
         this.items[this.selection].selected = false;
 
       this.selection = newSelection;
+
+      if (this.focusTimer) {
+        clearTimeout(this.focusTimer);
+        this.focusTimer = undefined;
+        this.showFocus = true;
+      }
 
       if (this.selection > 0)
         this.items[this.selection].selected = true;
@@ -392,10 +338,17 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this.hasFocus !== newFocus) {
       this.hasFocus = newFocus;
 
-      if (newFocus)
+      if (newFocus) {
+        this.focusTimer = setTimeout(() => {
+          this.focusTimer = undefined;
+          this.showFocus = true;
+        }, 500);
         this.gainedFocus();
-      else
+      }
+      else {
+        this.showFocus = false;
         this.lostFocus();
+      }
     }
 
     // if (this.hiddenInput && !this.disabled)

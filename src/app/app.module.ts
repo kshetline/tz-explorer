@@ -5,11 +5,13 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DigitSequenceEditorComponent } from './digit-sequence-editor/digit-sequence-editor.component';
+import { TimeEditorComponent } from './time-editor/time-editor.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    DigitSequenceEditorComponent
+    DigitSequenceEditorComponent,
+    TimeEditorComponent
   ],
   imports: [
     BrowserModule,

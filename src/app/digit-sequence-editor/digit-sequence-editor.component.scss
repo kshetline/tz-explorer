@@ -1,17 +1,20 @@
 .wrapper {
   align-items: baseline;
-  border: #D8D8D8 solid max(1px, 0.0836em);
+  border: #A6A6A6 solid max(1px, 0.0836em);
+  border-radius: 0.2em;
   caret-color: transparent;
   cursor: default;
   display: inline-flex;
   margin: 2px;
+  overflow: hidden;
   padding: max(1px, 0.0836em) 0.2em;
   user-select: none;
 }
 
 .digit {
-  font-family: "Lucida Sans Typewriter", "Lucida Console", Menlo, "Andale Mono", "Courier New", monospace;
+  font-family: Verdana, Arial, sans-serif;
   user-select: none;
+  -webkit-text-stroke-width: 0.25px;
 }
 
 .spinner {
@@ -23,17 +26,18 @@
   top: 0.15em;
 }
 
-.fixed-indicator-font {
-  font-size: 0.8em;
-}
-
-.variable-font {
-  font-family: Verdana, Arial, sans-serif;
+.fixed-font {
+  font-family: "Lucida Sans Typewriter", "Lucida Console", Menlo, "Andale Mono", "Courier New", monospace;
   line-height: 1em;
 }
 
-.variable-indicator-font {
-  font-family: Verdana, Arial, sans-serif;
+.indicator-font {
+  font-size: 0.8em;
+  line-height: 1em;
+}
+
+.fixed-indicator-font {
+  font-family: "Lucida Sans Typewriter", "Lucida Console", Menlo, "Andale Mono", "Courier New", monospace;
   font-size: 0.8em;
   line-height: 1em;
 }

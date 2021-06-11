@@ -20,7 +20,7 @@
   "plugins": [
     "@typescript-eslint"
   ],
-  "ignorePatterns": ["dist/**/*", "**/polyfills.ts"],
+  "ignorePatterns": ["dist/**/*", "**/polyfills.ts", "**/*.html"],
   "rules": {
     "brace-style": [
       "error",

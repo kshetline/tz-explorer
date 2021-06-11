@@ -7,13 +7,14 @@ import { Subscription, timer } from 'rxjs';
 
 export interface SequenceItemInfo {
   editable?: boolean;
+  fixedWidth?: boolean;
   hidden?: boolean;
   indicator?: boolean;
+  name?: string;
   selected?: boolean;
   sizing?: string | string[];
   spinner?: boolean;
   value?: string | number;
-  variableWidth?: boolean;
 }
 
 export const FORWARD_TAB_DELAY = 250;
@@ -191,12 +192,12 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   getFontClassForItem(item: SequenceItemInfo): string {
-    if (!item.variableWidth && item.indicator)
+    if (item.fixedWidth && item.indicator)
       return 'fixed-indicator-font';
     else if (item.indicator)
-      return 'variable-indicator-font';
-    else if (item.variableWidth)
-      return 'variable-font';
+      return 'indicator-font';
+    else if (item.fixedWidth)
+      return 'fixed-font';
     else
       return null;
   }
@@ -215,7 +216,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
         ((item && index === this.selection) || (!item && this.activeSpinner === index)))
       return NORMAL_TEXT;
     else
-      return this.getStaticBackgroundColor();
+      return 'transparent';
   }
 
   getColorForItem(item?: SequenceItemInfo, index?: number): string {

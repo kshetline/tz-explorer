@@ -1,9 +1,9 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { abs, Point } from '@tubular/math';
 import { eventToKey, isAndroid, isEdge, isIE, isIOS, isString, toBoolean } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
-// import { getXYForTouchEvent } from '../util/touch-events';
+import { getXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
   editable?: boolean;
@@ -24,7 +24,7 @@ const KEY_REPEAT_RATE  = 100;
 const WARNING_DURATION = 5000;
 const FALSE_REPEAT_THRESHOLD = 50;
 
-// const DIGIT_SWIPE_THRESHOLD = 6;
+const DIGIT_SWIPE_THRESHOLD = 6;
 
 const NO_SELECTION = -1;
 const SPIN_UP      = -2;
@@ -108,12 +108,14 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected setupComplete = false;
   protected showFocus = false;
   protected signDigit = -1;
-  protected touchEnabled = false;
+  protected touchEnabled = true; // TODO
 
   displayState = 'normal';
   hasFocus = false;
   items: SequenceItemInfo[] = [];
   useAlternateTouchHandling = false;
+
+  @ViewChild('wrapper', { static: true }) private wrapperRef: ElementRef;
 
   get viewOnly(): boolean { return this._viewOnly; }
   @Input() set viewOnly(value: boolean) {
@@ -234,6 +236,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return NORMAL_TEXT;
   }
 
+  returnFalse(): boolean {
+    return false;
+  }
+
   protected errorFlash(): void {
     this.displayState = 'error';
     timer(FLASH_DURATION).subscribe(() => { this.displayState = (this.warningTimer ? 'warning' : 'normal'); });
@@ -254,32 +260,30 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onMouseDown(index: number, evt?: MouseEvent): void {
-    if (this._disabled || this.viewOnly || evt.button !== 0)
+  onMouseDown(index: number, evt?: MouseEvent | TouchEvent): void {
+    if (this._disabled || this.viewOnly || ((evt as any)?.button ?? 0) !== 0)
       return;
+    else if (evt)
+      evt.stopPropagation();
 
     if (this.items[index]?.spinner && evt?.target) {
       const r = (evt.target as HTMLElement).getBoundingClientRect();
+      const y = ((evt as any).pageY ?? getXYForTouchEvent(evt as any).y + r.top);
 
-      if (evt.pageY < r.top + r.height / 2)
+      if (y < r.top + r.height / 2)
         index = SPIN_UP;
       else
         index = SPIN_DOWN;
     }
 
-    if ((index === SPIN_UP || index === SPIN_DOWN) && !this.clickTimer) {
-      this.activeSpinner = index;
-      this.lastDelta = (index === SPIN_UP ? 1 : -1);
-
-      this.clickTimer = timer(KEY_REPEAT_DELAY, KEY_REPEAT_RATE).subscribe(() => {
-        this.onSpin(this.lastDelta);
-      });
-    }
+    this.checkSpinAction(index);
   }
 
-  onMouseUp(): void {
+  onMouseUp(evt?: MouseEvent): void {
     if (this._disabled || this.viewOnly)
       return;
+    else if (evt)
+      evt.stopPropagation();
 
     if (this.clickTimer) {
       this.stopClickTimer();
@@ -298,6 +302,67 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.updateSelection(index);
   }
 
+  onTouchStart(index: number, evt: TouchEvent): void {
+    if (this._disabled || this.viewOnly || !this.touchEnabled)
+      return;
+
+    if (evt.cancelable)
+      evt.preventDefault();
+
+    if (!this.hasFocus && this.wrapperRef?.nativeElement?.focus)
+      this.wrapperRef.nativeElement.focus();
+
+    if (this.useAlternateTouchHandling)
+      this.onTouchStartAlternate(index, evt);
+    else
+      this.onTouchStartDefault(index, evt);
+  }
+
+  onTouchMove(evt: TouchEvent): void {
+    if (this._disabled || this.viewOnly || !this.touchEnabled)
+      return;
+
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    if (this.selection >= 0 && this.firstTouchPoint) {
+      const pt = getXYForTouchEvent(evt);
+
+      this.touchDeltaY = pt.y - this.firstTouchPoint.y;
+    }
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    const lastDeltaY = this.touchDeltaY;
+
+    if (this.touchDeltaY !== 0) {
+      this.touchDeltaY = 0;
+    }
+
+    if (this._disabled || this.viewOnly || !this.touchEnabled)
+      return;
+
+    event.preventDefault();
+    this.onMouseUp(null);
+
+    if (this.selection >= 0 && this.firstTouchPoint) {
+      if (abs(lastDeltaY) >= DIGIT_SWIPE_THRESHOLD) {
+        if (lastDeltaY < 0)
+          this.increment();
+        else
+          this.decrement();
+      }
+    }
+  }
+
+  protected onTouchStartDefault(index: number, evt: TouchEvent): void {
+    this.firstTouchPoint = getXYForTouchEvent(evt);
+    this.touchDeltaY = 0;
+    this.onMouseDown(index, evt);
+  }
+
+  protected onTouchStartAlternate(_index: number, _event: TouchEvent): void {}
+
   protected updateSelection(newSelection: number): void {
     if (this.selection !== newSelection && this.items[newSelection]?.editable) {
       if (this.selection >= 0)
@@ -313,6 +378,17 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
       if (this.selection > 0)
         this.items[this.selection].selected = true;
+    }
+  }
+
+  private checkSpinAction(index: number): void {
+    if ((index === SPIN_UP || index === SPIN_DOWN) && !this.clickTimer) {
+      this.activeSpinner = index;
+      this.lastDelta = (index === SPIN_UP ? 1 : -1);
+
+      this.clickTimer = timer(KEY_REPEAT_DELAY, KEY_REPEAT_RATE).subscribe(() => {
+        this.onSpin(this.lastDelta);
+      });
     }
   }
 
@@ -377,8 +453,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected gainedFocus(): void {}
   protected lostFocus(): void {}
 
-  onKeyDown(event: KeyboardEvent): boolean {
-    const key = eventToKey(event);
+  onKeyDown(evt: KeyboardEvent): boolean {
+    const key = eventToKey(evt);
 
     // For some strange reason, iOS external mobile keyboards (at least one Logitech model, and one Apple model)
     // are sometimes generating two keydown events for one single keypress, both events with the same timestamp,
@@ -389,9 +465,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     // for legitimately separate keystrokes, so repeated timestamps have to be expected and allowed there.
     //
     if (DigitSequenceEditorComponent.checkForRepeatedKeyTimestamps &&
-        (abs(event.timeStamp - DigitSequenceEditorComponent.lastKeyTimestamp) <= FALSE_REPEAT_THRESHOLD &&
+        (abs(evt.timeStamp - DigitSequenceEditorComponent.lastKeyTimestamp) <= FALSE_REPEAT_THRESHOLD &&
          key === DigitSequenceEditorComponent.lastKeyKey)) {
-      event.preventDefault();
+      evt.preventDefault();
 
       return false;
     }
@@ -400,9 +476,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     // pressed. They instead match the following test and we have to grab a character out of the hidden
     // input field to find out what was actually typed in.
     // noinspection JSDeprecatedSymbols (for `keyCode`)
-    if (this.hiddenInput && key === 'Unidentified' && event.keyCode === 229) {
+    if (this.hiddenInput && key === 'Unidentified' && evt.keyCode === 229) {
       this.getCharFromInputEvent = true;
-      DigitSequenceEditorComponent.lastKeyTimestamp = event.timeStamp;
+      DigitSequenceEditorComponent.lastKeyTimestamp = evt.timeStamp;
 
       return true;
     }
@@ -410,7 +486,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (key === 'Tab')
       this.lastTabTime = performance.now();
 
-    if (key === 'Tab' || event.altKey || event.ctrlKey || event.metaKey || /^F\d+$/.test(key))
+    if (key === 'Tab' || evt.altKey || evt.ctrlKey || evt.metaKey || /^F\d+$/.test(key))
       return true;
 
     // If the built-in auto-repeat is in effect, ignore keystrokes that come along until that auto-repeat ends.
@@ -419,8 +495,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.keyTimer = timer(KEY_REPEAT_DELAY, KEY_REPEAT_RATE).subscribe(() => this.onKey(key));
     }
 
-    event.preventDefault();
-    DigitSequenceEditorComponent.lastKeyTimestamp = event.timeStamp;
+    evt.preventDefault();
+    DigitSequenceEditorComponent.lastKeyTimestamp = evt.timeStamp;
     DigitSequenceEditorComponent.lastKeyKey = key;
 
     return false;
@@ -433,16 +509,16 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   // noinspection JSMethodCanBeStatic
-  onKeyPress(event: KeyboardEvent): boolean {
-    const key = eventToKey(event);
+  onKeyPress(evt: KeyboardEvent): boolean {
+    const key = eventToKey(evt);
 
     if (key === 'Tab')
       this.lastTabTime = performance.now();
 
-    if (key === 'Tab' || event.altKey || event.ctrlKey || event.metaKey || /^F\d+$/.test(key))
+    if (key === 'Tab' || evt.altKey || evt.ctrlKey || evt.metaKey || /^F\d+$/.test(key))
       return true;
 
-    event.preventDefault();
+    evt.preventDefault();
     return false;
   }
 

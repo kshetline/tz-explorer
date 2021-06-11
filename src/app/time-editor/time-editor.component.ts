@@ -29,7 +29,7 @@ type TimeFormat = 'date' | 'time' | 'datetime-local';
 export class TimeEditorComponent extends DigitSequenceEditorComponent implements ControlValueAccessor, OnInit {
   static get supportsNativeDateTime(): boolean { return platformNativeDateTime; }
 
-  private dateTime = new DateTime();
+  private dateTime = new DateTime(1636264800000); // TODO
   private _gregorianChangeDate = '1582-10-15';
   private onTouchedCallback: () => void = noop;
   private onChangeCallback: (_: any) => void = noop;
@@ -94,7 +94,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         }
       }
       else
-        newTime = Date.now(); // TODO
+        newTime = 1636264800000; // TODO
 
       if (newTime !== undefined && !isNaN(newTime))
         this.value = newTime;
@@ -165,7 +165,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     return false;
   }
 
-  protected onTouchStartAlternate(_event: TouchEvent): void {
+  protected onTouchStartAlternate(_index: number, _event: TouchEvent): void {
     let format: TimeFormat = 'datetime-local';
 
     if (isIOS()) {
@@ -322,7 +322,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.items.push({ value: ':' });
     this.items.push({ value: 0,   editable: true }); // 15 - Minute tens
     this.items.push({ value: 0,   editable: true }); // 16 - Minute units
-    this.items.push({ value: '\u2082\u200A', editable: false, selected: false, hidden: true, name: '2occ' }); // 17 - 2nd occurrence indicator (Subscript 2, hair space)
+    this.items.push({ value: '\u200A\u2082\u200A', editable: false, selected: false, hidden: true, name: '2occ' }); // 17 - 2nd occurrence indicator (Subscript 2, hair space)
     this.items.push({ value: '+00:00', editable: false, selected: false, indicator: true, fixedWidth: true }); // 18 - UTC offset
     this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, indicator: true, fixedWidth: true }); // 19 - DST indicator
     this.items.push({ spinner: true });

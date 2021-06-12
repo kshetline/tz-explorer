@@ -110,10 +110,13 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected hiddenInput: HTMLInputElement;
   protected hOffsets: number[] = [];
   protected lastTabTime = 0;
+  protected letterDecrement = 'z';
+  protected letterIncrement = 'a';
   protected setupComplete = false;
   protected showFocus = false;
   protected signDigit = -1;
   protected touchEnabled = true; // TODO
+  protected wrapper: HTMLElement;
 
   displayState = 'normal';
   hasFocus = false;
@@ -177,7 +180,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.wrapper = this.wrapperRef.nativeElement;
     this.createDigits();
+    this.createHiddenInput();
   }
 
   ngOnDestroy(): void {
@@ -197,6 +202,28 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected createHiddenInput(): void {
     if (DigitSequenceEditorComponent.useHiddenInput) {
+      this.hiddenInput = document.createElement('input');
+      this.hiddenInput.type = 'text';
+      this.hiddenInput.autocomplete = 'off';
+      this.hiddenInput.setAttribute('autocapitalize', 'off');
+      this.hiddenInput.setAttribute('autocomplete', 'off');
+      this.hiddenInput.setAttribute('autocorrect', 'off');
+      this.hiddenInput.style.position = 'absolute';
+      this.hiddenInput.style.opacity = '0';
+      (this.hiddenInput.style as any)['caret-color'] = 'transparent';
+      (this.hiddenInput.style as any)['pointer-events'] = 'none';
+      this.hiddenInput.style.left = '0';
+      this.hiddenInput.style.top = '-6px';
+
+      this.hiddenInput.addEventListener('keydown', event => this.onKeyDown(event));
+      this.hiddenInput.addEventListener('keypress', event => this.onKeyPress(event));
+      this.hiddenInput.addEventListener('keyup', () => this.onKeyUp());
+      this.hiddenInput.addEventListener('input', () => this.onInput());
+      this.hiddenInput.addEventListener('focus', () => this.onHiddenInputFocus(true));
+      this.hiddenInput.addEventListener('blur', () => this.onHiddenInputFocus(false));
+
+      this.wrapper.parentElement.appendChild(this.hiddenInput);
+      this.wrapper.setAttribute('tabindex', '-1');
     }
   }
 
@@ -324,8 +351,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (evt.cancelable)
       evt.preventDefault();
 
-    if (!this.hasFocus && this.wrapperRef?.nativeElement?.focus)
-      this.wrapperRef.nativeElement.focus();
+    if (!this.hasFocus && this.wrapper.focus)
+      this.wrapper.focus();
 
     if (this.useAlternateTouchHandling)
       this.onTouchStartAlternate(index, evt);
@@ -381,12 +408,12 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.firstTouchPoint = getPageXYForTouchEvent(evt);
     this.clearDeltaYDragging();
 
-    const target = this.wrapperRef.nativeElement.querySelector('dse-item-' + index) as HTMLElement;
+    const target = this.wrapper.querySelector('dse-item-' + index) as HTMLElement;
 
     if (target)
       this.digitHeight = target.getBoundingClientRect().height;
     else
-      this.digitHeight = this.wrapperRef.nativeElement.getBoundingClientRect().height;
+      this.digitHeight = this.wrapper.getBoundingClientRect().height;
 
     this.onMouseDown(index, evt);
   }
@@ -572,9 +599,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return;
 
     if (this.selection !== this.signDigit) {
-      if (key === '-')
+      if (key === '-' || key.toLowerCase() === this.letterDecrement)
         key = 'ArrowDown';
-      else if (key === '+' || key === '=')
+      else if (key === '+' || key === '=' || key.toLowerCase() === this.letterIncrement)
         key = 'ArrowUp';
     }
 

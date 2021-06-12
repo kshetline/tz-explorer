@@ -26,17 +26,17 @@
       (mouseup)="onMouseUp($event)"
       (contextmenu)="returnFalse()"
       (touchstart)="onTouchStart(i, $event)">
-  <span *ngIf="!item.spinner && canSwipe(i)"
+  <span *ngIf="swipeable(item, i, 1)"
       class="draggable-extra"
-      [style.top]="'calc(-1.25em + ' + (i === selection ? smoothedDeltaY : 0) + 'px)'"
-  >{{swipeAbove}}</span>
-  <span *ngIf="!item.spinner && canSwipe(i)"
+      [style.top]="'calc(-1.25em + ' + smoothedDeltaY + 'px)'"
+  >{{item.swipeAbove}}</span>
+  <span *ngIf="swipeable(item, i, -1)"
       class="draggable-extra"
-      [style.top]="'calc(1.25em + ' + (i === selection ? smoothedDeltaY : 0) + 'px)'"
-  >{{swipeBelow}}</span>
+      [style.top]="'calc(1.25em + ' + smoothedDeltaY + 'px)'"
+  >{{item.swipeBelow}}</span>
   <span *ngIf="!item.spinner; else spinner"
       class="draggable dse-item-{{i}}"
-      [style.top]="(i === selection ? smoothedDeltaY : 0) + 'px'"
+      [style.top]="(swipeable(item, i, 0) ? smoothedDeltaY : 0) + 'px'"
   >{{item.value}}</span>
   <ng-template #spinner>
     <svg width="0.574em" height="1em" viewBox="0 0 353 614.6">

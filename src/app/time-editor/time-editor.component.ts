@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DateAndTime, DateTimeField, DateTime, Timezone } from '@tubular/time';
-import { abs, div_tt0, floor, max, min } from '@tubular/math';
+import { abs, div_tt0, max, min } from '@tubular/math';
 import { isAndroid, isChrome, isIOS, noop, padLeft } from '@tubular/util';
 import { timer } from 'rxjs';
 // import { AppService, currentMinuteMillis, SVC_MAX_YEAR, SVC_MIN_YEAR } from '../../app.service';
@@ -13,14 +13,6 @@ export const SVC_TIME_EDITOR_VALUE_ACCESSOR: any = {
   multi: true
 };
 
-const fieldLookup = {
-  [DateTimeField.YEAR]: 'y',
-  [DateTimeField.MONTH]: 'm',
-  [DateTimeField.DAY]: 'd',
-  [DateTimeField.HOUR]: 'hrs',
-  [DateTimeField.MINUTE]: 'min',
-  [DateTimeField.SECOND]: 'sec',
-};
 const NO_BREAK_SPACE = '\u00A0';
 const platformNativeDateTime = (isIOS() || isAndroid() && isChrome());
 
@@ -317,16 +309,16 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.items.push({ value: 0,   editable: true }); //  2 - Year hundreds
     this.items.push({ value: 0,   editable: true }); //  3 - Year tens
     this.items.push({ value: 0,   editable: true }); //  4 - Year units
-    this.items.push({ value: '-', editable: false });
+    this.items.push({ value: '-', static: true });
     this.items.push({ value: 0,   editable: true }); //  6 - Month tens
     this.items.push({ value: 0,   editable: true }); //  7 - Month units
-    this.items.push({ value: '-' });
+    this.items.push({ value: '-', static: true });
     this.items.push({ value: 0,   editable: true }); //  9 - Day tens
     this.items.push({ value: 0,   editable: true }); // 10 - Day units
-    this.items.push({ value: NO_BREAK_SPACE });
+    this.items.push({ value: NO_BREAK_SPACE, static: true });
     this.items.push({ value: 0,   editable: true }); // 12 - Hour tens
     this.items.push({ value: 0,   editable: true }); // 13 - Hour units
-    this.items.push({ value: ':' });
+    this.items.push({ value: ':', static: true });
     this.items.push({ value: 0,   editable: true }); // 15 - Minute tens
     this.items.push({ value: 0,   editable: true }); // 16 - Minute units
     this.items.push({ value: '\u200A\u2082\u200A', editable: false, selected: false, hidden: true, name: '2occ' }); // 17 - 2nd occurrence indicator (Subscript 2, hair space)
@@ -345,13 +337,14 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       return super.getFontClassForItem(item);
   }
 
-  private updateDigits(): void {
-    const i = this.items;
+  private updateDigits(dateTime = this.dateTime, delta = 0): void {
+    const i = this.items as any[];
+    const value = delta === 0 ? 'value' : delta < 0 ? 'swipeBelow' : 'swipeAbove';
 
-    if (i.length < 17 || !this.dateTime.valid)
+    if (i.length < 17 || !dateTime.valid)
       return;
 
-    let wallTime = this.dateTime.wallTime;
+    let wallTime = dateTime.wallTime;
     let reUpdate = false;
 
     if (wallTime.y < this.minYear) {
@@ -363,11 +356,11 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       reUpdate = true;
     }
 
-    if (reUpdate) {
+    if (reUpdate && delta === 0) {
       timer().subscribe(() => {
         this.errorFlash();
-        this.dateTime.wallTime = wallTime;
-        this.onChangeCallback(this.dateTime.utcTimeMillis);
+        dateTime.wallTime = wallTime;
+        this.onChangeCallback(dateTime.utcTimeMillis);
         this.updateDigits();
       });
       return;
@@ -376,9 +369,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const y = abs(wallTime.y);
 
     if (wallTime.y < 0)
-      i[0].value = '-';
+      i[0][value] = '-';
     else
-      i[0].value = NO_BREAK_SPACE;
+      i[0][value] = NO_BREAK_SPACE;
 
     // noinspection JSSuspiciousNameCombination
     const y4 = div_tt0(y, 1000);
@@ -386,37 +379,38 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const y2 = div_tt0(y - y4 * 1000 - y3 * 100, 10);
     const y1 = y % 10;
 
-    [i[1].value, i[2].value, i[3].value, i[4].value] = [y4, y3, y2, y1];
+    [i[1][value], i[2][value], i[3][value], i[4][value]] = [y4, y3, y2, y1];
 
     const M2 = div_tt0(wallTime.m, 10);
     const M1 = wallTime.m % 10;
 
-    [i[6].value, i[7].value] = [M2, M1];
+    [i[6][value], i[7][value]] = [M2, M1];
 
     const d2 = div_tt0(wallTime.d, 10);
     const d1 = wallTime.d % 10;
 
-    [i[9].value, i[10].value] = [d2, d1];
+    [i[9][value], i[10][value]] = [d2, d1];
 
     const h2 = div_tt0(wallTime.hrs, 10);
     const h1 = wallTime.hrs % 10;
 
-    [i[12].value, i[13].value] = [h2, h1];
+    [i[12][value], i[13][value]] = [h2, h1];
 
     const m2 = div_tt0(wallTime.min, 10);
     const m1 = wallTime.min % 10;
 
-    [i[15].value, i[16].value] = [m2, m1];
-    i[17].hidden = (wallTime.occurrence !== 2);
-    i[18].value = this.dateTime.timezone.getFormattedOffset(this.dateTime.utcTimeMillis);
+    [i[15][value], i[16][value]] = [m2, m1];
+    if (delta === 0) i[17].hidden = (wallTime.occurrence !== 2);
+    i[18][value] = dateTime.timezone.getFormattedOffset(dateTime.utcTimeMillis);
 
     if (!wallTime.dstOffset)
-      i[19].value = NO_BREAK_SPACE;
+      i[19][value] = NO_BREAK_SPACE;
     else {
-      i[19].value = Timezone.getDstSymbol(wallTime.dstOffset);
+      i[19][value] = Timezone.getDstSymbol(wallTime.dstOffset);
     }
 
-    this.updateLocalTime();
+    if (delta === 0)
+      this.updateLocalTime();
   }
 
   private updateLocalTime(): void {
@@ -448,11 +442,31 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     return { y: year, m: month, d: date, hrs: hour, min: minute, sec: 0, occurrence: this.dateTime.wallTime.occurrence };
   }
 
-  getSwipeValue(index: number, delta: number): string {
-    if (this.items[index].editable)
-      return this.roll(delta, index, false);
-    else
-      return null;
+  creatSwipeValues(index: number): void {
+    this.roll(1, index, false);
+    this.roll(-1, index, false);
+
+    for (let i = 0; i < index; ++i) {
+      const item = this.items[i];
+
+      if (item.static)
+        continue;
+      if (item.value === item.swipeAbove && item.value === item.swipeBelow)
+        item.swipeAbove = item.swipeBelow = null;
+      else if (item.editable)
+        break;
+    }
+
+    for (let i = this.items.length - 1; i > index; --i) {
+      const item = this.items[i];
+
+      if (item.static)
+        continue;
+      if (item.value === item.swipeAbove && item.value === item.swipeBelow)
+        item.swipeAbove = item.swipeBelow = null;
+      else if (item.editable)
+        break;
+    }
   }
 
   protected increment(): void {
@@ -463,10 +477,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.roll(-1);
   }
 
-  private roll(sign: number, sel = this.selection, updateTime = true): string {
+  private roll(sign: number, sel = this.selection, updateTime = true): void {
     const dateTime = this.dateTime.clone();
     let change = 0;
-    let power = 0;
     let field = DateTimeField.YEAR;
     let wallTime = this.dateTime.wallTime;
     const wasNegative = (this.items[this.signDigit].value === '-');
@@ -483,27 +496,22 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
     else if (sel === 16 || sel === 15) {
       field = DateTimeField.MINUTE;
-      power = 16 - sel;
       change = (sel === 15 ? 10 : 1);
     }
     else if (sel === 13 || sel === 12) {
       field = DateTimeField.HOUR;
-      power = 13 - sel;
       change = (sel === 12 ? 10 : 1);
     }
     else if (sel === 10 || sel === 9) {
       field = DateTimeField.DAY;
-      power = 10 - sel;
       change = (sel === 9 ? 10 : 1);
     }
     else if (sel === 7 || sel === 6) {
       field = DateTimeField.MONTH;
-      power = 7 - sel;
       change = (sel === 6 ? 10 : 1);
     }
     else if (sel === 4 || sel === 3 || sel === 2 || sel === 1) {
       field = DateTimeField.YEAR;
-      power = 4 - sel;
       change = (sel === 1 ? 1000 : sel === 2 ? 100 : sel === 3 ? 10 : 1);
     }
 
@@ -514,9 +522,10 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       if (updateTime)
         this.errorFlash();
 
-      return null;
+      return;
     }
-    else if (updateTime) {
+
+    if (updateTime) {
       this.dateTime.utcTimeMillis = dateTime.utcTimeMillis;
       this.onChangeCallback(this.dateTime.utcTimeMillis);
       this.updateDigits();
@@ -524,11 +533,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       if (sel === this.signDigit && this.dateTime.wallTime.y === 0)
         this.items[sel].value = (wasNegative ? NO_BREAK_SPACE : '-');
     }
-
-    if (sel === this.signDigit)
-      return wasNegative ? '+' : '-';
-
-    return floor(abs((wallTime as any)[fieldLookup[field]]) / 10 ** power).toString().slice(-1);
+    else
+      this.updateDigits(dateTime, sign);
   }
 
   protected onKey(key: string): void {

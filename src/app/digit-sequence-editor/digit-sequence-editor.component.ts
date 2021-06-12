@@ -1,6 +1,6 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { abs, max, min, mod, Point } from '@tubular/math';
+import { abs, max, min, mod, Point, sign } from '@tubular/math';
 import { eventToKey, getCssValue, isAndroid, isEdge, isIE, isIOS, isString, processMillis, toBoolean, toNumber } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
 import { getPageXYForTouchEvent } from '../util/touch-events';
@@ -12,8 +12,10 @@ export interface SequenceItemInfo {
   indicator?: boolean;
   name?: string;
   selected?: boolean;
-  sizing?: string | string[];
   spinner?: boolean;
+  static?: boolean;
+  swipeAbove?: string;
+  swipeBelow?: string;
   value?: string | number;
 }
 
@@ -127,8 +129,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   items: SequenceItemInfo[] = [];
   selection = 0;
   smoothedDeltaY = 0;
-  swipeAbove: string = null;
-  swipeBelow: string = null;
   useAlternateTouchHandling = false;
 
   @ViewChild('wrapper', { static: true }) private wrapperRef: ElementRef;
@@ -285,19 +285,30 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return NORMAL_TEXT;
   }
 
-  canSwipe(index: number): boolean {
-    return index === this.swipeIndex && (this.swipeAbove != null || this.swipeBelow != null);
+  protected canSwipe(index: number): boolean {
+    const item = this.items[index];
+
+    return item.editable && !item.indicator && !item.hidden;
   }
 
-  getSwipeValue(index: number, delta: number): string {
+  swipeable(item: SequenceItemInfo, index: number, delta: number): boolean {
+    const nextValue = this.smoothedDeltaY < 0 ? item.swipeBelow : item.swipeAbove;
+
+    return index === this.swipeIndex ||
+      (sign(delta || this.smoothedDeltaY) === sign(this.smoothedDeltaY) && nextValue != null && item.value !== nextValue);
+  }
+
+  creatSwipeValues(index: number): void {
     const item = this.items[index];
     const value = toNumber(item.value);
 
-    if (item.editable && !item.indicator && !item.hidden &&
-        (index !== 0 || (value + delta >= 0 && value + delta <= 9)))
-      return mod(toNumber(item.value) + delta, 10).toString();
-    else
-      return null;
+    if (this.canSwipe(index)) {
+      if (item !== 0 || value < 9)
+        item.swipeAbove = mod(toNumber(item.value) + 1, 10).toString();
+
+      if (item !== 0 || value > 0)
+        item.swipeBelow = mod(toNumber(item.value) - 1, 10).toString();
+    }
   }
 
   returnFalse(): boolean {
@@ -371,9 +382,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.wrapper.focus();
 
     this.clearDeltaYSwiping();
-    this.swipeAbove = this.getSwipeValue(index, 1);
-    this.swipeBelow = this.getSwipeValue(index, -1);
-    this.swipeIndex = index;
+
+    if (this.canSwipe(index)) {
+      this.creatSwipeValues(index);
+      this.swipeIndex = index;
+    }
 
     if (this.useAlternateTouchHandling)
       this.onTouchStartAlternate(index, evt);
@@ -408,12 +421,12 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this.selection >= 0 && this.firstTouchPoint) {
       if (abs(lastDeltaY) >= max(this.digitHeight * MIN_DIGIT_SWIPE, DIGIT_SWIPE_THRESHOLD)) {
         if (lastDeltaY > 0) {
-          if (this.swipeAbove != null)
+          if (this.items[this.selection].swipeAbove != null)
             this.increment();
           else
             this.errorFlash();
         }
-        else if (this.swipeBelow != null)
+        else if (this.items[this.selection].swipeBelow != null)
           this.decrement();
         else
           this.errorFlash();
@@ -746,8 +759,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.touchDeltaTimes.length = 0;
     this.touchDeltaY = 0;
     this.touchDeltaYs.length = 0;
-    this.swipeAbove = '';
-    this.swipeBelow = '';
     this.swipeIndex = -1;
+    this.items.forEach(item => item.swipeAbove = item.swipeBelow = null);
   }
 }

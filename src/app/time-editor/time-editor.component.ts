@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DateAndTime, DateTimeField, DateTime, Timezone } from '@tubular/time';
-import { abs, div_tt0, max, min } from '@tubular/math';
+import { abs, div_tt0, floor, max, min } from '@tubular/math';
 import { isAndroid, isChrome, isIOS, noop, padLeft } from '@tubular/util';
 import { timer } from 'rxjs';
 // import { AppService, currentMinuteMillis, SVC_MAX_YEAR, SVC_MIN_YEAR } from '../../app.service';
@@ -13,9 +13,16 @@ export const SVC_TIME_EDITOR_VALUE_ACCESSOR: any = {
   multi: true
 };
 
-const platformNativeDateTime = (isIOS() || isAndroid() && isChrome());
-
+const fieldLookup = {
+  [DateTimeField.YEAR]: 'y',
+  [DateTimeField.MONTH]: 'm',
+  [DateTimeField.DAY]: 'd',
+  [DateTimeField.HOUR]: 'hrs',
+  [DateTimeField.MINUTE]: 'min',
+  [DateTimeField.SECOND]: 'sec',
+};
 const NO_BREAK_SPACE = '\u00A0';
+const platformNativeDateTime = (isIOS() || isAndroid() && isChrome());
 
 type TimeFormat = 'date' | 'time' | 'datetime-local';
 
@@ -441,6 +448,14 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     return { y: year, m: month, d: date, hrs: hour, min: minute, sec: 0, occurrence: this.dateTime.wallTime.occurrence };
   }
 
+  hasSwipeValue(index: number, delta: number): boolean {
+    return this.items[index].editable && this.roll(delta, index, false) !== null;
+  }
+
+  getSwipeValue(index: number, delta: number): string {
+    return this.roll(delta, index, false);
+  }
+
   protected increment(): void {
     this.roll(1);
   }
@@ -449,57 +464,72 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.roll(-1);
   }
 
-  private roll(sign: number): void {
-    const originalTime = this.dateTime.utcTimeMillis;
+  private roll(sign: number, sel = this.selection, updateTime = true): string {
+    const dateTime = this.dateTime.clone();
     let change = 0;
+    let power = 0;
     let field = DateTimeField.YEAR;
     let wallTime = this.dateTime.wallTime;
-    const sel = this.selection;
     const wasNegative = (this.items[this.signDigit].value === '-');
 
     if (sel === this.signDigit) { // Sign of year
       if (-wallTime.y < this.minYear || -wallTime.y > this.maxYear) {
-        this.errorFlash();
-        return;
+        if (updateTime)
+          this.errorFlash();
+
+        return null;
       }
       change = wallTime.y * 2;
       sign = -1;
     }
     else if (sel === 16 || sel === 15) {
       field = DateTimeField.MINUTE;
+      power = 16 - sel;
       change = (sel === 15 ? 10 : 1);
     }
     else if (sel === 13 || sel === 12) {
       field = DateTimeField.HOUR;
+      power = 13 - sel;
       change = (sel === 12 ? 10 : 1);
     }
     else if (sel === 10 || sel === 9) {
       field = DateTimeField.DAY;
+      power = 10 - sel;
       change = (sel === 9 ? 10 : 1);
     }
     else if (sel === 7 || sel === 6) {
       field = DateTimeField.MONTH;
+      power = 7 - sel;
       change = (sel === 6 ? 10 : 1);
     }
     else if (sel === 4 || sel === 3 || sel === 2 || sel === 1) {
       field = DateTimeField.YEAR;
+      power = 4 - sel;
       change = (sel === 1 ? 1000 : sel === 2 ? 100 : sel === 3 ? 10 : 1);
     }
 
-    this.dateTime.add(field, change * sign);
-    wallTime = this.dateTime.wallTime;
+    dateTime.add(field, change * sign);
+    wallTime = dateTime.wallTime;
 
     if (wallTime.y < this.minYear || wallTime.y > this.maxYear) {
-      this.dateTime.utcTimeMillis = originalTime;
-      this.errorFlash();
+      if (updateTime)
+        this.errorFlash();
+
+      return null;
     }
-    else {
+    else if (updateTime) {
+      this.dateTime.utcTimeMillis = dateTime.utcTimeMillis;
       this.onChangeCallback(this.dateTime.utcTimeMillis);
       this.updateDigits();
 
       if (sel === this.signDigit && this.dateTime.wallTime.y === 0)
         this.items[sel].value = (wasNegative ? NO_BREAK_SPACE : '-');
     }
+
+    if (sel === this.signDigit)
+      return wasNegative ? '+' : '-';
+
+    return floor(abs((wallTime as any)[fieldLookup[field]]) / 10 ** power).toString().slice(-1);
   }
 
   protected onKey(key: string): void {

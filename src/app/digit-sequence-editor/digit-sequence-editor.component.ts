@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { abs, max, min, mod, Point } from '@tubular/math';
-import { eventToKey, isAndroid, isEdge, isIE, isIOS, isString, processMillis, toBoolean, toNumber } from '@tubular/util';
+import { eventToKey, getCssValue, isAndroid, isEdge, isIE, isIOS, isString, processMillis, toBoolean, toNumber } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
 import { getPageXYForTouchEvent } from '../util/touch-events';
 
@@ -19,15 +19,15 @@ export interface SequenceItemInfo {
 
 export const FORWARD_TAB_DELAY = 250;
 
-const DRAG_SMOOTHING_WINDOW = 500;
+const FALSE_REPEAT_THRESHOLD = 50;
 const KEY_REPEAT_DELAY = 500;
 const KEY_REPEAT_RATE  = 100;
 const WARNING_DURATION = 5000;
-const FALSE_REPEAT_THRESHOLD = 50;
 
 const DIGIT_SWIPE_THRESHOLD = 6;
-const MAX_DIGIT_MOVE = 0.75;
-const MIN_DIGIT_MOVE = 0.33;
+const MAX_DIGIT_SWIPE = 0.75;
+const MIN_DIGIT_SWIPE = 0.33;
+const SWIPE_SMOOTHING_WINDOW = 500;
 
 const NO_SELECTION = -1;
 const SPIN_UP      = -2;
@@ -95,8 +95,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private firstTouchPoint: Point;
   private focusTimer: any;
   private getCharFromInputEvent = false;
-  private hasCanvasFocus = false;
   private hasHiddenInputFocus = false;
+  private hasWrapperFocus = false;
   private keyTimer: Subscription;
   private lastDelta = 1;
   private touchDeltaY = 0;
@@ -115,8 +115,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected setupComplete = false;
   protected showFocus = false;
   protected signDigit = -1;
+  protected _tabindex = '1';
   protected touchEnabled = true; // TODO
   protected wrapper: HTMLElement;
+
+  protected static addFocusOutline = isEdge() || isIE() || isIOS();
 
   displayState = 'normal';
   hasFocus = false;
@@ -147,6 +150,14 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
     this._disabled = value;
     this.adjustState();
+  }
+
+  get tabindex(): string { return this._tabindex; }
+  @Input() set tabindex(newValue: string) {
+    if (this._tabindex !== newValue) {
+      this._tabindex = newValue;
+      this.adjustState();
+    }
   }
 
   protected checkForWarning(): void {
@@ -208,6 +219,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.hiddenInput.setAttribute('autocapitalize', 'off');
       this.hiddenInput.setAttribute('autocomplete', 'off');
       this.hiddenInput.setAttribute('autocorrect', 'off');
+      this.hiddenInput.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
       this.hiddenInput.style.position = 'absolute';
       this.hiddenInput.style.opacity = '0';
       (this.hiddenInput.style as any)['caret-color'] = 'transparent';
@@ -270,7 +282,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return NORMAL_TEXT;
   }
 
-  hasDragValue(index: number, delta: number): boolean {
+  hasSwipeValue(index: number, delta: number): boolean {
     const item = this.items[index];
     const value = toNumber(item.value);
 
@@ -278,7 +290,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       (index !== 0 || (value + delta >= 0 && value + delta <= 9));
   }
 
-  getDragValue(index: number, delta: number): string | number {
+  getSwipeValue(index: number, delta: number): string | number {
     const item = this.items[index];
 
     return mod(toNumber(item.value) + delta, 10);
@@ -379,7 +391,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     const lastDeltaY = this.touchDeltaY;
 
     if (this.touchDeltaY !== 0) {
-      this.clearDeltaYDragging();
+      this.clearDeltaYSwiping();
     }
 
     if (this._disabled || this.viewOnly || !this.touchEnabled)
@@ -389,14 +401,14 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.onMouseUp(null);
 
     if (this.selection >= 0 && this.firstTouchPoint) {
-      if (abs(lastDeltaY) >= max(this.digitHeight * MIN_DIGIT_MOVE, DIGIT_SWIPE_THRESHOLD)) {
+      if (abs(lastDeltaY) >= max(this.digitHeight * MIN_DIGIT_SWIPE, DIGIT_SWIPE_THRESHOLD)) {
         if (lastDeltaY > 0) {
-          if (this.hasDragValue(this.selection, 1))
+          if (this.hasSwipeValue(this.selection, 1))
             this.increment();
           else
             this.errorFlash();
         }
-        else if (this.hasDragValue(this.selection, -1))
+        else if (this.hasSwipeValue(this.selection, -1))
           this.decrement();
         else
           this.errorFlash();
@@ -406,7 +418,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected onTouchStartDefault(index: number, evt: TouchEvent): void {
     this.firstTouchPoint = getPageXYForTouchEvent(evt);
-    this.clearDeltaYDragging();
+    this.clearDeltaYSwiping();
 
     const target = this.wrapper.querySelector('dse-item-' + index) as HTMLElement;
 
@@ -457,8 +469,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (value && this.viewOnly)
       return;
 
-    if (this.hasCanvasFocus !== value) {
-      this.hasCanvasFocus = value;
+    if (this.hasWrapperFocus !== value) {
+      this.hasWrapperFocus = value;
 
       if (value && this.hiddenInput && !this.hiddenInput.disabled)
         this.hiddenInput.focus();
@@ -478,7 +490,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   protected hasAComponentInFocus(): boolean {
-    return this.hasCanvasFocus || this.hasHiddenInputFocus;
+    return this.hasWrapperFocus || this.hasHiddenInputFocus;
   }
 
   protected checkFocus(): void {
@@ -505,10 +517,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       }
     }
 
-    // if (this.hiddenInput && !this.disabled)
-    //   this.canvas.style.outline = getCssValue(this.hiddenInput, 'outline');
-    // else if (DigitSequenceEditorDirective.addFocusOutline)
-    //   this.canvas.style.outline = (newFocus && !this.disabled ? 'rgb(59, 153, 252) solid 1px' : 'black none 0px');
+    if (this.hiddenInput && !this.disabled)
+      this.wrapper.style.outline = getCssValue(this.hiddenInput, 'outline');
+    else if (DigitSequenceEditorComponent.addFocusOutline)
+      this.wrapper.style.outline = (newFocus && !this.disabled ? 'rgb(59, 153, 252) solid 1px' : 'black none 0px');
   }
 
   protected gainedFocus(): void {}
@@ -698,13 +710,16 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   private adjustState(): void {
     this.displayState = this._viewOnly ? 'viewOnly' : (this._disabled ? 'disabled' : 'normal');
+
+    if (this.hiddenInput)
+      this.hiddenInput.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
   }
 
   private updateDeltaYSmoothing(): void {
     const now = processMillis();
 
     this.touchDeltaTimes = this.touchDeltaTimes.filter((time, i) => {
-      if (time < now + DRAG_SMOOTHING_WINDOW) {
+      if (time < now + SWIPE_SMOOTHING_WINDOW) {
         this.touchDeltaYs.splice(i, 1);
         return false;
       }
@@ -715,10 +730,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.touchDeltaTimes.push(now);
     this.touchDeltaYs.push(this.touchDeltaY);
     this.smoothedDeltaY = max(min(this.touchDeltaYs.reduce((sum, y) => sum + y) / this.touchDeltaYs.length,
-      this.digitHeight * MAX_DIGIT_MOVE), -this.digitHeight * MAX_DIGIT_MOVE);
+      this.digitHeight * MAX_DIGIT_SWIPE), -this.digitHeight * MAX_DIGIT_SWIPE);
   }
 
-  private clearDeltaYDragging(): void {
+  private clearDeltaYSwiping(): void {
     this.touchDeltaY = 0;
     this.smoothedDeltaY = 0;
     this.touchDeltaTimes.length = 0;

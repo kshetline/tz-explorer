@@ -22,8 +22,7 @@
       [style.color]="getColorForItem(item, i)"
       [style.cursor]="item.editable && !item.hidden && !disabled && !viewOnly ? 'pointer' : 'default'"
       [style.visibility]="item.hidden ? 'hidden' : 'visible'"
-      x-click="!item.spinner && onClick(i)"
-      (mousedown)="item.spinner && onMouseDown(i, $event)"
+      (mousedown)="onMouseDown(i, $event)"
       (mouseup)="onMouseUp($event)"
       (contextmenu)="returnFalse()"
       (touchstart)="onTouchStart(i, $event)">

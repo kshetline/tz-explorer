@@ -276,7 +276,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
         index = SPIN_DOWN;
     }
 
-    this.checkSpinAction(index);
+    if (!this.checkSpinAction(index))
+      this.updateSelection(index);
   }
 
   onMouseUp(evt?: MouseEvent): void {
@@ -293,13 +294,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   onMouseLeave(): void {
     this.stopClickTimer();
-  }
-
-  onClick(index: number): void {
-    if (this._disabled || this.viewOnly)
-      return;
-
-    this.updateSelection(index);
   }
 
   onTouchStart(index: number, evt: TouchEvent): void {
@@ -381,7 +375,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  private checkSpinAction(index: number): void {
+  private checkSpinAction(index: number): boolean {
     if ((index === SPIN_UP || index === SPIN_DOWN) && !this.clickTimer) {
       this.activeSpinner = index;
       this.lastDelta = (index === SPIN_UP ? 1 : -1);
@@ -389,7 +383,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.clickTimer = timer(KEY_REPEAT_DELAY, KEY_REPEAT_RATE).subscribe(() => {
         this.onSpin(this.lastDelta);
       });
+
+      return true;
     }
+
+    return false;
   }
 
   onFocus(value: boolean): void {

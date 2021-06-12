@@ -448,12 +448,11 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     return { y: year, m: month, d: date, hrs: hour, min: minute, sec: 0, occurrence: this.dateTime.wallTime.occurrence };
   }
 
-  hasSwipeValue(index: number, delta: number): boolean {
-    return this.items[index].editable && this.roll(delta, index, false) !== null;
-  }
-
   getSwipeValue(index: number, delta: number): string {
-    return this.roll(delta, index, false);
+    if (this.items[index].editable)
+      return this.roll(delta, index, false);
+    else
+      return null;
   }
 
   protected increment(): void {

@@ -115,6 +115,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected setupComplete = false;
   protected showFocus = false;
   protected signDigit = -1;
+  protected swipeIndex = -1;
   protected _tabindex = '1';
   protected touchEnabled = true; // TODO
   protected wrapper: HTMLElement;
@@ -126,6 +127,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   items: SequenceItemInfo[] = [];
   selection = 0;
   smoothedDeltaY = 0;
+  swipeAbove: string = null;
+  swipeBelow: string = null;
   useAlternateTouchHandling = false;
 
   @ViewChild('wrapper', { static: true }) private wrapperRef: ElementRef;
@@ -282,18 +285,19 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return NORMAL_TEXT;
   }
 
-  hasSwipeValue(index: number, delta: number): boolean {
+  canSwipe(index: number): boolean {
+    return index === this.swipeIndex && (this.swipeAbove != null || this.swipeBelow != null);
+  }
+
+  getSwipeValue(index: number, delta: number): string {
     const item = this.items[index];
     const value = toNumber(item.value);
 
-    return item.editable && !item.indicator && !item.hidden &&
-      (index !== 0 || (value + delta >= 0 && value + delta <= 9));
-  }
-
-  getSwipeValue(index: number, delta: number): string | number {
-    const item = this.items[index];
-
-    return mod(toNumber(item.value) + delta, 10);
+    if (item.editable && !item.indicator && !item.hidden &&
+        (index !== 0 || (value + delta >= 0 && value + delta <= 9)))
+      return mod(toNumber(item.value) + delta, 10).toString();
+    else
+      return null;
   }
 
   returnFalse(): boolean {
@@ -366,6 +370,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (!this.hasFocus && this.wrapper.focus)
       this.wrapper.focus();
 
+    this.clearDeltaYSwiping();
+    this.swipeAbove = this.getSwipeValue(index, 1);
+    this.swipeBelow = this.getSwipeValue(index, -1);
+    this.swipeIndex = index;
+
     if (this.useAlternateTouchHandling)
       this.onTouchStartAlternate(index, evt);
     else
@@ -390,10 +399,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   onTouchEnd(event: TouchEvent): void {
     const lastDeltaY = this.touchDeltaY;
 
-    if (this.touchDeltaY !== 0) {
-      this.clearDeltaYSwiping();
-    }
-
     if (this._disabled || this.viewOnly || !this.touchEnabled)
       return;
 
@@ -403,22 +408,25 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this.selection >= 0 && this.firstTouchPoint) {
       if (abs(lastDeltaY) >= max(this.digitHeight * MIN_DIGIT_SWIPE, DIGIT_SWIPE_THRESHOLD)) {
         if (lastDeltaY > 0) {
-          if (this.hasSwipeValue(this.selection, 1))
+          if (this.swipeAbove != null)
             this.increment();
           else
             this.errorFlash();
         }
-        else if (this.hasSwipeValue(this.selection, -1))
+        else if (this.swipeBelow != null)
           this.decrement();
         else
           this.errorFlash();
       }
     }
+
+    if (this.touchDeltaY !== 0) {
+      this.clearDeltaYSwiping();
+    }
   }
 
   protected onTouchStartDefault(index: number, evt: TouchEvent): void {
     this.firstTouchPoint = getPageXYForTouchEvent(evt);
-    this.clearDeltaYSwiping();
 
     const target = this.wrapper.querySelector('dse-item-' + index) as HTMLElement;
 
@@ -734,9 +742,12 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   private clearDeltaYSwiping(): void {
-    this.touchDeltaY = 0;
     this.smoothedDeltaY = 0;
     this.touchDeltaTimes.length = 0;
+    this.touchDeltaY = 0;
     this.touchDeltaYs.length = 0;
+    this.swipeAbove = '';
+    this.swipeBelow = '';
+    this.swipeIndex = -1;
   }
 }

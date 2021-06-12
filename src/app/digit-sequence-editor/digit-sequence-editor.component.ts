@@ -1,9 +1,9 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { abs, Point } from '@tubular/math';
-import { eventToKey, isAndroid, isEdge, isIE, isIOS, isString, toBoolean } from '@tubular/util';
+import { abs, max, min, mod, Point } from '@tubular/math';
+import { eventToKey, isAndroid, isEdge, isIE, isIOS, isString, processMillis, toBoolean, toNumber } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
-import { getXYForTouchEvent } from '../util/touch-events';
+import { getPageXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
   editable?: boolean;
@@ -19,12 +19,15 @@ export interface SequenceItemInfo {
 
 export const FORWARD_TAB_DELAY = 250;
 
+const DRAG_SMOOTHING_WINDOW = 500;
 const KEY_REPEAT_DELAY = 500;
 const KEY_REPEAT_RATE  = 100;
 const WARNING_DURATION = 5000;
 const FALSE_REPEAT_THRESHOLD = 50;
 
 const DIGIT_SWIPE_THRESHOLD = 6;
+const MAX_DIGIT_MOVE = 0.75;
+const MIN_DIGIT_MOVE = 0.33;
 
 const NO_SELECTION = -1;
 const SPIN_UP      = -2;
@@ -87,6 +90,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private activeSpinner = NO_SELECTION;
   private _blank = false;
   private clickTimer: Subscription;
+  private digitHeight = 20;
   private _disabled = false;
   private firstTouchPoint: Point;
   private focusTimer: any;
@@ -96,6 +100,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private keyTimer: Subscription;
   private lastDelta = 1;
   private touchDeltaY = 0;
+  private touchDeltaYs: number[] = [];
+  private touchDeltaTimes: number[] = [];
   private _viewOnly = false;
   private warningTimer: Subscription;
 
@@ -104,7 +110,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected hiddenInput: HTMLInputElement;
   protected hOffsets: number[] = [];
   protected lastTabTime = 0;
-  protected selection = 0;
   protected setupComplete = false;
   protected showFocus = false;
   protected signDigit = -1;
@@ -113,6 +118,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   displayState = 'normal';
   hasFocus = false;
   items: SequenceItemInfo[] = [];
+  selection = 0;
+  smoothedDeltaY = 0;
   useAlternateTouchHandling = false;
 
   @ViewChild('wrapper', { static: true }) private wrapperRef: ElementRef;
@@ -236,6 +243,20 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return NORMAL_TEXT;
   }
 
+  hasDragValue(index: number, delta: number): boolean {
+    const item = this.items[index];
+    const value = toNumber(item.value);
+
+    return item.editable && !item.indicator && !item.hidden &&
+      (index !== 0 || (value + delta >= 0 && value + delta <= 9));
+  }
+
+  getDragValue(index: number, delta: number): string | number {
+    const item = this.items[index];
+
+    return mod(toNumber(item.value) + delta, 10);
+  }
+
   returnFalse(): boolean {
     return false;
   }
@@ -268,7 +289,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
     if (this.items[index]?.spinner && evt?.target) {
       const r = (evt.target as HTMLElement).getBoundingClientRect();
-      const y = ((evt as any).pageY ?? getXYForTouchEvent(evt as any).y + r.top);
+      const y = ((evt as any).pageY ?? getPageXYForTouchEvent(evt as any).y);
 
       if (y < r.top + r.height / 2)
         index = SPIN_UP;
@@ -320,9 +341,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     evt.stopPropagation();
 
     if (this.selection >= 0 && this.firstTouchPoint) {
-      const pt = getXYForTouchEvent(evt);
+      const pt = getPageXYForTouchEvent(evt);
 
       this.touchDeltaY = pt.y - this.firstTouchPoint.y;
+      this.updateDeltaYSmoothing();
     }
   }
 
@@ -330,7 +352,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     const lastDeltaY = this.touchDeltaY;
 
     if (this.touchDeltaY !== 0) {
-      this.touchDeltaY = 0;
+      this.clearDeltaYDragging();
     }
 
     if (this._disabled || this.viewOnly || !this.touchEnabled)
@@ -340,18 +362,32 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.onMouseUp(null);
 
     if (this.selection >= 0 && this.firstTouchPoint) {
-      if (abs(lastDeltaY) >= DIGIT_SWIPE_THRESHOLD) {
-        if (lastDeltaY < 0)
-          this.increment();
-        else
+      if (abs(lastDeltaY) >= max(this.digitHeight * MIN_DIGIT_MOVE, DIGIT_SWIPE_THRESHOLD)) {
+        if (lastDeltaY > 0) {
+          if (this.hasDragValue(this.selection, 1))
+            this.increment();
+          else
+            this.errorFlash();
+        }
+        else if (this.hasDragValue(this.selection, -1))
           this.decrement();
+        else
+          this.errorFlash();
       }
     }
   }
 
   protected onTouchStartDefault(index: number, evt: TouchEvent): void {
-    this.firstTouchPoint = getXYForTouchEvent(evt);
-    this.touchDeltaY = 0;
+    this.firstTouchPoint = getPageXYForTouchEvent(evt);
+    this.clearDeltaYDragging();
+
+    const target = this.wrapperRef.nativeElement.querySelector('dse-item-' + index) as HTMLElement;
+
+    if (target)
+      this.digitHeight = target.getBoundingClientRect().height;
+    else
+      this.digitHeight = this.wrapperRef.nativeElement.getBoundingClientRect().height;
+
     this.onMouseDown(index, evt);
   }
 
@@ -635,5 +671,30 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   private adjustState(): void {
     this.displayState = this._viewOnly ? 'viewOnly' : (this._disabled ? 'disabled' : 'normal');
+  }
+
+  private updateDeltaYSmoothing(): void {
+    const now = processMillis();
+
+    this.touchDeltaTimes = this.touchDeltaTimes.filter((time, i) => {
+      if (time < now + DRAG_SMOOTHING_WINDOW) {
+        this.touchDeltaYs.splice(i, 1);
+        return false;
+      }
+
+      return true;
+    });
+
+    this.touchDeltaTimes.push(now);
+    this.touchDeltaYs.push(this.touchDeltaY);
+    this.smoothedDeltaY = max(min(this.touchDeltaYs.reduce((sum, y) => sum + y) / this.touchDeltaYs.length,
+      this.digitHeight * MAX_DIGIT_MOVE), -this.digitHeight * MAX_DIGIT_MOVE);
+  }
+
+  private clearDeltaYDragging(): void {
+    this.touchDeltaY = 0;
+    this.smoothedDeltaY = 0;
+    this.touchDeltaTimes.length = 0;
+    this.touchDeltaYs.length = 0;
   }
 }

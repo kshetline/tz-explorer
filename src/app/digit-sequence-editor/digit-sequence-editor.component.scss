@@ -17,6 +17,20 @@
   -webkit-text-stroke-width: 0.25px;
 }
 
+.draggable {
+  position: relative;
+}
+
+.draggable-extra {
+  display: inline-block;
+  height: 0;
+  max-height: 0;
+  max-width: 0;
+  overflow: visible;
+  position: relative;
+  width: 0;
+}
+
 .spinner {
   line-height: 0.9em;
   margin-top: -0.3em;

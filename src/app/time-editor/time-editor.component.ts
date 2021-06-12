@@ -51,7 +51,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   constructor(private cd: ChangeDetectorRef) {
     super();
     this.signDigit = 0;
-    this.touchEnabled = false;
+    this.touchEnabled = true; // TODO
     this.useAlternateTouchHandling = false;
     this.originalMinYear = this.minYear = -9999;
     this.maxYear = 9999;

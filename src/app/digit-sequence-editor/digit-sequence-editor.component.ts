@@ -1,6 +1,6 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { abs, max, min, mod, Point, sign } from '@tubular/math';
+import { abs, max, min, mod, Point, round, sign } from '@tubular/math';
 import { eventToKey, getCssValue, isAndroid, isEdge, isIE, isIOS, isString, processMillis, toBoolean, toNumber } from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
 import { getPageXYForTouchEvent } from '../util/touch-events';
@@ -27,7 +27,7 @@ const KEY_REPEAT_RATE  = 100;
 const WARNING_DURATION = 5000;
 
 const DIGIT_SWIPE_THRESHOLD = 6;
-const MAX_DIGIT_SWIPE = 0.75;
+const MAX_DIGIT_SWIPE = 0.9;
 const MIN_DIGIT_SWIPE = 0.33;
 const SWIPE_SMOOTHING_WINDOW = 500;
 
@@ -92,7 +92,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private activeSpinner = NO_SELECTION;
   private _blank = false;
   private clickTimer: Subscription;
-  private digitHeight = 20;
   private _disabled = false;
   private firstTouchPoint: Point;
   private focusTimer: any;
@@ -108,7 +107,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private warningTimer: Subscription;
 
   protected font: string;
-  protected height = 17;
   protected hiddenInput: HTMLInputElement;
   protected hOffsets: number[] = [];
   protected lastTabTime = 0;
@@ -124,6 +122,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected static addFocusOutline = isEdge() || isIE() || isIOS();
 
+  digitHeight = 17;
   displayState = 'normal';
   hasFocus = false;
   items: SequenceItemInfo[] = [];
@@ -381,6 +380,13 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (!this.hasFocus && this.wrapper.focus)
       this.wrapper.focus();
 
+    const target = this.wrapper.querySelector('.dse-item-' + index) as HTMLElement;
+
+    if (target)
+      this.digitHeight = target.getBoundingClientRect().height;
+    else
+      this.digitHeight = round(this.wrapper.getBoundingClientRect().height * 0.734);
+
     this.clearDeltaYSwiping();
 
     if (this.canSwipe(index)) {
@@ -440,14 +446,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
   protected onTouchStartDefault(index: number, evt: TouchEvent): void {
     this.firstTouchPoint = getPageXYForTouchEvent(evt);
-
-    const target = this.wrapper.querySelector('dse-item-' + index) as HTMLElement;
-
-    if (target)
-      this.digitHeight = target.getBoundingClientRect().height;
-    else
-      this.digitHeight = this.wrapper.getBoundingClientRect().height;
-
     this.onMouseDown(index, evt);
   }
 

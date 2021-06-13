@@ -1,3 +1,7 @@
+:host {
+  display: inline-block;
+}
+
 .wrapper {
   align-items: baseline;
   border: #A6A6A6 solid max(1px, 0.0836em);
@@ -14,6 +18,7 @@
 
 .digit {
   font-family: Verdana, Arial, sans-serif;
+  line-height: 122%;
   user-select: none;
   -webkit-text-stroke-width: 0.25px;
 }
@@ -44,18 +49,15 @@
 
 .mono-font {
   font-family: "Lucida Sans Typewriter", "Lucida Console", Menlo, "Andale Mono", "Courier New", monospace;
-  line-height: 1em;
 }
 
 .indicator-font {
   font-size: 0.8em;
-  line-height: 1em;
 }
 
 .mono-indicator-font {
   font-family: "Lucida Sans Typewriter", "Lucida Console", Menlo, "Andale Mono", "Courier New", monospace;
   font-size: 0.8em;
-  line-height: 1em;
 }
 
 .explicit-focus-outline {

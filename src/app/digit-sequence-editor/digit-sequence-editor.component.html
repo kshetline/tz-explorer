@@ -14,7 +14,7 @@
     (touchmove)="onTouchMove($event)"
     (touchend)="onTouchEnd($event)">
   <div *ngFor="let item of items; index as i"
-      class="digit"
+      class="digit dse-item-{{i}}"
       [ngClass]="getFontClassForItem(item)"
       [class.spinner]="item.spinner"
       contenteditable=false
@@ -28,11 +28,11 @@
       (touchstart)="onTouchStart(i, $event)">
   <span *ngIf="swipeable(item, i, 1)"
       class="draggable-extra"
-      [style.top]="'calc(-1.25em + ' + smoothedDeltaY + 'px)'"
+      [style.top]="(-digitHeight + smoothedDeltaY) + 'px'"
   >{{item.swipeAbove}}</span>
   <span *ngIf="swipeable(item, i, -1)"
       class="draggable-extra"
-      [style.top]="'calc(1.25em + ' + smoothedDeltaY + 'px)'"
+      [style.top]="(digitHeight + smoothedDeltaY) + 'px'"
   >{{item.swipeBelow}}</span>
   <span *ngIf="!item.spinner; else spinner"
       class="draggable dse-item-{{i}}"

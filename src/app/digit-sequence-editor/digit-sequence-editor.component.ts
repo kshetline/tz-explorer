@@ -7,9 +7,9 @@ import { getPageXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
   editable?: boolean;
-  fixedWidth?: boolean;
-  hidden?: boolean;
+  emWidth?: number;
   indicator?: boolean;
+  monospaced?: boolean;
   name?: string;
   selected?: boolean;
   spinner?: boolean;
@@ -243,12 +243,12 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   getFontClassForItem(item: SequenceItemInfo): string {
-    if (item.fixedWidth && item.indicator)
-      return 'fixed-indicator-font';
+    if (item.monospaced && item.indicator)
+      return 'mono-indicator-font';
     else if (item.indicator)
       return 'indicator-font';
-    else if (item.fixedWidth)
-      return 'fixed-font';
+    else if (item.monospaced)
+      return 'mono-font';
     else
       return null;
   }
@@ -288,7 +288,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected canSwipe(index: number): boolean {
     const item = this.items[index];
 
-    return item.editable && !item.indicator && !item.hidden;
+    return item?.editable && !item.indicator;
   }
 
   swipeable(item: SequenceItemInfo, index: number, delta: number): boolean {
@@ -298,15 +298,15 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       (sign(delta || this.smoothedDeltaY) === sign(this.smoothedDeltaY) && nextValue != null && item.value !== nextValue);
   }
 
-  creatSwipeValues(index: number): void {
+  createSwipeValues(index: number): void {
     const item = this.items[index];
     const value = toNumber(item.value);
 
     if (this.canSwipe(index)) {
-      if (item !== 0 || value < 9)
+      if (index !== 0 || value < 9)
         item.swipeAbove = mod(toNumber(item.value) + 1, 10).toString();
 
-      if (item !== 0 || value > 0)
+      if (index !== 0 || value > 0)
         item.swipeBelow = mod(toNumber(item.value) - 1, 10).toString();
     }
   }
@@ -384,7 +384,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.clearDeltaYSwiping();
 
     if (this.canSwipe(index)) {
-      this.creatSwipeValues(index);
+      this.createSwipeValues(index);
       this.swipeIndex = index;
     }
 
@@ -418,7 +418,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.onMouseUp(null);
 
-    if (this.selection >= 0 && this.firstTouchPoint) {
+    if (this.swipeIndex >= 0 && this.firstTouchPoint) {
       if (abs(lastDeltaY) >= max(this.digitHeight * MIN_DIGIT_SWIPE, DIGIT_SWIPE_THRESHOLD)) {
         if (lastDeltaY > 0) {
           if (this.items[this.selection].swipeAbove != null)

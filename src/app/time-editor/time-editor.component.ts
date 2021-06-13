@@ -304,7 +304,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   }
 
   protected createDigits(): void {
-    this.items.push({ value: NO_BREAK_SPACE, editable: true, fixedWidth: true }); //  0 - Year sign
+    this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true }); //  0 - Year sign
     this.items.push({ value: 0,   editable: true }); //  1 - Year thousands
     this.items.push({ value: 0,   editable: true }); //  2 - Year hundreds
     this.items.push({ value: 0,   editable: true }); //  3 - Year tens
@@ -321,9 +321,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.items.push({ value: ':', static: true });
     this.items.push({ value: 0,   editable: true }); // 15 - Minute tens
     this.items.push({ value: 0,   editable: true }); // 16 - Minute units
-    this.items.push({ value: '\u200A\u2082\u200A', editable: false, selected: false, hidden: true, name: '2occ' }); // 17 - 2nd occurrence indicator (Subscript 2, hair space)
-    this.items.push({ value: '+00:00', editable: false, selected: false, indicator: true, fixedWidth: true }); // 18 - UTC offset
-    this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, indicator: true, fixedWidth: true }); // 19 - DST indicator
+    this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, emWidth: 0.4, name: '2occ' }); // 17 - 2nd occurrence indicator (Subscript 2, hair space)
+    this.items.push({ value: '+00:00', editable: false, selected: false, indicator: true, monospaced: true }); // 18 - UTC offset
+    this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, indicator: true, monospaced: true }); // 19 - DST indicator
     this.items.push({ spinner: true });
     this.selection = 16;
 
@@ -400,7 +400,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const m1 = wallTime.min % 10;
 
     [i[15][value], i[16][value]] = [m2, m1];
-    if (delta === 0) i[17].hidden = (wallTime.occurrence !== 2);
+    i[17][value] = (wallTime.occurrence === 2 ? '\u200A\u2082' : NO_BREAK_SPACE);
     i[18][value] = dateTime.timezone.getFormattedOffset(dateTime.utcTimeMillis);
 
     if (!wallTime.dstOffset)
@@ -442,7 +442,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     return { y: year, m: month, d: date, hrs: hour, min: minute, sec: 0, occurrence: this.dateTime.wallTime.occurrence };
   }
 
-  creatSwipeValues(index: number): void {
+  createSwipeValues(index: number): void {
     this.roll(1, index, false);
     this.roll(-1, index, false);
 

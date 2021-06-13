@@ -20,8 +20,8 @@
       contenteditable=false
       [style.background-color]="getBackgroundColorForItem(item, i)"
       [style.color]="getColorForItem(item, i)"
-      [style.cursor]="item.editable && !item.hidden && !disabled && !viewOnly ? 'pointer' : 'default'"
-      [style.visibility]="item.hidden ? 'hidden' : 'visible'"
+      [style.cursor]="item.editable && !disabled && !viewOnly ? 'pointer' : 'default'"
+      [ngStyle]="item.emWidth ? { width: item.emWidth + 'em', 'white-space': 'nowrap', overflow: 'visible' } : null"
       (mousedown)="onMouseDown(i, $event)"
       (mouseup)="onMouseUp($event)"
       (contextmenu)="returnFalse()"

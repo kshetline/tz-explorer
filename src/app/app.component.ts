@@ -6,5 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  Date = Date;
+
+  native = false;
+  time = Date.now();
   title = 'tz-explorer';
 }

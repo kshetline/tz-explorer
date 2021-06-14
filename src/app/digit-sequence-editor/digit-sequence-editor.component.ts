@@ -106,13 +106,11 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private _viewOnly = false;
   private warningTimer: Subscription;
 
-  protected font: string;
   protected hiddenInput: HTMLInputElement;
-  protected hOffsets: number[] = [];
   protected lastTabTime = 0;
   protected letterDecrement = 'z';
   protected letterIncrement = 'a';
-  protected setupComplete = false;
+  protected selectionHidden = false;
   protected showFocus = false;
   protected signDigit = -1;
   protected swipeIndex = -1;
@@ -214,31 +212,32 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   protected createHiddenInput(): void {
-    if (DigitSequenceEditorComponent.useHiddenInput) {
-      this.hiddenInput = document.createElement('input');
-      this.hiddenInput.type = 'text';
-      this.hiddenInput.autocomplete = 'off';
-      this.hiddenInput.setAttribute('autocapitalize', 'off');
-      this.hiddenInput.setAttribute('autocomplete', 'off');
-      this.hiddenInput.setAttribute('autocorrect', 'off');
-      this.hiddenInput.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
-      this.hiddenInput.style.position = 'absolute';
-      this.hiddenInput.style.opacity = '0';
-      (this.hiddenInput.style as any)['caret-color'] = 'transparent';
-      (this.hiddenInput.style as any)['pointer-events'] = 'none';
-      this.hiddenInput.style.left = '0';
-      this.hiddenInput.style.top = '-6px';
+    if (!DigitSequenceEditorComponent.useHiddenInput)
+      return;
 
-      this.hiddenInput.addEventListener('keydown', event => this.onKeyDown(event));
-      this.hiddenInput.addEventListener('keypress', event => this.onKeyPress(event));
-      this.hiddenInput.addEventListener('keyup', () => this.onKeyUp());
-      this.hiddenInput.addEventListener('input', () => this.onInput());
-      this.hiddenInput.addEventListener('focus', () => this.onHiddenInputFocus(true));
-      this.hiddenInput.addEventListener('blur', () => this.onHiddenInputFocus(false));
+    this.hiddenInput = document.createElement('input');
+    this.hiddenInput.type = 'text';
+    this.hiddenInput.autocomplete = 'off';
+    this.hiddenInput.setAttribute('autocapitalize', 'off');
+    this.hiddenInput.setAttribute('autocomplete', 'off');
+    this.hiddenInput.setAttribute('autocorrect', 'off');
+    this.hiddenInput.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
+    this.hiddenInput.style.position = 'absolute';
+    this.hiddenInput.style.opacity = '0';
+    (this.hiddenInput.style as any)['caret-color'] = 'transparent';
+    (this.hiddenInput.style as any)['pointer-events'] = 'none';
+    this.hiddenInput.style.left = '0';
+    this.hiddenInput.style.top = '-6px';
 
-      this.wrapper.parentElement.appendChild(this.hiddenInput);
-      this.wrapper.setAttribute('tabindex', '-1');
-    }
+    this.hiddenInput.addEventListener('keydown', event => this.onKeyDown(event));
+    this.hiddenInput.addEventListener('keypress', event => this.onKeyPress(event));
+    this.hiddenInput.addEventListener('keyup', () => this.onKeyUp());
+    this.hiddenInput.addEventListener('input', () => this.onInput());
+    this.hiddenInput.addEventListener('focus', () => this.onHiddenInputFocus(true));
+    this.hiddenInput.addEventListener('blur', () => this.onHiddenInputFocus(false));
+
+    this.wrapper.parentElement.appendChild(this.hiddenInput);
+    this.wrapper.setAttribute('tabindex', '-1');
   }
 
   getFontClassForItem(item: SequenceItemInfo): string {
@@ -262,7 +261,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   getBackgroundColorForItem(item?: SequenceItemInfo, index?: number): string {
-    if (!this._disabled && this.showFocus &&
+    if (!this._disabled && this.showFocus && !this.selectionHidden &&
         ((item && index === this.selection) || (!item && this.activeSpinner === index)))
       return NORMAL_TEXT;
     else
@@ -278,7 +277,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       return DISABLED_ARROW_COLOR;
     else if (item && item.indicator)
       return INDICATOR_TEXT;
-    else if (index === this.selection && this.showFocus)
+    else if (index === this.selection && this.showFocus && !this.selectionHidden)
       return SELECTED_TEXT;
     else
       return NORMAL_TEXT;
@@ -727,7 +726,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  private adjustState(): void {
+  protected adjustState(): void {
     this.displayState = this._viewOnly ? 'viewOnly' : (this._disabled ? 'disabled' : 'normal');
 
     if (this.hiddenInput)

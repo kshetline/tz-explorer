@@ -4,17 +4,16 @@ import { DateAndTime, DateTimeField, DateTime, Timezone } from '@tubular/time';
 import { abs, div_tt0, max, min } from '@tubular/math';
 import { isAndroid, isChrome, isIOS, noop, padLeft } from '@tubular/util';
 import { timer } from 'rxjs';
-// import { AppService, currentMinuteMillis, SVC_MAX_YEAR, SVC_MIN_YEAR } from '../../app.service';
 import { BACKGROUND_ANIMATIONS, FORWARD_TAB_DELAY, DigitSequenceEditorComponent, SequenceItemInfo } from '../digit-sequence-editor/digit-sequence-editor.component';
 
-export const SVC_TIME_EDITOR_VALUE_ACCESSOR: any = {
+const TIME_EDITOR_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => TimeEditorComponent),
   multi: true
 };
 
 const NO_BREAK_SPACE = '\u00A0';
-const platformNativeDateTime = (isIOS() || isAndroid() && isChrome());
+const platformNativeDateTime = (isIOS() || (isAndroid() && isChrome()));
 
 type TimeFormat = 'date' | 'time' | 'datetime-local';
 
@@ -23,25 +22,23 @@ type TimeFormat = 'date' | 'time' | 'datetime-local';
   animations: [BACKGROUND_ANIMATIONS],
   templateUrl: '../digit-sequence-editor/digit-sequence-editor.component.html',
   styleUrls: ['../digit-sequence-editor/digit-sequence-editor.component.scss', './time-editor.component.scss'],
-  providers: [SVC_TIME_EDITOR_VALUE_ACCESSOR]
+  providers: [TIME_EDITOR_VALUE_ACCESSOR]
 })
 export class TimeEditorComponent extends DigitSequenceEditorComponent implements ControlValueAccessor, OnInit {
   static get supportsNativeDateTime(): boolean { return platformNativeDateTime; }
 
-  private dateTime = new DateTime(1636264800000); // TODO
-  private _gregorianChangeDate = '1582-10-15';
-  private onTouchedCallback: () => void = noop;
-  private onChangeCallback: (_: any) => void = noop;
-  private readonly originalMinYear: number;
-  private _minYear: number;
-  private _maxYear: number;
-  private _localTimeValue: string;
-  private _nativeDateTime = false;
-  private hasLocalTimeFocus = false;
+  private dateTime = new DateTime();
   private firstTouch = true;
-
-//  @ViewChild('localTime', { static: true }) private localTimeRef: ElementRef;
+  private hasLocalTimeFocus = false;
+  private _gregorianChangeDate = '1582-10-15';
   private localTime: HTMLInputElement;
+  private localTimeValue: string;
+  private _maxYear: number;
+  private _minYear: number;
+  private _nativeDateTime = false;
+  private onChangeCallback: (_: any) => void = noop;
+  private onTouchedCallback: () => void = noop;
+  private readonly originalMinYear: number;
 
   localTimeFormat: TimeFormat = 'datetime-local';
   localTimeMin: string;
@@ -65,10 +62,11 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
   }
 
-  get localTimeValue(): string { return this._localTimeValue; }
-  set localTimeValue(newValue: string) {
-    if (this._localTimeValue !== newValue) {
-      this._localTimeValue = newValue;
+  onLocalTimeChange(): void {
+    const newValue = this.localTime.value;
+
+    if (this.localTimeValue !== newValue) {
+      this.localTimeValue = newValue;
 
       let newTime: number;
 
@@ -93,20 +91,20 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         }
       }
       else
-        newTime = 1636264800000; // TODO
+        newTime = Date.now();
 
       if (newTime !== undefined && !isNaN(newTime))
         this.value = newTime;
 
-      if (!this._localTimeValue)
+      if (!this.localTimeValue)
         setTimeout(() => this.updateLocalTime());
     }
   }
 
   ngOnInit(): void {
     super.ngOnInit();
-    // this.localTime = this.localTimeRef.nativeElement;
-    // this.localTime.setAttribute('tabindex', this.useAlternateTouchHandling ? '0' : '-1');
+    this.createLocalTimeInput();
+    this.localTime?.setAttribute('tabindex', this.useAlternateTouchHandling ? this.tabindex : '-1');
   }
 
   onLocalTimeFocus(value: boolean): void {
@@ -117,6 +115,34 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       this.hasLocalTimeFocus = value;
       this.checkFocus();
     }
+  }
+
+  private createLocalTimeInput(): void {
+    if (platformNativeDateTime)
+      return;
+
+    this.localTime = document.createElement('input');
+    this.localTime.type = this.localTimeFormat;
+    this.localTime.autocomplete = 'off';
+    this.localTime.setAttribute('autocapitalize', 'off');
+    this.localTime.setAttribute('autocomplete', 'off');
+    this.localTime.setAttribute('autocorrect', 'off');
+    this.localTime.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
+    this.localTime.setAttribute('min', this.localTimeMin);
+    this.localTime.setAttribute('max', this.localTimeMax);
+    this.localTime.style.position = 'absolute';
+    this.localTime.style.opacity = '0';
+    (this.localTime.style as any)['caret-color'] = 'transparent';
+    (this.localTime.style as any)['pointer-events'] = 'none';
+    this.localTime.style.left = '0';
+    this.localTime.style.top = '-6px';
+
+    this.localTime.addEventListener('focus', () => this.onLocalTimeFocus(true));
+    this.localTime.addEventListener('blur', () => this.onLocalTimeFocus(false));
+    this.localTime.addEventListener('input', () => this.onLocalTimeChange());
+
+    this.wrapper.parentElement.appendChild(this.localTime);
+    this.wrapper.setAttribute('tabindex', '-1');
   }
 
   protected hasAComponentInFocus(): boolean {
@@ -142,6 +168,14 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.onTouchedCallback();
   }
 
+  protected adjustState(): void {
+    super.adjustState();
+
+    this.localTime?.setAttribute('disabled',
+        this.disabled || this.viewOnly || !this.useAlternateTouchHandling ? '' : null);
+    this.localTime?.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
+  }
+
   // onTouchStart(event: TouchEvent): void {
   //   if (!this.initialNativeDateTimePrompt(event))
   //     super.onTouchStart(event);
@@ -164,14 +198,11 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     return false;
   }
 
-  protected onTouchStartAlternate(_index: number, _event: TouchEvent): void {
+  protected onTouchStartAlternate(index: number, _event: TouchEvent): void {
     let format: TimeFormat = 'datetime-local';
 
-    if (isIOS()) {
-      const selection = -1; // TODO: this.getSelectionForTouchEvent(event);
-
-      format = (selection >= 0 && selection < 11 ? 'date' : 'time');
-    }
+    if (isIOS())
+      format = (index >= 0 && index < 11 ? 'date' : 'time');
 
     if (this.localTimeFormat !== format) {
       // Changing the format of the input (using the "type" attribute) sets off a number of updates
@@ -185,7 +216,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       this.localTime.type = format;
       this.localTime.min = this.localTimeMin;
       this.localTime.max = this.localTimeMax;
-      this.localTime.value = this._localTimeValue;
+      this.localTime.value = this.localTimeValue;
       this.cd.detectChanges();
     }
 
@@ -226,6 +257,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       this.localTimeMin = null;
     else
       this.localTimeMin = padLeft(max(this._minYear, 1), 4, '0') + '-01-01' + (this.localTimeFormat === 'date' ? '' : 'T00:00');
+
+    this.localTime?.setAttribute('min', this.localTimeMin);
   }
 
   get maxYear(): number { return this._maxYear; }
@@ -241,6 +274,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       this.localTimeMax = null;
     else
       this.localTimeMax = padLeft(this._maxYear, 4, '0') + '-12-31' + (this.localTimeFormat === 'date' ? '' : 'T23:59');
+
+    this.localTime?.setAttribute('max', this.localTimeMax);
   }
 
   get timezone(): Timezone { return this.dateTime.timezone; }
@@ -264,7 +299,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   @Input() set nativeDateTime(newValue: boolean) {
     if (this._nativeDateTime !== newValue) {
       this._nativeDateTime = newValue;
-      this.useAlternateTouchHandling = this.touchEnabled = /* TODO this.selectionHidden = */
+      this.useAlternateTouchHandling = this.touchEnabled = this.selectionHidden =
         newValue && TimeEditorComponent.supportsNativeDateTime;
 
       if (this.hiddenInput)
@@ -304,7 +339,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   }
 
   protected createDigits(): void {
-    this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true }); //  0 - Year sign
+    this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true, emWidth: 0.6 }); //  0 - Year sign
     this.items.push({ value: 0,   editable: true }); //  1 - Year thousands
     this.items.push({ value: 0,   editable: true }); //  2 - Year hundreds
     this.items.push({ value: 0,   editable: true }); //  3 - Year tens
@@ -315,7 +350,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.items.push({ value: '-', static: true });
     this.items.push({ value: 0,   editable: true }); //  9 - Day tens
     this.items.push({ value: 0,   editable: true }); // 10 - Day units
-    this.items.push({ value: NO_BREAK_SPACE, static: true });
+    this.items.push({ value: NO_BREAK_SPACE, static: true, emWidth: 0.6 }); // iOS Safari doesn't render no-break space without forcing explicit width for some odd reason.
     this.items.push({ value: 0,   editable: true }); // 12 - Hour tens
     this.items.push({ value: 0,   editable: true }); // 13 - Hour units
     this.items.push({ value: ':', static: true });
@@ -421,10 +456,13 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       year = 1;
 
     if (this.localTimeFormat === 'time')
-      this._localTimeValue = `${padLeft(w.hrs, 2, '0')}:${padLeft(w.min, 2, '0')}`;
+      this.localTimeValue = `${padLeft(w.hrs, 2, '0')}:${padLeft(w.min, 2, '0')}`;
     else
-      this._localTimeValue = `${padLeft(year, 4, '0')}-${padLeft(w.m, 2, '0')}-${padLeft(w.d, 2, '0')}` +
+      this.localTimeValue = `${padLeft(year, 4, '0')}-${padLeft(w.m, 2, '0')}-${padLeft(w.d, 2, '0')}` +
         (this.localTimeFormat === 'date' ? '' : `T${padLeft(w.hrs, 2, '0')}:${padLeft(w.min, 2, '0')}`);
+
+    if (this.localTime)
+      this.localTime.value = this.localTimeValue;
   }
 
   private getWallTimeFromDigits(): DateAndTime {
@@ -491,8 +529,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
         return null;
       }
-      change = wallTime.y * 2;
-      sign = -1;
+
+      change = -sign * wallTime.y * 2;
     }
     else if (sel === 16 || sel === 15) {
       field = DateTimeField.MINUTE;

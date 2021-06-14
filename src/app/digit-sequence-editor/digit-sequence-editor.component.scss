@@ -16,6 +16,17 @@
   user-select: none;
 }
 
+.divider {
+  background-color: #A6A6A6;
+  height: 1.15em;
+  margin: 0 max(1px, 0.0836em);
+  overflow: hidden;
+  position: relative;
+  top: 0.05em;
+  white-space: nowrap;
+  width: max(1px, 0.0836em);
+}
+
 .digit {
   font-family: Verdana, Arial, sans-serif;
   line-height: 122%;
@@ -39,10 +50,9 @@
 }
 
 .spinner {
-  line-height: 0.9em;
   margin-top: -0.3em;
   margin-right: -0.1em;
-  padding: 0 0.1em 0 0.15em;
+  padding: 0 0.1em;
   position: relative;
   top: 0.15em;
 }

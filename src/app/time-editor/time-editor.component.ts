@@ -47,7 +47,6 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   constructor(private cd: ChangeDetectorRef) {
     super();
     this.signDigit = 0;
-    this.touchEnabled = true; // TODO
     this.useAlternateTouchHandling = false;
     this.originalMinYear = this.minYear = -9999;
     this.maxYear = 9999;
@@ -118,7 +117,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   }
 
   private createLocalTimeInput(): void {
-    if (platformNativeDateTime)
+    if (!platformNativeDateTime)
       return;
 
     this.localTime = document.createElement('input');
@@ -161,7 +160,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       return;
 
     if (!this.hasLocalTimeFocus && this.isNativeDateTimeActive() && performance.now() > this.lastTabTime + FORWARD_TAB_DELAY)
-      this.localTime.focus();
+      this.localTime?.focus();
   }
 
   protected lostFocus(): void {
@@ -176,23 +175,22 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.localTime?.setAttribute('tabindex', this.disabled ? '-1' : this.tabindex);
   }
 
-  // onTouchStart(event: TouchEvent): void {
-  //   if (!this.initialNativeDateTimePrompt(event))
-  //     super.onTouchStart(event);
-  // }
+  onTouchStart(index: number, evt: TouchEvent): void {
+    if (!this.initialNativeDateTimePrompt(evt))
+      super.onTouchStart(index, evt);
+  }
 
-  protected initialNativeDateTimePrompt(_event?: Event): boolean {
-    if (TimeEditorComponent.supportsNativeDateTime && !this.disabled && !this.viewOnly && this.firstTouch) {
+  protected initialNativeDateTimePrompt(evt?: Event): boolean {
+    if (TimeEditorComponent.supportsNativeDateTime && this.promptForNative &&
+        !this.disabled && !this.viewOnly && this.firstTouch) {
       this.firstTouch = false;
 
-      // if (!this.app.warningNativeDateTime) {
-      //   if (event)
-      //     event.preventDefault();
-      //
-      //   this.app.showNativeInputDialog = true;
-      //
-      //   return true;
-      // }
+      if (this.promptForNative && this.promptForNative()) {
+        if (evt)
+          evt.preventDefault();
+
+        return true;
+      }
     }
 
     return false;
@@ -295,15 +293,16 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
   }
 
+  @Input() promptForNative: () => boolean;
+
   get nativeDateTime(): boolean { return this._nativeDateTime; }
   @Input() set nativeDateTime(newValue: boolean) {
     if (this._nativeDateTime !== newValue) {
       this._nativeDateTime = newValue;
-      this.useAlternateTouchHandling = this.touchEnabled = this.selectionHidden =
-        newValue && TimeEditorComponent.supportsNativeDateTime;
+      this.useAlternateTouchHandling = this.selectionHidden = newValue && TimeEditorComponent.supportsNativeDateTime;
 
       if (this.hiddenInput)
-        this.hiddenInput.disabled = this.useAlternateTouchHandling;
+        this.hiddenInput.disabled = !!this.disabled || this.useAlternateTouchHandling;
 
       if (this.localTime && TimeEditorComponent.supportsNativeDateTime)
         this.localTime.setAttribute('tabindex', newValue ? '0' : '-1');
@@ -335,7 +334,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     super.createHiddenInput();
 
     if (this.hiddenInput)
-      this.hiddenInput.disabled = this.useAlternateTouchHandling;
+      this.hiddenInput.disabled = !!this.disabled || this.useAlternateTouchHandling;
   }
 
   protected createDigits(): void {
@@ -359,6 +358,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, emWidth: 0.4, name: '2occ' }); // 17 - 2nd occurrence indicator (Subscript 2, hair space)
     this.items.push({ value: '+00:00', editable: false, selected: false, indicator: true, monospaced: true }); // 18 - UTC offset
     this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, indicator: true, monospaced: true }); // 19 - DST indicator
+    this.items.push({ divider: true });
     this.items.push({ spinner: true });
     this.selection = 16;
 
@@ -487,7 +487,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     for (let i = 0; i < index; ++i) {
       const item = this.items[i];
 
-      if (item.static)
+      if (item.divider || item.static)
         continue;
       if (item.value === item.swipeAbove && item.value === item.swipeBelow)
         item.swipeAbove = item.swipeBelow = null;
@@ -498,7 +498,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     for (let i = this.items.length - 1; i > index; --i) {
       const item = this.items[i];
 
-      if (item.static)
+      if (item.divider || item.static)
         continue;
       if (item.value === item.swipeAbove && item.value === item.swipeBelow)
         item.swipeAbove = item.swipeBelow = null;

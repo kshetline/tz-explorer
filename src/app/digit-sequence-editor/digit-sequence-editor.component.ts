@@ -6,6 +6,7 @@ import { Subscription, timer } from 'rxjs';
 import { getPageXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
+  divider?: boolean;
   editable?: boolean;
   emWidth?: number;
   indicator?: boolean;
@@ -29,6 +30,7 @@ const WARNING_DURATION = 5000;
 const DIGIT_SWIPE_THRESHOLD = 6;
 const MAX_DIGIT_SWIPE = 0.9;
 const MIN_DIGIT_SWIPE = 0.33;
+const MIN_SWIPE_TIME = 200;
 const SWIPE_SMOOTHING_WINDOW = 500;
 
 const NO_SELECTION = -1;
@@ -61,6 +63,7 @@ const DISABLED_ARROW_COLOR = '#060';
 const DISABLED_TEXT        = '#999';
 const INDICATOR_TEXT       = 'blue';
 const SELECTED_TEXT        = 'white';
+const SPINNER_FILL         = '#EEE';
 const VIEW_ONLY_TEXT       = '#0F0';
 
 const touchListener = (): void => {
@@ -98,6 +101,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   private getCharFromInputEvent = false;
   private hasHiddenInputFocus = false;
   private hasWrapperFocus = false;
+  private initialTouchTime = 0;
   private keyTimer: Subscription;
   private lastDelta = 1;
   private touchDeltaY = 0;
@@ -115,7 +119,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected signDigit = -1;
   protected swipeIndex = -1;
   protected _tabindex = '1';
-  protected touchEnabled = true; // TODO
   protected wrapper: HTMLElement;
 
   protected static addFocusOutline = isEdge() || isIE() || isIOS();
@@ -208,6 +211,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.items.push({ value: i === 5 ? ':' : i - (i > 5 ? 1 : 0), editable: i !== 5, selected: i === this.selection });
     }
 
+    this.items.push({ divider: true });
     this.items.push({ spinner: true });
   }
 
@@ -264,6 +268,8 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (!this._disabled && this.showFocus && !this.selectionHidden &&
         ((item && index === this.selection) || (!item && this.activeSpinner === index)))
       return NORMAL_TEXT;
+    else if (index === SPIN_UP || index === SPIN_DOWN)
+      return SPINNER_FILL;
     else
       return 'transparent';
   }
@@ -370,7 +376,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   onTouchStart(index: number, evt: TouchEvent): void {
-    if (this._disabled || this.viewOnly || !this.touchEnabled)
+    if (this._disabled || this.viewOnly)
       return;
 
     if (evt.cancelable)
@@ -387,6 +393,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       this.digitHeight = round(this.wrapper.getBoundingClientRect().height * 0.734);
 
     this.clearDeltaYSwiping();
+    this.initialTouchTime = processMillis();
 
     if (this.canSwipe(index)) {
       this.createSwipeValues(index);
@@ -400,7 +407,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   onTouchMove(evt: TouchEvent): void {
-    if (this._disabled || this.viewOnly || !this.touchEnabled)
+    if (this._disabled || this.viewOnly)
       return;
 
     evt.preventDefault();
@@ -417,7 +424,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   onTouchEnd(event: TouchEvent): void {
     const lastDeltaY = this.touchDeltaY;
 
-    if (this._disabled || this.viewOnly || !this.touchEnabled)
+    if (this._disabled || this.viewOnly)
       return;
 
     event.preventDefault();
@@ -747,14 +754,19 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
 
     this.touchDeltaTimes.push(now);
     this.touchDeltaYs.push(this.touchDeltaY);
-    this.smoothedDeltaY = max(min(this.touchDeltaYs.reduce((sum, y) => sum + y) / this.touchDeltaYs.length,
-      this.digitHeight * MAX_DIGIT_SWIPE), -this.digitHeight * MAX_DIGIT_SWIPE);
+
+    if (now < this.initialTouchTime + MIN_SWIPE_TIME)
+      this.smoothedDeltaY = 0;
+    else
+      this.smoothedDeltaY = max(min(this.touchDeltaYs.reduce((sum, y) => sum + y) / this.touchDeltaYs.length,
+        this.digitHeight * MAX_DIGIT_SWIPE), -this.digitHeight * MAX_DIGIT_SWIPE);
   }
 
   private clearDeltaYSwiping(): void {
     this.smoothedDeltaY = 0;
     this.touchDeltaTimes.length = 0;
     this.touchDeltaY = 0;
+    this.touchDeltaTimes.length = 0;
     this.touchDeltaYs.length = 0;
     this.swipeIndex = -1;
     this.items.forEach(item => item.swipeAbove = item.swipeBelow = null);

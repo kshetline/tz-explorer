@@ -6,6 +6,28 @@ import { isAndroid, isChrome, isIOS, noop, padLeft } from '@tubular/util';
 import { timer } from 'rxjs';
 import { BACKGROUND_ANIMATIONS, FORWARD_TAB_DELAY, DigitSequenceEditorComponent, SequenceItemInfo } from '../digit-sequence-editor/digit-sequence-editor.component';
 
+export enum DateFieldOrder { YMD, DMY, MDY, PER_LOCALE }
+export enum DateTimeStyle { DATE_AND_TIME, DATE_ONLY, TIME_ONLY }
+export enum HourStyle { HOURS_24, AM_PM, PER_LOCALE }
+export enum YearStyle { POSITIVE_ONLY, AD_BC, SIGNED }
+
+export interface TimeEditorOptions {
+  amPm?: HourStyle | string[];
+  dateFieldOrder?: DateFieldOrder;
+  dateFieldSeparator?: string;
+  dateTimeSeparator?: string;
+  dateTimeStyle?: DateTimeStyle;
+  locale?: string | string[];
+  millisDigits?: number;
+  showDstSymbol?: boolean;
+  showOccurrence?: boolean;
+  showSeconds?: boolean;
+  showUtcOffset?: boolean;
+  timeFieldSeparator?: string;
+  twoDigitYear?: boolean;
+  yearStyle?: YearStyle | string[];
+}
+
 const TIME_EDITOR_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => TimeEditorComponent),
@@ -178,6 +200,11 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   onTouchStart(index: number, evt: TouchEvent): void {
     if (!this.initialNativeDateTimePrompt(evt))
       super.onTouchStart(index, evt);
+  }
+
+  onTouchMove(evt: TouchEvent): void {
+    if (!this.nativeDateTime)
+      super.onTouchMove(evt);
   }
 
   protected initialNativeDateTimePrompt(evt?: Event): boolean {

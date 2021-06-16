@@ -1,14 +1,11 @@
-<tz-time-editor style="font-size: 2em"
-    [options]="{ amPm: 2, dateFieldOrder: 3, locale: 'en' }"
+<tz-time-editor style="font-size: 1.5em"
     [(ngModel)]="time"
     [nativeDateTime]="native"></tz-time-editor>
   &nbsp;<button (click)="time = Date.now()">Now</button>
   &nbsp;<button (click)="time = 1636264800000">Sample time</button><br>
   &nbsp;<label for="native">Native date/time</label>
    <input id="native" type="checkbox" (change)="native = $any($event.target).checked"/><br><br>
-<!--<tz-time-editor style="font-size: 14px"></tz-time-editor><br><br>-->
-<tz-digit-sequence-editor></tz-digit-sequence-editor><br><br>
-<tz-digit-sequence-editor></tz-digit-sequence-editor><br><br>
-<tz-digit-sequence-editor style="font-size: 2em"></tz-digit-sequence-editor><br><br>
-<tz-digit-sequence-editor [viewOnly]="true"></tz-digit-sequence-editor><br><br>
-<tz-digit-sequence-editor disabled></tz-digit-sequence-editor>
+<tz-time-editor style="font-size: 1.5em"
+    options="ISO"
+    [(ngModel)]="time"
+    [nativeDateTime]="native"></tz-time-editor>

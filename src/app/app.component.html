@@ -7,5 +7,7 @@
    <input id="native" type="checkbox" (change)="native = $any($event.target).checked"/><br><br>
 <tz-time-editor style="font-size: 1.5em"
     options="ISO"
-    [(ngModel)]="time"
-    [nativeDateTime]="native"></tz-time-editor>
+    [(ngModel)]="time"></tz-time-editor><br><br>
+<tz-time-editor style="font-size: 1.5em"
+    [options]="{ hourStyle: 2, locale: 'el' }"
+    [(ngModel)]="time"></tz-time-editor><br><br>

@@ -12,12 +12,12 @@ export enum HourStyle { PER_LOCALE, HOURS_24, AM_PM }
 export enum YearStyle { POSITIVE_ONLY, AD_BC, SIGNED }
 
 export interface TimeEditorOptions {
-  amPm?: HourStyle | string[];
   amPmSeparator?: string;
   dateFieldOrder?: DateFieldOrder;
   dateFieldSeparator?: string;
   dateTimeSeparator?: string;
   dateTimeStyle?: DateTimeStyle;
+  hourStyle?: HourStyle | string[];
   locale?: string | string[];
   millisDigits?: number;
   showDstSymbol?: boolean;
@@ -34,10 +34,11 @@ const NO_BREAK_SPACE = '\u00A0';
 const platformNativeDateTime = (isIOS() || (isAndroid() && isChrome()));
 
 export const OPTIONS_ISO: TimeEditorOptions = {
-  amPm: HourStyle.HOURS_24,
+  hourStyle: HourStyle.HOURS_24,
   dateFieldOrder: DateFieldOrder.YMD,
   dateFieldSeparator: '-',
   dateTimeSeparator: NO_BREAK_SPACE,
+  showSeconds: true,
   showUtcOffset: true,
   timeFieldSeparator: ':'
 }
@@ -437,13 +438,16 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const timeSteps: string[] = [];
     const hasDate = (this._options.dateTimeStyle !== DateTimeStyle.TIME_ONLY);
     const hasTime = (this._options.dateTimeStyle !== DateTimeStyle.DATE_ONLY);
+    let ds = '/';
+    let ts = ':';
 
     if (hasDate) {
+      const sampleDate = new DateTime('3333-11-22Z', 'UTC', this._options.locale).format('l');
       let dfo = this._options.dateFieldOrder ?? DateFieldOrder.PER_LOCALE;
 
-      if (dfo === DateFieldOrder.PER_LOCALE) {
-        const sampleDate = new DateTime('3333-11-22Z', 'UTC', this._options.locale).format('l');
+      ds = this._options.dateFieldSeparator ||convertDigits(sampleDate).replace(/(^\D+)|[\d\s\u2000-\u200F]/g, '').charAt(0) || '/';
 
+      if (dfo === DateFieldOrder.PER_LOCALE) {
         if (/3.*1.*2/.test(sampleDate))
           dfo = DateFieldOrder.YMD;
         else if (/2.*1.*3/.test(sampleDate))
@@ -460,32 +464,44 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
 
     if (hasTime) {
+      const sampleTime = new DateTime(0, 'UTC', this._options.locale).format('LT');
+
+      ts = this._options.timeFieldSeparator || convertDigits(sampleTime).replace(/(^\D+)|[\d\s\u2000-\u200F]/g, '').charAt(0) || ':';
       timeSteps.push('hour', 'ts', 'minute');
 
       if (this._options.showSeconds || this._options.millisDigits > 0)
-        timeSteps.push('ts', 'seconds');
+        timeSteps.push('ts', 'second');
 
       if (this._options.millisDigits > 0)
         timeSteps.push('millis');
 
       let amPm = false;
 
-      if (this._options.amPm == null || this._options.amPm === HourStyle.PER_LOCALE || this._options.amPm === HourStyle.AM_PM) {
+      if (this._options.hourStyle == null || this._options.hourStyle === HourStyle.PER_LOCALE || this._options.hourStyle === HourStyle.AM_PM) {
         const am = new DateTime(0, 'UTC', this._options.locale).format('A');
-        const sampleTime = new DateTime(0, 'UTC', this._options.locale).format('LT');
 
-        if (this._options.amPm === HourStyle.AM_PM || sampleTime.includes(am)) {
+        if (this._options.hourStyle === HourStyle.AM_PM || sampleTime.includes(am)) {
           amPm = true;
           this.amPmStrings = [am, new DateTime('1970-01-01T13:00', 'UTC', this._options.locale).format('A')];
         }
       }
-      else if (isArray(this._options.amPm)) {
+      else if (isArray(this._options.hourStyle)) {
         amPm = true;
-        this.amPmStrings = clone(this._options.amPm);
+        this.amPmStrings = clone(this._options.hourStyle ?? ['AM', 'PM']);
       }
 
-      if (amPm)
+      if (amPm) {
         timeSteps.push('aps', 'amPm');
+        this.amPmKeys = [];
+        const aps = this.amPmStrings;
+
+        for (let i = 0; i < aps[0].length && aps[1].length; ++i) {
+          if (aps[0].charAt(i) !== aps[1].charAt(i)) {
+            this.amPmKeys = [aps[0].charAt(i), aps[1].charAt(i)];
+            break;
+          }
+        }
+      }
     }
 
     if (this._options.timeFirst && hasTime && hasDate)
@@ -509,18 +525,25 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
       switch (step) {
         case 'year': this.yearIndex = i; addDigits(4); break;
-        case 'ds': this.items.push({ value: '-', static: true }); break;
+        case 'ds': this.items.push({ value: ds, static: true }); break;
         case 'month': this.monthIndex = i; addDigits(2); break;
         case 'day': this.dayIndex = i; addDigits(2); break;
         case 'dts': this.items.push({ value: NO_BREAK_SPACE, static: true, emWidth: 0.6 }); break;
         case 'hour': this.hourIndex = i; addDigits(2); break;
         case 'aps': this.items.push({ value: this._options.amPmSeparator ?? NO_BREAK_SPACE, static: true }); break;
         case 'amPm': this.amPmIndex = i; this.items.push({ value: this.amPmStrings[0], editable: true }); break;
-        case 'ts': this.items.push({ value: ':', static: true }); break;
+        case 'ts': this.items.push({ value: ts, static: true }); break;
         case 'minute': this.minuteIndex = i; addDigits(2); break;
         case 'second': this.secondIndex = i; addDigits(2); break;
       }
     }
+
+    if (steps.includes('second'))
+      this.selection = this.secondIndex + 1;
+    else if (steps.includes('minute'))
+      this.selection = this.minuteIndex + 1;
+    else if (steps.includes('day'))
+      this.selection = this.dayIndex + 1;
 
     // this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true, emWidth: 0.6 }); //  0 - Year sign
     // this.items.push({ value: 0,   editable: true }); //  1 - Year thousands
@@ -544,7 +567,6 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     // this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, indicator: true, monospaced: true }); // 19 - DST indicator
     this.items.push({ divider: true });
     this.items.push({ spinner: true });
-    this.selection = this.minuteIndex + 1; // TODO
 
     this.updateDigits();
   }
@@ -637,12 +659,20 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       [i[j][value], i[j + 1][value]] = [h2, h1];
     }
 
-    if (this.minuteIndex) {
+    if (this.minuteIndex >= 0) {
       const m2 = div_tt0(wallTime.min, 10);
       const m1 = wallTime.min % 10;
 
       j = this.minuteIndex;
       [i[j][value], i[j + 1][value]] = [m2, m1];
+    }
+
+    if (this.secondIndex >= 0) {
+      const s2 = div_tt0(wallTime.sec, 10);
+      const s1 = wallTime.sec % 10;
+
+      j = this.secondIndex;
+      [i[j][value], i[j + 1][value]] = [s2, s1];
     }
 
     // i[17][value] = (wallTime.occurrence === 2 ? '\u200A\u2082' : NO_BREAK_SPACE);
@@ -744,7 +774,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     let wallTime = this.dateTime.wallTime;
     const wasNegative = (this.items[this.signDigit]?.value === '-');
 
-    if (sel === this.signDigit) { // Sign of year
+    if (this.signDigit >= 0 && sel === this.signDigit) { // Sign of year
       if (-wallTime.y < this.minYear || -wallTime.y > this.maxYear) {
         if (updateTime)
           this.errorFlash();
@@ -754,30 +784,37 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
       change = -sign * wallTime.y * 2;
     }
-    else if (sel === this.minuteIndex || sel === this.minuteIndex + 1) {
+    else if (this.secondIndex >= 0 && (sel === this.secondIndex || sel === this.secondIndex + 1)) {
+      field = DateTimeField.SECOND;
+      change = (sel === this.secondIndex ? 10 : 1);
+    }
+    else if (this.minuteIndex >= 0 && (sel === this.minuteIndex || sel === this.minuteIndex + 1)) {
       field = DateTimeField.MINUTE;
       change = (sel === this.minuteIndex ? 10 : 1);
     }
-    else if (sel === this.hourIndex || sel === this.hourIndex + 1) {
+    else if (this.hourIndex >= 0 && (sel === this.hourIndex || sel === this.hourIndex + 1)) {
       field = DateTimeField.HOUR;
       change = (sel === this.hourIndex ? 10 : 1);
     }
-    else if (sel === this.amPmIndex) {
+    else if (this.amPmIndex >= 0 && sel === this.amPmIndex) {
       field = DateTimeField.HOUR;
       change = (wallTime.hrs < 12 ? 12 : -12);
     }
-    else if (sel === this.dayIndex || sel === this.dayIndex + 1) {
+    else if (this.dayIndex >= 0 && (sel === this.dayIndex || sel === this.dayIndex + 1)) {
       field = DateTimeField.DAY;
       change = (sel === this.dayIndex ? 10 : 1);
     }
-    else if (sel === this.monthIndex || sel === this.monthIndex + 1) {
+    else if (this.monthIndex >= 0 && (sel === this.monthIndex || sel === this.monthIndex + 1)) {
       field = DateTimeField.MONTH;
       change = (sel === this.monthIndex ? 10 : 1);
     }
-    else if (this.yearIndex <= sel && sel < this.yearIndex + 4) {
+    else if (this.yearIndex >= 0 && this.yearIndex <= sel && sel < this.yearIndex + 4) {
       field = DateTimeField.YEAR;
       change = 10 ** (3 + this.yearIndex - sel);
     }
+
+    if (change === 0)
+      return;
 
     dateTime.add(field, change * sign);
     wallTime = dateTime.wallTime;
@@ -804,7 +841,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   protected onKey(key: string): void {
     const keyLc = key.toLocaleLowerCase(this._options.locale);
 
-    if (!this.disabled && !this.viewOnly && this.selection === 0 && key === ' ') // TODO
+    if (!this.disabled && !this.viewOnly && this.selection === this.signDigit && key === ' ')
       this.digitTyped(32, ' ');
     else if (!this.disabled && !this.viewOnly && this.selection === this.amPmIndex &&
              (key === '1' || key === '2' || this.amPmKeys.includes(keyLc)))

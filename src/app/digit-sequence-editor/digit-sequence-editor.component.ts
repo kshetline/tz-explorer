@@ -268,7 +268,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (!this._disabled && this.showFocus && !this.selectionHidden &&
         ((item && index === this.selection) || (!item && this.activeSpinner === index)))
       return NORMAL_TEXT;
-    else if (index === SPIN_UP || index === SPIN_DOWN)
+    else if (!this._disabled && !this.viewOnly && (index === SPIN_UP || index === SPIN_DOWN))
       return SPINNER_FILL;
     else
       return 'transparent';

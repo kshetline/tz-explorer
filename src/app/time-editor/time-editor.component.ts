@@ -296,7 +296,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     let format: TimeFormat = 'datetime-local';
 
     if (isIOS())
-      format = (index >= 0 && index < 11 ? 'date' : 'time');
+      format = (this.hourIndex < 0 && index < this.hourIndex ? 'date' : 'time'); // TODO: Handle time first
 
     if (this.localTimeFormat !== format) {
       // Changing the format of the input (using the "type" attribute) sets off a number of updates
@@ -974,7 +974,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   protected digitTyped(charCode: number, key: string): void {
     const i = this.items;
-    const origDate = <number> i[this.dayIndex]?.value * 10 + <number> i[this.dayIndex + 1]?.value;
+    const origDate = this.dayIndex >= 0 ? <number> i[this.dayIndex].value * 10 + <number> i[this.dayIndex + 1].value : 0;
     const sel = this.selection;
     const origValue = i[sel].value;
     let newValue: number | string = origValue;
@@ -1018,10 +1018,19 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       i[sel].value = newValue;
 
       const wallTime = this.getWallTimeFromDigits();
+      let extraSec = 0;
+
+      if (sel === this.secondIndex && newValue === 6 && this._tai) {
+        const testTime = clone(wallTime);
+        testTime.sec = 60;
+
+        if (new DateTime(testTime, this.dateTime.timezone).wallTime.sec === 60)
+          extraSec = 10;
+      }
 
       if (wallTime.y < this.minYear || wallTime.y > this.maxYear ||
           wallTime.m > 19 || wallTime.d > 39 ||
-          wallTime.hrs > 29 || wallTime.min > 59) {
+          wallTime.hrs > 29 || wallTime.min > 59 || wallTime.sec > 59 + extraSec || wallTime.millis > 999) {
         i[sel].value = origValue;
         this.errorFlash();
         return;
@@ -1035,6 +1044,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
       if (sel === this.hourIndex)
         wallTime.hrs = min(wallTime.hrs, 23);
+
+      if (sel === this.secondIndex && extraSec)
+        wallTime.sec = min(wallTime.sec, 60);
 
       if (wallTime.m === 0 || wallTime.m > 12 || wallTime.d === 0 || wallTime.hrs > 23) {
         i[sel].value = origValue;
@@ -1050,9 +1062,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         if (gap && gap[0] <= wallTime.d && wallTime.d <= gap[1]) // Mind the gap! Step to either side of it.
           wallTime.d = (origDate > wallTime.d && gap[0] !== 1 ? gap[0] - 1 : min(gap[1] + 1, lastDate));
 
-        if (wallTime.d > lastDate) {
-          if ((lastDate < 30 && wallTime.d >= 30 && sel === 9) ||
-              (wallTime.d > lastDate && sel === 10)) {
+        if (origDate > 0 && wallTime.d > lastDate) {
+          if ((lastDate < 30 && wallTime.d >= 30 && sel === this.dayIndex) ||
+              (wallTime.d > lastDate && sel === this.dayIndex + 1)) {
             i[sel].value = origValue;
             this.errorFlash();
             return;

@@ -244,7 +244,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     this.wrapper.setAttribute('tabindex', '-1');
   }
 
-  getFontClassForItem(item: SequenceItemInfo): string {
+  getClassForItem(item: SequenceItemInfo, _index?: number): string {
     if (item.monospaced && item.indicator)
       return 'mono-indicator-font';
     else if (item.indicator)

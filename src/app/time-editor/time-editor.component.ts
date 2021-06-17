@@ -640,7 +640,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
           break;
         case 'dst':
           this.dstIndex = i;
-          this.items.push({ value: NO_BREAK_SPACE, indicator: true, sizer: '^\n§\n#\n~\n\u2744' });
+          this.items.push({ value: NO_BREAK_SPACE, indicator: true, sizer: '^\n§\n#\n~\n?\n\u2744' });
           break;
       }
     }
@@ -658,11 +658,24 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.updateDigits();
   }
 
-  getFontClassForItem(item: SequenceItemInfo): string {
+  getClassForItem(item: SequenceItemInfo, index?: number): string {
+    let qlass: string;
+
     if (item?.name === '2occ')
-      return 'subscript';
+      qlass = 'subscript';
     else
-      return super.getFontClassForItem(item);
+      qlass = super.getClassForItem(item, index);
+
+    // Bad timezone?
+    if ((this.timezone as Timezone).error &&
+        ((this.offsetIndex >= 0 && index === this.offsetIndex) || (this.dstIndex >= 0 && index === this.dstIndex)))
+      qlass += ' bad-value';
+    // Year out of displayable range?
+    else if (this.yearIndex >= 0 && this.signIndex < 0 && this.eraIndex < 0 &&
+             this.yearIndex <= index && index < this.yearIndex + 4 && this.dateTime.wallTime.y < 1)
+      qlass += ' bad-value';
+
+    return qlass?.trim();
   }
 
   private updateDigits(dateTime = this.dateTime, delta = 0): void {
@@ -703,7 +716,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       i[this.signIndex][value] = (wallTime.y < 0 ? '-' : NO_BREAK_SPACE);
 
     if (this.yearIndex >= 0) {
-      if (this.eraIndex >= 0 && wallTime.y < 1)
+      if (this.signIndex < 0 && wallTime.y < 1)
         y = 1 - wallTime.y;
 
       // noinspection JSSuspiciousNameCombination
@@ -770,7 +783,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       i[this.offsetIndex][value] = dateTime.timezone.getFormattedOffset(dateTime.utcMillis);
 
     if (this.dstIndex >= 0) {
-      if (!wallTime.dstOffset)
+      if ((this.timezone as Timezone).error)
+        i[this.dstIndex][value] = '?';
+      else if (!wallTime.dstOffset)
         i[this.dstIndex][value] = NO_BREAK_SPACE;
       else {
         i[this.dstIndex][value] = Timezone.getDstSymbol(wallTime.dstOffset);
@@ -959,7 +974,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   protected digitTyped(charCode: number, key: string): void {
     const i = this.items;
-    const origDate = <number> i[9].value * 10 + <number> i[10].value;
+    const origDate = <number> i[this.dayIndex]?.value * 10 + <number> i[this.dayIndex + 1]?.value;
     const sel = this.selection;
     const origValue = i[sel].value;
     let newValue: number | string = origValue;
@@ -1056,13 +1071,5 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
 
     this.cursorRight();
-  }
-
-  getColorForItem(item?: SequenceItemInfo, index?: number): string {
-    // Turn hour offset indicator red for bad timezone
-    if (index === 18 && (this.timezone as Timezone).error)
-      return '#C00';
-    else
-      return super.getColorForItem(item, index);
   }
 }

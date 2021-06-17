@@ -15,7 +15,7 @@
     (touchend)="onTouchEnd($event)">
   <div *ngFor="let item of items; index as i"
       class="digit dse-item-{{i}}"
-      [ngClass]="getFontClassForItem(item)"
+      [ngClass]="getClassForItem(item, i)"
       [class.spinner]="item.spinner"
       contenteditable=false
       [style.background-color]="getBackgroundColorForItem(item, i)"

@@ -21,7 +21,7 @@
       [style.background-color]="getBackgroundColorForItem(item, i)"
       [style.color]="getColorForItem(item, i)"
       [style.cursor]="item.editable && !disabled && !viewOnly ? 'pointer' : 'default'"
-      [ngStyle]="item.emWidth ? { width: item.emWidth + 'em', 'white-space': 'nowrap', overflow: 'visible' } : null"
+      [ngStyle]="item.width ? { width: item.width, 'white-space': 'nowrap', overflow: 'visible' } : null"
       (mousedown)="onMouseDown(i, $event)"
       (mouseup)="onMouseUp($event)"
       (contextmenu)="returnFalse()"
@@ -36,8 +36,12 @@
   >{{item.swipeBelow}}</span>
   <span *ngIf="!item.spinner && !item.divider; else dividerOrSpinner"
       class="draggable dse-item-{{i}}"
+      [class.sized]="!!item.sizer"
       [style.top]="(swipeable(item, i, 0) ? smoothedDeltaY : 0) + 'px'"
   >{{item.value}}</span>
+  <span *ngIf="item.sizer"
+      class="sizer"
+  >{{item.sizer}}</span>
   <ng-template #dividerOrSpinner>
     <div *ngIf="item.divider; else spinner" class="divider">.</div>
     <ng-template #spinner>

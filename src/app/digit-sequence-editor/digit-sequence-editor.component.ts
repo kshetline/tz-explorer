@@ -8,16 +8,17 @@ import { getPageXYForTouchEvent } from '../util/touch-events';
 export interface SequenceItemInfo {
   divider?: boolean;
   editable?: boolean;
-  emWidth?: number;
   indicator?: boolean;
   monospaced?: boolean;
   name?: string;
   selected?: boolean;
+  sizer?: string;
   spinner?: boolean;
   static?: boolean;
   swipeAbove?: string;
   swipeBelow?: string;
   value?: string | number;
+  width?: string;
 }
 
 export const FORWARD_TAB_DELAY = 250;
@@ -296,6 +297,9 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   }
 
   swipeable(item: SequenceItemInfo, index: number, delta: number): boolean {
+    if (this.swipeIndex < 0)
+      return false;
+
     const nextValue = this.smoothedDeltaY < 0 ? item.swipeBelow : item.swipeAbove;
 
     return index === this.swipeIndex ||
@@ -445,7 +449,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (this.touchDeltaY !== 0) {
+    if (this.swipeIndex >= 0) {
       this.clearDeltaYSwiping();
     }
   }

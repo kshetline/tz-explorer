@@ -49,6 +49,25 @@
   width: 0;
 }
 
+.sizer {
+  background-color: transparent;
+  color: transparent;
+  display: inline-block;
+  height: 0.1px;
+  margin-bottom: -0.1px;
+  overflow: hidden;
+  position: relative;
+  white-space: pre;
+}
+
+.sized {
+  display: inline-block;
+  max-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+  width: 0;
+}
+
 .spinner {
   margin-top: -0.3em;
   margin-right: -0.1em;

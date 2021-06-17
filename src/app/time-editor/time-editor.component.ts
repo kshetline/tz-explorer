@@ -12,7 +12,6 @@ export enum HourStyle { PER_LOCALE, HOURS_24, AM_PM }
 export enum YearStyle { POSITIVE_ONLY, AD_BC, SIGNED }
 
 export interface TimeEditorOptions {
-  amPmSeparator?: string;
   dateFieldOrder?: DateFieldOrder;
   dateFieldSeparator?: string;
   dateTimeSeparator?: string;
@@ -43,7 +42,8 @@ export const OPTIONS_ISO: TimeEditorOptions = {
   showOccurrence: true,
   showSeconds: true,
   showUtcOffset: true,
-  timeFieldSeparator: ':'
+  timeFieldSeparator: ':',
+  yearStyle: YearStyle.SIGNED
 };
 
 const TIME_EDITOR_VALUE_ACCESSOR: any = {
@@ -128,7 +128,6 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   constructor(private cd: ChangeDetectorRef) {
     super();
-    // this.signDigit = 0; // TODO
     this.useAlternateTouchHandling = false;
     this.originalMinYear = this.minYear = -9999;
     this.maxYear = 9999;
@@ -450,6 +449,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     let ts = ':';
 
     if (hasDate) {
+      if (this._options.yearStyle === YearStyle.SIGNED)
+        dateSteps.push('sign');
+
       const sampleDate = new DateTime('3333-11-22Z', 'UTC', locale).format('l');
       let dfo = this._options.dateFieldOrder ?? DateFieldOrder.PER_LOCALE;
 
@@ -468,6 +470,29 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         case DateFieldOrder.YMD: dateSteps.push('year', 'ds', 'month', 'ds', 'day'); break;
         case DateFieldOrder.DMY: dateSteps.push('day', 'ds', 'month', 'ds', 'year'); break;
         default: dateSteps.push('month', 'ds', 'day', 'ds', 'year');
+      }
+
+      if (this._options.yearStyle === YearStyle.AD_BC || isArray(this._options.yearStyle)) {
+        dateSteps.push('era');
+
+        if (isArray(this._options.yearStyle))
+          this.eraStrings = clone(this._options.yearStyle);
+        else {
+          const bc = new DateTime('-0001-01-01', 'UTC', locale).format('N');
+          const ad = new DateTime(0, 'UTC', locale).format('N');
+
+          this.eraStrings = [bc, ad];
+        }
+
+        this.eraKeys = ['b', 'a'];
+        const eras = this.eraStrings;
+
+        for (let i = 0; i < eras[0].length && eras[1].length; ++i) {
+          if (eras[0].charAt(i) !== eras[1].charAt(i)) {
+            this.eraKeys = [eras[0].charAt(i).toLocaleLowerCase(locale), eras[1].charAt(i).toLocaleLowerCase(locale)];
+            break;
+          }
+        }
       }
     }
 
@@ -500,7 +525,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       }
 
       if (amPm) {
-        timeSteps.push('aps', 'amPm');
+        timeSteps.push('amPm');
         this.amPmKeys = [];
         const aps = this.amPmStrings;
 
@@ -543,14 +568,25 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
       switch (step) {
         case 'year': this.yearIndex = i; addDigits(4); break;
+        case 'era':
+          this.items.push({ value: NO_BREAK_SPACE, static: true, width: '0.25em' });
+          this.eraIndex = i + 1;
+          this.items.push({ value: this.eraStrings[1], editable: true, sizer: this.eraStrings.join('\n') });
+          break;
+        case 'sign':
+          this.signIndex = i;
+          this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true, width: '0.6em' });
+          break;
         case 'ds': this.items.push({ value: ds, static: true }); break;
         case 'month': this.monthIndex = i; addDigits(2); break;
         case 'day': this.dayIndex = i; addDigits(2); break;
         case 'dts': this.items.push({ value: NO_BREAK_SPACE, static: true, width: '0.6em' }); break;
         case 'hour': this.hourIndex = i; addDigits(2); break;
-        case 'aps': this.items.push({ value: this._options.amPmSeparator ?? NO_BREAK_SPACE, static: true }); break;
-        case 'amPm': this.amPmIndex = i; this.items.push({ value: this.amPmStrings[0], editable: true,
-                                                           sizer: this.amPmStrings.join('\n') }); break;
+        case 'amPm':
+          this.items.push({ value: NO_BREAK_SPACE, static: true, width: '0.25em' });
+          this.amPmIndex = i + 1;
+          this.items.push({ value: this.amPmStrings[0], editable: true, sizer: this.amPmStrings.join('\n') });
+          break;
         case 'ts': this.items.push({ value: ts, static: true }); break;
         case 'minute': this.minuteIndex = i; addDigits(2); break;
         case 'second': this.secondIndex = i; addDigits(2); break;
@@ -576,8 +612,6 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     else if (steps.includes('day'))
       this.selection = this.dayIndex + 1;
 
-    // this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true, emWidth: 0.6 }); //  0 - Year sign
-    // this.items.push({ value: NO_BREAK_SPACE, editable: false, selected: false, indicator: true, monospaced: true }); // 19 - DST indicator
     this.items.push({ divider: true });
     this.items.push({ spinner: true });
 
@@ -596,7 +630,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const value = delta === 0 ? 'value' : delta < 0 ? 'swipeBelow' : 'swipeAbove';
     let j: number;
 
-    if (/* i.length < 17 || */ !dateTime.valid)
+    if (!dateTime.valid)
       return;
 
     let wallTime = dateTime.wallTime;
@@ -621,16 +655,17 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       return;
     }
 
-    const y = abs(wallTime.y);
+    let y = abs(wallTime.y);
 
-    if (this.signDigit >= 0) {
-      if (wallTime.y < 0)
-        i[this.signDigit][value] = '-';
-      else
-        i[this.signDigit][value] = NO_BREAK_SPACE;
-    }
+    if (this.eraIndex >= 0)
+      i[this.eraIndex][value] = this.eraStrings[wallTime.y < 1 ? 0 : 1];
+    else if (this.signIndex >= 0)
+      i[this.signIndex][value] = (wallTime.y < 0 ? '-' : NO_BREAK_SPACE);
 
     if (this.yearIndex >= 0) {
+      if (this.eraIndex >= 0 && wallTime.y < 1)
+        y = 1 - wallTime.y;
+
       // noinspection JSSuspiciousNameCombination
       const y4 = div_tt0(y, 1000);
       const y3 = div_tt0(y - y4 * 1000, 100);
@@ -733,7 +768,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const si = this.secondIndex;
     let year = <number> i[yi].value * 1000 + <number> i[yi + 1].value * 100 + <number> i[yi + 2].value * 10 + <number> i[yi + 3].value;
 
-    if (i[0].value === '-')
+    if (this.eraIndex >= 0 && i[this.eraIndex].value === this.eraStrings[0])
+      year = 1 - year;
+    else if (this.signIndex >= 0 && i[this.signIndex].value === '-')
       year *= -1;
 
     const month  = <number> i[Mi].value * 10 + <number> i[Mi + 1].value;
@@ -784,14 +821,26 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     let change = 0;
     let field = DateTimeField.YEAR;
     let wallTime = this.dateTime.wallTime;
-    const wasNegative = (this.items[this.signDigit]?.value === '-');
+    const wasNegative = (this.items[this.signIndex]?.value === '-');
 
-    if (this.signDigit >= 0 && sel === this.signDigit) { // Sign of year
+    if (this.eraIndex >= 0 && sel === this.eraIndex) {
+      const newYear = 1 - wallTime.y;
+
+      if (newYear < this.minYear || newYear > this.maxYear) {
+        if (updateTime)
+          this.errorFlash();
+
+        return;
+      }
+
+      change = sign * (newYear - wallTime.y);
+    }
+    else if (this.signIndex >= 0 && sel === this.signIndex) { // Sign of year
       if (-wallTime.y < this.minYear || -wallTime.y > this.maxYear) {
         if (updateTime)
           this.errorFlash();
 
-        return null;
+        return;
       }
 
       change = -sign * wallTime.y * 2;
@@ -843,7 +892,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       this.onChangeCallback(this.dateTime.utcTimeMillis);
       this.updateDigits();
 
-      if (sel === this.signDigit && this.dateTime.wallTime.y === 0)
+      if (sel === this.signIndex && this.dateTime.wallTime.y === 0)
         this.items[sel].value = (wasNegative ? NO_BREAK_SPACE : '-');
     }
     else
@@ -852,11 +901,12 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   protected onKey(key: string): void {
     const keyLc = key.toLocaleLowerCase(this._options.locale);
+    const editable = !this.disabled && !this.viewOnly;
 
-    if (!this.disabled && !this.viewOnly && this.selection === this.signDigit && key === ' ')
-      this.digitTyped(32, ' ');
-    else if (!this.disabled && !this.viewOnly && this.selection === this.amPmIndex &&
-             (key === '1' || key === '2' || this.amPmKeys.includes(keyLc)))
+    if (editable &&
+        ((this.selection === this.eraIndex && (key === '1' || key === '2' || this.eraKeys.includes(keyLc))) ||
+         (this.selection === this.signIndex && ' -+='.includes(key)) ||
+         (this.selection === this.amPmIndex && (key === '1' || key === '2' || this.amPmKeys.includes(keyLc)))))
       this.digitTyped(keyLc.charCodeAt(0), keyLc);
     else
       super.onKey(key);
@@ -869,14 +919,22 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const origValue = i[sel].value;
     let newValue: number | string = origValue;
 
-    if (sel === this.signDigit) {
+    if (sel === this.eraIndex) {
+      const [bc, ad] = this.eraStrings;
+
+      if (i[this.eraIndex].value === bc && (key === this.eraKeys[1] || key === '1'))
+        newValue = ad;
+      else if (i[this.eraIndex].value === ad && (key === this.eraKeys[0] || key === '2'))
+        newValue = bc;
+    }
+    else if (sel === this.signIndex) {
       if (' +=-'.indexOf(key) < 0) {
         this.errorFlash();
         return;
       }
-      else if (i[0].value === '-' && (key === ' ' || key === '+' || key === '='))
+      else if (i[this.signIndex].value === '-' && (key === ' ' || key === '+' || key === '='))
         newValue = NO_BREAK_SPACE;
-      else if (i[0].value === NO_BREAK_SPACE && key === '-')
+      else if (i[this.signIndex].value === NO_BREAK_SPACE && key === '-')
         newValue = '-';
     }
     else if (sel === this.amPmIndex) {
@@ -948,7 +1006,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       this.onChangeCallback(this.dateTime.utcTimeMillis);
       this.updateDigits();
 
-      if (sel === this.signDigit && this.dateTime.wallTime.y === 0)
+      if (sel === this.signIndex && this.dateTime.wallTime.y === 0)
         this.items[sel].value = newValue;
     }
 

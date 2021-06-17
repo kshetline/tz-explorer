@@ -6,6 +6,9 @@
   &nbsp;<label for="native">Native date/time</label>
    <input id="native" type="checkbox" (change)="native = $any($event.target).checked"/><br><br>
 <tz-time-editor style="font-size: 1.5em"
+    [options]="{ yearStyle: 1 }"
+    [(ngModel)]="time"></tz-time-editor><br><br>
+<tz-time-editor style="font-size: 1.5em"
     options="ISO"
     [(ngModel)]="time"></tz-time-editor><br><br>
 <tz-time-editor style="font-size: 1.5em"

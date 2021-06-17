@@ -117,7 +117,6 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected letterIncrement = 'a';
   protected selectionHidden = false;
   protected showFocus = false;
-  protected signDigit = -1;
   protected swipeIndex = -1;
   protected _tabindex = '1';
   protected wrapper: HTMLElement;
@@ -639,12 +638,10 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
     if (this._disabled || this.viewOnly || !this.hasFocus || !this.items[this.selection]?.editable)
       return;
 
-    if (this.selection !== this.signDigit) {
-      if (key === '-' || key.toLowerCase() === this.letterDecrement)
-        key = 'ArrowDown';
-      else if (key === '+' || key === '=' || key.toLowerCase() === this.letterIncrement)
-        key = 'ArrowUp';
-    }
+    if (key === '-' || key.toLowerCase() === this.letterDecrement)
+      key = 'ArrowDown';
+    else if (key === '+' || key === '=' || key.toLowerCase() === this.letterIncrement)
+      key = 'ArrowUp';
 
     switch (key) {
       case 'ArrowUp':

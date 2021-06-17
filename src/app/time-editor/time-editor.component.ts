@@ -17,6 +17,7 @@ export interface TimeEditorOptions {
   dateTimeSeparator?: string;
   dateTimeStyle?: DateTimeStyle;
   hourStyle?: HourStyle | string[];
+  leapSeconds?: boolean;
   locale?: string | string[];
   millisDigits?: number;
   showDstSymbol?: boolean;
@@ -38,6 +39,7 @@ export const OPTIONS_ISO: TimeEditorOptions = {
   dateFieldOrder: DateFieldOrder.YMD,
   dateFieldSeparator: '-',
   dateTimeSeparator: NO_BREAK_SPACE,
+  leapSeconds: true,
   showDstSymbol: true,
   showOccurrence: true,
   showSeconds: true,
@@ -133,10 +135,10 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.maxYear = 9999;
   }
 
-  get value(): number { return this.dateTime.utcTimeMillis; }
+  get value(): number { return this.dateTime.utcMillis; }
   set value(newTime: number) {
-    if (this.dateTime.utcTimeMillis !== newTime) {
-      this.dateTime.utcTimeMillis = newTime;
+    if (this.dateTime.utcMillis !== newTime) {
+      this.dateTime.utcMillis = newTime;
       this.updateDigits();
       this.onChangeCallback(newTime);
     }
@@ -162,12 +164,12 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
             d[4] = w.min;
           }
 
-          newTime = new DateTime({ y: d[0], m: d[1], d: d[2], hrs: d[3], min: d[4], sec: 0 }, this.timezone, this._gregorianChangeDate).utcTimeMillis;
+          newTime = new DateTime({ y: d[0], m: d[1], d: d[2], hrs: d[3], min: d[4], sec: 0 }, this.timezone, this._gregorianChangeDate).utcMillis;
         }
         else if (($ = /(\d\d):(\d\d)/.exec(newValue))) {
           const t = $.slice(1).map(n => Number(n));
 
-          newTime = new DateTime({ y: w.y, m: w.m, d: w.d, hrs: t[0], min: t[1], sec: 0 }, this.timezone, this._gregorianChangeDate).utcTimeMillis;
+          newTime = new DateTime({ y: w.y, m: w.m, d: w.d, hrs: t[0], min: t[1], sec: 0 }, this.timezone, this._gregorianChangeDate).utcMillis;
         }
       }
       else
@@ -309,8 +311,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   }
 
   writeValue(newValue: number): void {
-    if (this.dateTime.utcTimeMillis !== newValue) {
-      this.dateTime.utcTimeMillis = newValue;
+    if (this.dateTime.utcMillis !== newValue) {
+      this.dateTime.utcMillis = newValue;
       this.updateDigits();
     }
   }
@@ -362,10 +364,10 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.localTime?.setAttribute('max', this.localTimeMax);
   }
 
-  get timezone(): Timezone { return this.dateTime.timezone; }
-  @Input() set timezone(newZone: Timezone) {
+  get timezone(): Timezone | string { return this.dateTime.timezone; }
+  @Input() set timezone(newZone: Timezone | string) {
     if (this.dateTime.timezone !== newZone) {
-      this.dateTime.timezone = newZone;
+      this.dateTime.timezone = newZone as any;
       this.updateDigits();
     }
   }
@@ -401,7 +403,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         if (wallTime.y < this.minYear) {
           wallTime = { y: this.minYear, m: 1, d: 1, hrs: 0, min: 0, sec: 0 };
           this.dateTime.wallTime = wallTime;
-          this.onChangeCallback(this.dateTime.utcTimeMillis);
+          this.onChangeCallback(this.dateTime.utcMillis);
           this.updateDigits();
         }
       }
@@ -575,7 +577,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
           break;
         case 'sign':
           this.signIndex = i;
-          this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true, width: '0.6em' });
+          this.items.push({ value: NO_BREAK_SPACE, editable: true, monospaced: true, sizer: '-' });
           break;
         case 'ds': this.items.push({ value: ds, static: true }); break;
         case 'month': this.monthIndex = i; addDigits(2); break;
@@ -600,7 +602,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
           break;
         case 'dst':
           this.dstIndex = i;
-          this.items.push({ value: NO_BREAK_SPACE, indicator: true, sizer: '#' });
+          this.items.push({ value: NO_BREAK_SPACE, indicator: true, sizer: '^\n§\n#\n~\n\u2744' });
           break;
       }
     }
@@ -649,7 +651,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       timer().subscribe(() => {
         this.errorFlash();
         dateTime.wallTime = wallTime;
-        this.onChangeCallback(dateTime.utcTimeMillis);
+        this.onChangeCallback(dateTime.utcMillis);
         this.updateDigits();
       });
       return;
@@ -727,7 +729,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       i[this.occIndex][value] = (wallTime.occurrence === 2 ? OCC2 : NO_BREAK_SPACE);
 
     if (this.offsetIndex >= 0)
-      i[this.offsetIndex][value] = dateTime.timezone.getFormattedOffset(dateTime.utcTimeMillis);
+      i[this.offsetIndex][value] = dateTime.timezone.getFormattedOffset(dateTime.utcMillis);
 
     if (this.dstIndex >= 0) {
       if (!wallTime.dstOffset)
@@ -818,6 +820,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   private roll(sign: number, sel = this.selection, updateTime = true): void {
     const dateTime = this.dateTime.clone();
+    const leap = !!this._options.leapSeconds;
     let change = 0;
     let field = DateTimeField.YEAR;
     let wallTime = this.dateTime.wallTime;
@@ -846,15 +849,15 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       change = -sign * wallTime.y * 2;
     }
     else if (this.secondIndex >= 0 && (sel === this.secondIndex || sel === this.secondIndex + 1)) {
-      field = DateTimeField.SECOND;
+      field = leap ? DateTimeField.SECOND_TAI : DateTimeField.SECOND;
       change = (sel === this.secondIndex ? 10 : 1);
     }
     else if (this.minuteIndex >= 0 && (sel === this.minuteIndex || sel === this.minuteIndex + 1)) {
-      field = DateTimeField.MINUTE;
+      field = leap ? DateTimeField.MINUTE_TAI : DateTimeField.MINUTE;
       change = (sel === this.minuteIndex ? 10 : 1);
     }
     else if (this.hourIndex >= 0 && (sel === this.hourIndex || sel === this.hourIndex + 1)) {
-      field = DateTimeField.HOUR;
+      field = leap ? DateTimeField.HOUR_TAI : DateTimeField.HOUR;
       change = (sel === this.hourIndex ? 10 : 1);
     }
     else if (this.amPmIndex >= 0 && sel === this.amPmIndex) {
@@ -862,7 +865,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       change = (wallTime.hrs < 12 ? 12 : -12) * sign;
     }
     else if (this.dayIndex >= 0 && (sel === this.dayIndex || sel === this.dayIndex + 1)) {
-      field = DateTimeField.DAY;
+      field = leap ? DateTimeField.DAY_TAI : DateTimeField.DAY;
       change = (sel === this.dayIndex ? 10 : 1);
     }
     else if (this.monthIndex >= 0 && (sel === this.monthIndex || sel === this.monthIndex + 1)) {
@@ -888,8 +891,12 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
 
     if (updateTime) {
-      this.dateTime.utcTimeMillis = dateTime.utcTimeMillis;
-      this.onChangeCallback(this.dateTime.utcTimeMillis);
+      if (leap)
+        this.dateTime.taiMillis = dateTime.taiMillis;
+      else
+        this.dateTime.utcMillis = dateTime.utcMillis;
+
+      this.onChangeCallback(this.dateTime.utcMillis);
       this.updateDigits();
 
       if (sel === this.signIndex && this.dateTime.wallTime.y === 0)
@@ -1003,7 +1010,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       }
 
       this.dateTime.wallTime = wallTime;
-      this.onChangeCallback(this.dateTime.utcTimeMillis);
+      this.onChangeCallback(this.dateTime.utcMillis);
       this.updateDigits();
 
       if (sel === this.signIndex && this.dateTime.wallTime.y === 0)
@@ -1015,7 +1022,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   getColorForItem(item?: SequenceItemInfo, index?: number): string {
     // Turn hour offset indicator red for bad timezone
-    if (index === 18 && this.timezone.error)
+    if (index === 18 && (this.timezone as Timezone).error)
       return '#C00';
     else
       return super.getColorForItem(item, index);

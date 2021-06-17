@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { DateTime } from '@tubular/time';
 
 @Component({
   selector: 'app-root',
@@ -6,9 +7,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  Date = Date;
-
   native = false;
-  time = Date.now();
+  time = new DateTime().taiMillis;
   title = 'tz-explorer';
+
+  now(): void {
+    this.time = new DateTime().taiMillis;
+  }
 }

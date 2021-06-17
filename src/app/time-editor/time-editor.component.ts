@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angula
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DateAndTime, DateTime, DateTimeField, Timezone } from '@tubular/time';
 import { abs, div_tt0, max, min } from '@tubular/math';
-import { clone, compareCaseInsensitive, isAndroid, isArray, isChrome, isEqual, isIOS, isString, noop, padLeft } from '@tubular/util';
+import { clone, compareCaseInsensitive, isAndroid, isArray, isChrome, isEqual, isIOS, isString, noop, padLeft, toBoolean } from '@tubular/util';
 import { timer } from 'rxjs';
 import { BACKGROUND_ANIMATIONS, DigitSequenceEditorComponent, FORWARD_TAB_DELAY, SequenceItemInfo } from '../digit-sequence-editor/digit-sequence-editor.component';
 
@@ -94,6 +94,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   private onTouchedCallback: () => void = noop;
   private _options: TimeEditorOptions = {};
   private readonly originalMinYear: number;
+  private _tai = false;
 
   private eraIndex = -1;
   private signIndex = -1;
@@ -128,6 +129,17 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
   }
 
+  get tai(): boolean | string { return this._tai; }
+  @Input() set tai(newValue: boolean | string) {
+    if (isString(newValue))
+      newValue = toBoolean(newValue, false, true);
+
+    if (this._tai !== newValue) {
+      this._tai = newValue;
+      this.doChangeCallback();
+    }
+  }
+
   constructor(private cd: ChangeDetectorRef) {
     super();
     this.useAlternateTouchHandling = false;
@@ -135,13 +147,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.maxYear = 9999;
   }
 
-  get value(): number { return this.dateTime.utcMillis; }
-  set value(newTime: number) {
-    if (this.dateTime.utcMillis !== newTime) {
-      this.dateTime.utcMillis = newTime;
-      this.updateDigits();
-      this.onChangeCallback(newTime);
-    }
+  get value(): number { return this._tai ? this.dateTime.taiMillis : this.dateTime.utcMillis; }
+  set value(newValue: number) {
+    this.setValue(newValue, true);
   }
 
   onLocalTimeChange(): void {
@@ -311,10 +319,40 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   }
 
   writeValue(newValue: number): void {
-    if (this.dateTime.utcMillis !== newValue) {
-      this.dateTime.utcMillis = newValue;
-      this.updateDigits();
+    this.setValue(newValue);
+  }
+
+  private setValue(newValue: number, doCallback = false): void {
+    let tai = this._tai;
+
+    if (newValue as any instanceof DateTime) {
+      tai = true;
+      newValue = (newValue as any as DateTime).taiMillis;
     }
+    else if (newValue as any instanceof Date) {
+      tai = false;
+      newValue = (newValue as any as Date).getTime();
+    }
+    else if (isString(newValue)) {
+      tai = true;
+      newValue = new DateTime(newValue as any as string, this.dateTime.timezone, this.dateTime.locale, this.dateTime.getGregorianChange()).taiMillis;
+    }
+
+    if ((tai && this.dateTime.taiMillis !== newValue) || (!tai && this.dateTime.utcMillis !== newValue)) {
+      if (tai)
+        this.dateTime.taiMillis = newValue;
+      else
+        this.dateTime.utcMillis = newValue;
+
+      this.updateDigits();
+
+      if (doCallback)
+        this.doChangeCallback();
+    }
+  }
+
+  private doChangeCallback(): void {
+    this.onChangeCallback(this._tai ? this.dateTime.taiMillis : this.dateTime.utcMillis);
   }
 
   registerOnChange(fn: any): void {
@@ -403,7 +441,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         if (wallTime.y < this.minYear) {
           wallTime = { y: this.minYear, m: 1, d: 1, hrs: 0, min: 0, sec: 0 };
           this.dateTime.wallTime = wallTime;
-          this.onChangeCallback(this.dateTime.utcMillis);
+          this.doChangeCallback();
           this.updateDigits();
         }
       }
@@ -651,7 +689,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       timer().subscribe(() => {
         this.errorFlash();
         dateTime.wallTime = wallTime;
-        this.onChangeCallback(dateTime.utcMillis);
+        this.doChangeCallback();
         this.updateDigits();
       });
       return;
@@ -891,12 +929,12 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
 
     if (updateTime) {
-      if (leap)
+      if (leap || this._tai)
         this.dateTime.taiMillis = dateTime.taiMillis;
       else
         this.dateTime.utcMillis = dateTime.utcMillis;
 
-      this.onChangeCallback(this.dateTime.utcMillis);
+      this.doChangeCallback();
       this.updateDigits();
 
       if (sel === this.signIndex && this.dateTime.wallTime.y === 0)
@@ -1010,7 +1048,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       }
 
       this.dateTime.wallTime = wallTime;
-      this.onChangeCallback(this.dateTime.utcMillis);
+      this.doChangeCallback();
       this.updateDigits();
 
       if (sel === this.signIndex && this.dateTime.wallTime.y === 0)

@@ -1,17 +1,19 @@
-<tz-time-editor style="font-size: 1.5em"
+<tz-time-editor tai style="font-size: 1.5em"
+    [options]="{ showSeconds: true }"
     [(ngModel)]="time"
     [nativeDateTime]="native"></tz-time-editor>
-  &nbsp;<button (click)="time = Date.now()">Now</button>
-  &nbsp;<button (click)="time = 1636264800000">Sample time</button><br>
+  &nbsp;<button (click)="now()">Now</button>
+  &nbsp;<button (click)="time = 1636264837000">Sample time</button>
+  &nbsp;<button (click)="time = 1483228836000">Sample leap</button><br>
   &nbsp;<label for="native">Native date/time</label>
    <input id="native" type="checkbox" (change)="native = $any($event.target).checked"/><br><br>
-<tz-time-editor style="font-size: 1.5em"
+<tz-time-editor tai style="font-size: 1.5em"
     [options]="{ yearStyle: 1 }"
     [(ngModel)]="time"></tz-time-editor><br><br>
-<tz-time-editor style="font-size: 1.5em"
+<tz-time-editor tai style="font-size: 1.5em"
     options="ISO"
     timezone="Europe/Dublin"
     [(ngModel)]="time"></tz-time-editor><br><br>
-<tz-time-editor style="font-size: 1.5em"
+<tz-time-editor tai style="font-size: 1.5em"
     [options]="{ hourStyle: 2, locale: 'ar', yearStyle: 1 }"
     [(ngModel)]="time"></tz-time-editor><br><br>

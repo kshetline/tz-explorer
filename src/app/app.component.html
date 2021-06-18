@@ -1,5 +1,5 @@
 <tz-time-editor tai style="font-size: 1.5em"
-    [options]="{ showSeconds: true }"
+    [options]="{ showOccurrence: true, showSeconds: true }"
     [(ngModel)]="time"
     [nativeDateTime]="native"></tz-time-editor>
   &nbsp;<button (click)="now()">Now</button>
@@ -11,7 +11,7 @@
     [options]="{ yearStyle: 1 }"
     [(ngModel)]="time"></tz-time-editor><br><br>
 <tz-time-editor tai style="font-size: 1.5em"
-    options="ISO"
+    [options]="['iso', { millisDigits: 3, showDstSymbol: true, showOccurrence: true, showUtcOffset: true }]"
     timezone="Europe/Dublin"
     [(ngModel)]="time"></tz-time-editor><br><br>
 <tz-time-editor tai style="font-size: 1.5em"

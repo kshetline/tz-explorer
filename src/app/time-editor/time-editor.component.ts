@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angula
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DateAndTime, DateTime, DateTimeField, Timezone } from '@tubular/time';
 import { abs, div_tt0, floor, max, min } from '@tubular/math';
-import { clone, compareCaseInsensitive, isAndroid, isArray, isChrome, isEqual, isIOS, isString, noop, padLeft, toBoolean } from '@tubular/util';
+import { clone, isAndroid, isArray, isChrome, isEqual, isIOS, isString, noop, padLeft, toBoolean } from '@tubular/util';
 import { timer } from 'rxjs';
 import { BACKGROUND_ANIMATIONS, DigitSequenceEditorComponent, FORWARD_TAB_DELAY, SequenceItemInfo } from '../digit-sequence-editor/digit-sequence-editor.component';
 
@@ -18,7 +18,6 @@ export interface TimeEditorOptions {
   dateTimeStyle?: DateTimeStyle;
   decimal?: string;
   hourStyle?: HourStyle | string[];
-  leapSeconds?: boolean;
   locale?: string | string[];
   millisDigits?: number;
   showDstSymbol?: boolean;
@@ -35,19 +34,30 @@ const OCC2 = '\u200A\u2082\u200A';
 const NO_BREAK_SPACE = '\u00A0';
 const platformNativeDateTime = (isIOS() || (isAndroid() && isChrome()));
 
+export const OPTIONS_DATE_ONLY: TimeEditorOptions = {
+  dateTimeStyle: DateTimeStyle.DATE_ONLY,
+};
+
 export const OPTIONS_ISO: TimeEditorOptions = {
   hourStyle: HourStyle.HOURS_24,
   dateFieldOrder: DateFieldOrder.YMD,
   dateFieldSeparator: '-',
   dateTimeSeparator: NO_BREAK_SPACE,
-  leapSeconds: true,
-  millisDigits: 3,
-  showDstSymbol: true,
-  showOccurrence: true,
+  decimal: '.',
   showSeconds: true,
-  showUtcOffset: true,
   timeFieldSeparator: ':',
-  yearStyle: YearStyle.SIGNED
+};
+
+export const OPTIONS_ISO_DATE: TimeEditorOptions = {
+  dateFieldOrder: DateFieldOrder.YMD,
+  dateFieldSeparator: '-',
+  dateTimeStyle: DateTimeStyle.DATE_ONLY,
+};
+
+const namedOptions: Record<string, TimeEditorOptions> = {
+  date_only: OPTIONS_DATE_ONLY,
+  iso: OPTIONS_ISO,
+  iso_date: OPTIONS_ISO_DATE
 };
 
 const TIME_EDITOR_VALUE_ACCESSOR: any = {
@@ -131,17 +141,30 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   localTimeMin: string;
   localTimeMax: string;
 
-  get options(): TimeEditorOptions | string { return this._options; }
-  @Input() set options(newValue: TimeEditorOptions | string) {
-    if (isString(newValue)) {
-      if (compareCaseInsensitive(newValue, 'iso') === 0)
-        newValue = OPTIONS_ISO;
+  get options(): string | TimeEditorOptions | (string | TimeEditorOptions)[] { return this._options; }
+  @Input() set options(newValue: string | TimeEditorOptions | (string | TimeEditorOptions)[]) {
+    if (isArray(newValue)) {
+      const orig = newValue;
+
+      if (isString(orig[0]))
+        newValue = clone(namedOptions[orig[0].toLowerCase()] ?? {});
       else
-        newValue = {};
+        newValue = clone(orig[0]);
+
+      orig.forEach((opt, index) => {
+        if (index > 0) {
+          if (isString(opt))
+            opt = namedOptions[opt.toLowerCase()] ?? {};
+
+          Object.assign(newValue, opt);
+        }
+      });
     }
+    else if (isString(newValue))
+      newValue = namedOptions[newValue.toLowerCase()] ?? {};
 
     if (!isEqual(this._options, newValue)) {
-      this._options = newValue;
+      this._options = clone(newValue);
       this.createDigits();
     }
   }
@@ -922,7 +945,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   private roll(sign: number, sel = this.selection, updateTime = true): void {
     const dateTime = this.dateTime.clone();
-    const leap = !!this._options.leapSeconds;
+    const tai = this._tai;
     let change = 0;
     let field = DateTimeField.YEAR;
     let wallTime = this.dateTime.wallTime;
@@ -952,19 +975,19 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       change = -sign * wallTime.y * 2;
     }
     else if (this.millisIndex >= 0 && this.millisIndex <= sel && sel < this.millisIndex + mDigits) {
-      field = leap ? DateTimeField.MILLI_TAI : DateTimeField.MILLI;
+      field = tai ? DateTimeField.MILLI_TAI : DateTimeField.MILLI;
       change = 10 ** (5 - mDigits + this.millisIndex - sel);
     }
     else if (this.secondIndex >= 0 && (sel === this.secondIndex || sel === this.secondIndex + 1)) {
-      field = leap ? DateTimeField.SECOND_TAI : DateTimeField.SECOND;
+      field = tai ? DateTimeField.SECOND_TAI : DateTimeField.SECOND;
       change = (sel === this.secondIndex ? 10 : 1);
     }
     else if (this.minuteIndex >= 0 && (sel === this.minuteIndex || sel === this.minuteIndex + 1)) {
-      field = leap ? DateTimeField.MINUTE_TAI : DateTimeField.MINUTE;
+      field = tai ? DateTimeField.MINUTE_TAI : DateTimeField.MINUTE;
       change = (sel === this.minuteIndex ? 10 : 1);
     }
     else if (this.hourIndex >= 0 && (sel === this.hourIndex || sel === this.hourIndex + 1)) {
-      field = leap ? DateTimeField.HOUR_TAI : DateTimeField.HOUR;
+      field = tai ? DateTimeField.HOUR_TAI : DateTimeField.HOUR;
       change = (sel === this.hourIndex ? 10 : 1);
     }
     else if (this.amPmIndex >= 0 && sel === this.amPmIndex) {
@@ -972,7 +995,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       change = (wallTime.hrs < 12 ? 12 : -12) * sign;
     }
     else if (this.dayIndex >= 0 && (sel === this.dayIndex || sel === this.dayIndex + 1)) {
-      field = leap ? DateTimeField.DAY_TAI : DateTimeField.DAY;
+      field = tai ? DateTimeField.DAY_TAI : DateTimeField.DAY;
       change = (sel === this.dayIndex ? 10 : 1);
     }
     else if (this.monthIndex >= 0 && (sel === this.monthIndex || sel === this.monthIndex + 1)) {
@@ -998,7 +1021,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     }
 
     if (updateTime) {
-      if (leap || this._tai)
+      if (tai)
         this.dateTime.taiMillis = dateTime.taiMillis;
       else
         this.dateTime.utcMillis = dateTime.utcMillis;

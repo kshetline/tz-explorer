@@ -38,7 +38,7 @@
       class="draggable dse-item-{{i}}"
       [class.sized]="!!item.sizer"
       [style.top]="(swipeable(item, i, 0) ? smoothedDeltaY : 0) + 'px'"
-  >{{item.value}}</span>
+  >{{item.altValue || item.value}}</span>
   <span *ngIf="item.sizer"
       class="sizer"
   >{{item.sizer}}</span>

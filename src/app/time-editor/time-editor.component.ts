@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angula
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DateAndTime, DateTime, DateTimeField, Timezone } from '@tubular/time';
 import { abs, div_tt0, floor, max, min } from '@tubular/math';
-import { clone, isAndroid, isArray, isChrome, isEqual, isIOS, isString, noop, padLeft, toBoolean } from '@tubular/util';
+import { clone, convertDigits, convertDigitsToAscii, isAndroid, isArray, isChrome, isEqual, isIOS, isNumber, isString, noop, padLeft, repeat, toBoolean } from '@tubular/util';
 import { timer } from 'rxjs';
 import { BACKGROUND_ANIMATIONS, DigitSequenceEditorComponent, FORWARD_TAB_DELAY, SequenceItemInfo } from '../digit-sequence-editor/digit-sequence-editor.component';
 
@@ -68,17 +68,6 @@ const TIME_EDITOR_VALUE_ACCESSOR: any = {
 
 type TimeFormat = 'date' | 'time' | 'datetime-local';
 
-const repeat = (n: number, f: Function): void => { while (n-- > 0) f(); };
-
-function convertDigits(n: string): string {
-  return n.replace(/[\u0660-\u0669]/g, ch => String.fromCodePoint(ch.charCodeAt(0) - 0x0630)) // Arabic digits
-    .replace(/[\u06F0-\u06F9]/g, ch => String.fromCodePoint(ch.charCodeAt(0) - 0x06C0)) // Urdu/Persian digits
-    .replace(/[\u0966-\u096F]/g, ch => String.fromCodePoint(ch.charCodeAt(0) - 0x0936)) // Devanagari digits
-    .replace(/[\u09E6-\u09EF]/g, ch => String.fromCodePoint(ch.charCodeAt(0) - 0x09B6)) // Bengali digits
-    .replace(/[\u0F20-\u0F29]/g, ch => String.fromCodePoint(ch.charCodeAt(0) - 0x0EF0)) // Tibetan digits
-    .replace(/[\u1040-\u1049]/g, ch => String.fromCodePoint(ch.charCodeAt(0) - 0x1010)); // Myanmar digits
-}
-
 let hasIntl = false;
 
 try {
@@ -106,6 +95,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
   private amPmKeys = ['a', 'p'];
   private amPmStrings = ['AM', 'PM'];
+  private baseDigit = '0';
   private dateTime = new DateTime();
   private eraKeys = ['b', 'a'];
   private eraStrings = ['BC', 'AD'];
@@ -527,9 +517,10 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     const hasTime = (opts.dateTimeStyle !== DateTimeStyle.DATE_ONLY);
     const locale = opts.locale;
     const decimal = opts.decimal ||
-      (hasIntl && convertDigits(Intl.NumberFormat(opts.locale).format(1.2)).replace(/\d/g, '').charAt(0)) || '.';
+      (hasIntl && convertDigitsToAscii(Intl.NumberFormat(opts.locale).format(1.2)).replace(/\d/g, '').charAt(0)) || '.';
     let ds = '/';
     let ts = ':';
+    const baseDigit: string[] = [];
 
     if (hasDate) {
       if (opts.yearStyle === YearStyle.SIGNED)
@@ -538,7 +529,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
       const sampleDate = new DateTime('3333-11-22Z', 'UTC', locale).format('l');
       let dfo = opts.dateFieldOrder ?? DateFieldOrder.PER_LOCALE;
 
-      ds = opts.dateFieldSeparator || convertDigits(sampleDate).replace(/(^\D+)|[\d\s\u2000-\u200F]/g, '').charAt(0) || '/';
+      ds = opts.dateFieldSeparator ||
+        convertDigitsToAscii(sampleDate, baseDigit).replace(/(^\D+)|[\d\s\u2000-\u200F]/g, '').charAt(0) || '/';
 
       if (dfo === DateFieldOrder.PER_LOCALE) {
         if (/3.*1.*2/.test(sampleDate))
@@ -582,7 +574,8 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     if (hasTime) {
       const sampleTime = new DateTime(0, 'UTC', locale).format('LT');
 
-      ts = opts.timeFieldSeparator || convertDigits(sampleTime).replace(/(^\D+)|[\d\s\u2000-\u200F]/g, '').charAt(0) || ':';
+      ts = opts.timeFieldSeparator ||
+        convertDigitsToAscii(sampleTime, baseDigit).replace(/(^\D+)|[\d\s\u2000-\u200F]/g, '').charAt(0) || ':';
       timeSteps.push('hour', 'ts', 'minute');
 
       if (opts.showSeconds || opts.millisDigits > 0)
@@ -701,6 +694,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
 
     this.items.push({ divider: true });
     this.items.push({ spinner: true });
+    this.baseDigit = baseDigit[0] ?? '0';
 
     this.updateDigits();
   }
@@ -848,6 +842,15 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
         i[this.dstIndex][value] = Timezone.getDstSymbol(wallTime.dstOffset);
       }
     }
+
+    this.items.forEach(item => {
+      if (item.editable && isNumber(item.value)) {
+        if (this.baseDigit === '0')
+          item.altValue = undefined;
+        else
+          item.altValue = convertDigits(item.value.toString(), this.baseDigit);
+      }
+    });
 
     if (delta === 0)
       this.updateLocalTime();

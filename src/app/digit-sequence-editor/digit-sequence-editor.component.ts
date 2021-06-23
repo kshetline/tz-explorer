@@ -1,11 +1,14 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { abs, max, min, mod, Point, round, sign } from '@tubular/math';
-import { eventToKey, getCssValue, isAndroid, isEdge, isIE, isIOS, isString, processMillis, toBoolean, toNumber } from '@tubular/util';
+import {
+  eventToKey, getCssValue, isAndroid, isEdge, isIOS, isString, processMillis, toBoolean, toNumber
+} from '@tubular/util';
 import { Subscription, timer } from 'rxjs';
 import { getPageXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
+  altValue?: string;
   divider?: boolean;
   editable?: boolean;
   indicator?: boolean;
@@ -45,8 +48,8 @@ const ERROR_BACKGROUND     = '#F67';
 const VIEW_ONLY_BACKGROUND = 'black';
 const WARNING_BACKGROUND   = '#FC6';
 
-const addFocusOutline = isEdge() || isIE() || isIOS();
-const disableContentEditable = isEdge() || isIE();
+const addFocusOutline = isEdge() || isIOS();
+const disableContentEditable = isEdge();
 
 export const BACKGROUND_ANIMATIONS = trigger('displayState', [
   state('error',    style({ backgroundColor: ERROR_BACKGROUND })),
@@ -121,7 +124,7 @@ export class DigitSequenceEditorComponent implements OnInit, OnDestroy {
   protected _tabindex = '1';
   protected wrapper: HTMLElement;
 
-  protected static addFocusOutline = isEdge() || isIE() || isIOS();
+  protected static addFocusOutline = isEdge() || isIOS();
 
   digitHeight = 17;
   displayState = 'normal';

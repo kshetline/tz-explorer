@@ -29,16 +29,16 @@
   <span *ngIf="swipeable(item, i, 1)"
       class="draggable-extra"
       [style.top]="(-digitHeight + smoothedDeltaY) + 'px'"
-  >{{item.swipeAbove}}</span>
+  >{{item.alt_swipeAbove || item.swipeAbove}}</span>
   <span *ngIf="swipeable(item, i, -1)"
       class="draggable-extra"
       [style.top]="(digitHeight + smoothedDeltaY) + 'px'"
-  >{{item.swipeBelow}}</span>
+  >{{item.alt_swipeBelow || item.swipeBelow}}</span>
   <span *ngIf="!item.spinner && !item.divider; else dividerOrSpinner"
       class="draggable dse-item-{{i}}"
       [class.sized]="!!item.sizer"
       [style.top]="(swipeable(item, i, 0) ? smoothedDeltaY : 0) + 'px'"
-  >{{item.altValue || item.value}}</span>
+  >{{item.alt_value || item.value}}</span>
   <span *ngIf="item.sizer"
       class="sizer"
   >{{item.sizer}}</span>

@@ -8,7 +8,9 @@ import { Subscription, timer } from 'rxjs';
 import { getPageXYForTouchEvent } from '../util/touch-events';
 
 export interface SequenceItemInfo {
-  altValue?: string;
+  alt_swipeAbove?: string;
+  alt_swipeBelow?: string;
+  alt_value?: string;
   divider?: boolean;
   editable?: boolean;
   indicator?: boolean;

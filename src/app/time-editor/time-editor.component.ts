@@ -722,6 +722,7 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
   private updateDigits(dateTime = this.dateTime, delta = 0): void {
     const i = this.items as any[];
     const value = delta === 0 ? 'value' : delta < 0 ? 'swipeBelow' : 'swipeAbove';
+    const alt_value = 'alt_' + value;
     let j: number;
 
     if (!dateTime.valid)
@@ -846,9 +847,9 @@ export class TimeEditorComponent extends DigitSequenceEditorComponent implements
     this.items.forEach(item => {
       if (item.editable && isNumber(item.value)) {
         if (this.baseDigit === '0')
-          item.altValue = undefined;
+          (item as any)[alt_value] = undefined;
         else
-          item.altValue = convertDigits(item.value.toString(), this.baseDigit);
+          (item as any)[alt_value] = convertDigits(item.value.toString(), this.baseDigit);
       }
     });
 

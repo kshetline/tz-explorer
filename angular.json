@@ -35,6 +35,7 @@
               "node_modules/primeng/resources/themes/nova/theme.css",
               "node_modules/primeng/resources/primeng.min.css",
               "node_modules/primeicons/primeicons.css",
+              "node_modules/@tubular/ng-widgets/assets/styles.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -44,8 +45,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1.3mb",
-                  "maximumError": "1.75mb"
+                  "maximumWarning": "1mbb",
+                  "maximumError": "1.5mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -107,6 +108,7 @@
               "node_modules/primeng/resources/themes/nova/theme.css",
               "node_modules/primeng/resources/primeng.min.css",
               "node_modules/primeicons/primeicons.css",
+              "node_modules/@tubular/ng-widgets/assets/styles.css",
               "src/styles.scss"
             ],
             "scripts": []

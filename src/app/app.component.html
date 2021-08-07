@@ -1,19 +1,41 @@
-<tz-time-editor tai style="font-size: 1.5em"
-    [options]="{ showOccurrence: true, showSeconds: true }"
-    [(ngModel)]="time"
-    [nativeDateTime]="native"></tz-time-editor>
-  &nbsp;<button (click)="now()">Now</button>
-  &nbsp;<button (click)="time = 1636264837000">Sample time</button>
-  &nbsp;<button (click)="time = 1483228836000">Sample leap</button><br>
-  &nbsp;<label for="native">Native date/time</label>
-   <input id="native" type="checkbox" (change)="native = $any($event.target).checked"/><br><br>
-<tz-time-editor tai style="font-size: 1.5em"
-    [options]="{ yearStyle: 1 }"
-    [(ngModel)]="time"></tz-time-editor><br><br>
-<tz-time-editor tai style="font-size: 1.5em"
-    [options]="['iso', { millisDigits: 3, showDstSymbol: true, showOccurrence: true, showUtcOffset: true }]"
-    timezone="Europe/Dublin"
-    [(ngModel)]="time"></tz-time-editor><br><br>
-<tz-time-editor tai style="font-size: 1.5em"
-    [options]="{ hourStyle: 2, locale: 'bn', yearStyle: 1 }"
-    [(ngModel)]="time"></tz-time-editor><br><br>
+<div class="top-clocks">
+  <div class="edit-mode">
+    <p-radioButton name="editMode" [value]="true" [(ngModel)]="running" label="Track current time"></p-radioButton>
+    <p-radioButton name="editMode" [value]="false" [(ngModel)]="running" label="Allow time to be edited and converted"></p-radioButton>
+  </div>
+  <div>Your local time, {{localZone}}</div>
+  <tbw-time-editor #localClock tai
+      [options]="{ showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true, twoDigitYear: false }"
+      [(ngModel)]="time"
+      [viewOnly]="running"
+      [timezone]="localZone"></tbw-time-editor>
+  <div>Your local time, ISO formatted</div>
+  <tbw-time-editor tai
+      [options]="['ISO', { millisDigits: 3, showSeconds: true }]"
+      [viewOnly]="running"
+      [(ngModel)]="time"></tbw-time-editor>
+  <div>UTC, TAI {{deltaTai}}s</div>
+  <tbw-time-editor tai
+      [options]="['ISO', { millisDigits: 3, showSeconds: true }]"
+      [viewOnly]="running"
+      [(ngModel)]="time"
+      timezone="UTC"></tbw-time-editor>
+  <div>GPS, TAI - 19s</div>
+  <tbw-time-editor tai
+      [options]="['ISO', { millisDigits: 3, showSeconds: true }]"
+      [viewOnly]="running"
+      [(ngModel)]="gps"
+      timezone="TAI"></tbw-time-editor>
+  <div>TAI (International Atomic Time)</div>
+  <tbw-time-editor tai
+      [options]="['ISO', { millisDigits: 3, showSeconds: true }]"
+      [viewOnly]="running"
+      [(ngModel)]="time"
+      timezone="TAI"></tbw-time-editor>
+  <div>TT (Terrestrial Time), TAI + 32.184s</div>
+  <tbw-time-editor tai
+      [options]="['ISO', { millisDigits: 3, showSeconds: true }]"
+      [viewOnly]="running"
+      [(ngModel)]="tt"
+      timezone="TAI"></tbw-time-editor>
+</div>

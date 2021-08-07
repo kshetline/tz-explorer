@@ -3,13 +3,13 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';
-import { initTimezoneSmall } from '@tubular/time';
+import { initTimezoneLarge } from '@tubular/time';
 
 if (environment.production) {
   enableProdMode();
 }
 
-initTimezoneSmall();
+initTimezoneLarge();
 
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));

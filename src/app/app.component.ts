@@ -2,14 +2,28 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { DateTime, Timezone } from '@tubular/time';
 import { abs } from '@tubular/math';
 
+interface ExtraClock {
+  localFormat: boolean;
+  zone: string;
+}
+
+const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnDestroy, OnInit {
-  private _running = true;
+  ISO_OPTS = ['ISO', { millisDigits: 3, showSeconds: true }];
+  LOCAL_OPTS = { showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true, twoDigitYear: false };
+  MIN_YEAR = '1000';
+  MAX_YEAR = '4000';
 
+  private _running = true;
+  private timer: any;
+
+  extraClocks: ExtraClock[] = [{ localFormat: false, zone: DEFAULT_EXTRA_ZONE }];
   localZone = Timezone.guess();
   time = new DateTime().taiMillis;
 
@@ -20,6 +34,10 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
+    if (this.timer)
+      clearTimeout(this.timer);
+
+    this.timer = undefined;
     this.running = false;
   }
 
@@ -49,10 +67,15 @@ export class AppComponent implements OnDestroy, OnInit {
       this._running = newValue;
 
       if (newValue)
-        setTimeout(this.updateTime);
-      else
+        this.timer = setTimeout(this.updateTime);
+      else {
+        if (this.timer)
+          clearTimeout(this.timer);
+
+        this.timer = undefined;
         setTimeout(() => ((this.localClock.nativeElement as HTMLElement)
           .querySelector('.tbw-dse-wrapper') as HTMLElement)?.focus());
+      }
     }
   }
 

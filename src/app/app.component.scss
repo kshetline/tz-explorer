@@ -11,6 +11,7 @@
   align-items: center;
   display: flex;
   flex-direction: column;
+  position: relative;
 
   .edit-mode {
     padding-bottom: 1em;
@@ -20,8 +21,42 @@
     }
   }
 
-  div {
+  .clock-label {
     padding-top: 0.5em;
+  }
+
+  .clock-row {
+    align-items: center;
+    display: flex;
+
+    .extra-on-left {
+      display: flex;
+      height: 2em;
+      right: 2.5em;
+      overflow: visible;
+      position: relative;
+      width: 0;
+
+      button {
+        max-height: 1.5em;
+        min-width: 1.5em;
+        position: relative;
+        top: 0.2em;
+      }
+    }
+
+    .extra-on-right {
+      display: flex;
+      height: 2em;
+      left: 1em;
+      overflow: visible;
+      position: relative;
+      width: 0;
+
+      button {
+        min-width: 9em;
+      }
+    }
   }
 
   tbw-time-editor {

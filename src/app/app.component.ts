@@ -25,7 +25,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
   extraClocks: ExtraClock[] = [{ localFormat: false, zone: DEFAULT_EXTRA_ZONE }];
   localZone = Timezone.guess();
-  time = new DateTime().taiMillis;
+  time = new DateTime().taiSeconds * 1000;
 
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
 
@@ -84,6 +84,14 @@ export class AppComponent implements OnDestroy, OnInit {
     this.time = this.time - (this.time % 1000);
 
     if (this.running)
-      setTimeout(this.updateTime, 1000 - this.time % 1000);
+      this.timer = setTimeout(this.updateTime, 1000 - this.time % 1000);
+  }
+
+  now(): void {
+    this.time = new DateTime().taiMillis;
+  }
+
+  closeClock(index: number): void {
+    this.extraClocks.splice(index, 1);
   }
 }

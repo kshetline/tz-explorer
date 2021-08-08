@@ -1,7 +1,8 @@
 <div class="top-clocks">
   <div class="edit-mode">
     <p-radioButton name="editMode" [value]="true" [(ngModel)]="running" label="Track current time"></p-radioButton>
-    <p-radioButton name="editMode" [value]="false" [(ngModel)]="running" label="Allow time to be edited and converted"></p-radioButton>
+    <p-radioButton name="editMode" [value]="false" [(ngModel)]="running" label="Allow time to be edited"></p-radioButton>
+    <button pButton type="button" label="Now" [disabled]="running" (click)="now()"></button>
   </div>
   <div class="clock-label">Your local time, {{localZone}}</div>
   <tbw-time-editor #localClock tai
@@ -45,25 +46,26 @@
         [viewOnly]="running"
         [(ngModel)]="tt"
         timezone="TAI"></tbw-time-editor>
-    <div *ngIf="extraClocks.length === 0" class="extra-on-right">
+    <div *ngIf="extraClocks.length === 0" class="extra-on-right"><div>
       <button pButton type="button" label="Add clock" icon="pi pi-plus"></button>
-    </div>
+    </div></div>
   </div>
-  <ng-container *ngFor="let clock of extraClocks; let last = last">
+  <ng-container *ngFor="let clock of extraClocks; let index = index; let last = last">
     <div class="clock-label">{{clock.zone}}</div>
     <div class="clock-row">
-      <div class="extra-on-left">
-        <button pButton pRipple type="button" icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined" styleClass="p-button-sm"></button>
-      </div>
+      <div class="extra-on-left"><div>
+        <button pButton pRipple type="button" icon="pi pi-times" (click)="closeClock(index)"
+                class="p-button-rounded p-button-danger p-button-outlined p-button-sm"></button>
+      </div></div>
       <tbw-time-editor tai
           [options]="clock.localFormat ? LOCAL_OPTS : ISO_OPTS"
           [min]="MIN_YEAR" [max]="MAX_YEAR"
           [viewOnly]="running"
           [(ngModel)]="time"
           [timezone]="clock.zone"></tbw-time-editor>
-      <div *ngIf="last" class="extra-on-right">
+      <div *ngIf="last" class="extra-on-right"><div>
         <button pButton type="button" label="Add clock" icon="pi pi-plus"></button>
-      </div>
+      </div></div>
     </div>
   </ng-container>
 </div>

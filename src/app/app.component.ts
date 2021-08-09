@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DateTime, Timezone } from '@tubular/time';
-import { abs } from '@tubular/math';
+import { abs, max } from '@tubular/math';
+import { last } from '@tubular/util';
 
 interface ExtraClock {
   localFormat: boolean;
@@ -8,6 +9,10 @@ interface ExtraClock {
 }
 
 const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
+const EARLIEST_TAI = new DateTime('1958-01-01 UTC').taiMillis;
+const EARLIEST_UTC = EARLIEST_TAI;
+const EARLIEST_UTC_TRANSITION = new DateTime('1958-01-01 UTC').subtract('days', 365).taiMillis;
+const UTC_OFFICIAL_START = new DateTime('1972-01-01 UTC').taiMillis;
 
 @Component({
   selector: 'tze-root',
@@ -24,6 +29,8 @@ export class AppComponent implements OnDestroy, OnInit {
   private timer: any;
 
   extraClocks: ExtraClock[] = [{ localFormat: false, zone: DEFAULT_EXTRA_ZONE }];
+  latestUtc = new DateTime().taiMillis;
+  latestUtcTransition = this.latestUtc + 31536000000; // plus 365 days
   localZone = Timezone.guess();
   selectLocal = false;
   selectedTimezone = DEFAULT_EXTRA_ZONE;
@@ -66,6 +73,24 @@ export class AppComponent implements OnDestroy, OnInit {
     if (this.tt !== newValue) {
       this.time = newValue - 32184;
     }
+  }
+
+  get taiForm(): string {
+    if (this.time < EARLIEST_TAI)
+      return 'Proleptic TAI';
+    else
+      return 'TAI';
+  }
+
+  get utForm(): string {
+    if (this.time < EARLIEST_UTC_TRANSITION || this.time > this.latestUtcTransition)
+      return 'UT (estimated)';
+    else if (this.time < EARLIEST_UTC || this.time > this.latestUtc)
+      return 'UT/UTC (transitional)';
+    else if (this.time < UTC_OFFICIAL_START)
+      return 'Proleptic UTC';
+    else
+      return 'UTC';
   }
 
   get running(): boolean { return this._running; }
@@ -112,6 +137,10 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   private computeUtcRange(): void {
-    Timezone.getLeapSecondList();
+    const lastLeap = last(Timezone.getLeapSecondList());
+    const date = new DateTime(max(lastLeap?.utcMillis ?? 0, Date.now()), 'UTC').wallTimeSparse;
+
+    this.latestUtc = new DateTime({ y: date.y + 1, m: date.m < 7 ? 1 : 7, d: 1 }, 'UTC').taiMillis;
+    this.latestUtcTransition += 31536000000; // plus 365 days;
   }
 }

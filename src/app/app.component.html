@@ -17,7 +17,7 @@
       [min]="MIN_YEAR" [max]="MAX_YEAR"
       [viewOnly]="running"
       [(ngModel)]="time"></tbw-time-editor>
-  <div class="clock-label">UTC, TAI {{deltaTai}}s</div>
+  <div class="clock-label">{{utForm}}, TAI {{deltaTai}}s</div>
   <tbw-time-editor tai
       [options]="ISO_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"
@@ -31,7 +31,7 @@
       [viewOnly]="running"
       [(ngModel)]="gps"
       timezone="TAI"></tbw-time-editor>
-  <div class="clock-label">TAI (International Atomic Time)</div>
+  <div class="clock-label">{{taiForm}} (International Atomic Time)</div>
   <tbw-time-editor tai
       [options]="ISO_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"

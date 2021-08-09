@@ -27,7 +27,7 @@ export class AppComponent implements OnDestroy, OnInit {
   localZone = Timezone.guess();
   selectLocal = false;
   selectedTimezone = DEFAULT_EXTRA_ZONE;
-  showNewClockDialog = false;
+  showAddClockDialog = false;
   time = new DateTime().taiSeconds * 1000;
 
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
@@ -99,12 +99,11 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   openNewClockDialog(): void {
-    this.showNewClockDialog = true;
+    this.showAddClockDialog = true;
     this.selectLocal = false;
   }
 
   createClock(): void {
-    this.showNewClockDialog = false;
     this.extraClocks.push({ localFormat: this.selectLocal, zone: this.selectedTimezone });
   }
 }

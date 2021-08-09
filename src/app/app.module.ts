@@ -4,18 +4,21 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { RippleModule } from 'primeng/ripple';
-import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
-
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { RippleModule } from 'primeng/ripple';
+
+import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
+
+import { AddClockDialogComponent } from './add-clock-dialog/add-lock-dialog.component';
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
 import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector.component';
 
 @NgModule({
   declarations: [
+    AddClockDialogComponent,
     AppComponent,
     TimezoneSelectorComponent
   ],

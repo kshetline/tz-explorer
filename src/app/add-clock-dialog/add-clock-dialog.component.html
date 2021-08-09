@@ -1,0 +1,13 @@
+<p-dialog header="Add clock" [(visible)]="visible" [modal]="true" position="top">
+  <div class="clock-dialog">
+    <tze-zone-selector [(ngModel)]="timezone"></tze-zone-selector>
+    <div class="clock-format">
+      <p-radioButton name="clockFormat" [value]="false" [(ngModel)]="asLocal" label="ISO date/time format"></p-radioButton>
+      <p-radioButton name="clockFormat" [value]="true" [(ngModel)]="asLocal" label="Local date/time format"></p-radioButton>
+    </div>
+  </div>
+  <p-footer>
+    <button type="button" pButton (click)="visible = false" label="Cancel"></button>
+    <button type="button" pButton (click)="submit()" label="OK"></button>
+  </p-footer>
+</p-dialog>

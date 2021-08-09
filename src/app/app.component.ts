@@ -10,7 +10,7 @@ interface ExtraClock {
 const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
 
 @Component({
-  selector: 'app-root',
+  selector: 'tze-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -25,6 +25,9 @@ export class AppComponent implements OnDestroy, OnInit {
 
   extraClocks: ExtraClock[] = [{ localFormat: false, zone: DEFAULT_EXTRA_ZONE }];
   localZone = Timezone.guess();
+  selectLocal = false;
+  selectedTimezone = DEFAULT_EXTRA_ZONE;
+  showNewClockDialog = false;
   time = new DateTime().taiSeconds * 1000;
 
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
@@ -93,5 +96,15 @@ export class AppComponent implements OnDestroy, OnInit {
 
   closeClock(index: number): void {
     this.extraClocks.splice(index, 1);
+  }
+
+  openNewClockDialog(): void {
+    this.showNewClockDialog = true;
+    this.selectLocal = false;
+  }
+
+  createClock(): void {
+    this.showNewClockDialog = false;
+    this.extraClocks.push({ localFormat: this.selectLocal, zone: this.selectedTimezone });
   }
 }

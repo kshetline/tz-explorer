@@ -47,7 +47,7 @@
         [(ngModel)]="tt"
         timezone="TAI"></tbw-time-editor>
     <div *ngIf="extraClocks.length === 0" class="extra-on-right"><div>
-      <button pButton type="button" label="Add clock" icon="pi pi-plus"></button>
+      <button pButton type="button" label="Add clock" icon="pi pi-plus" (click)="showNewClockDialog = true"></button>
     </div></div>
   </div>
   <ng-container *ngFor="let clock of extraClocks; let index = index; let last = last">
@@ -64,8 +64,21 @@
           [(ngModel)]="time"
           [timezone]="clock.zone"></tbw-time-editor>
       <div *ngIf="last" class="extra-on-right"><div>
-        <button pButton type="button" label="Add clock" icon="pi pi-plus"></button>
+        <button pButton type="button" label="Add clock" icon="pi pi-plus" (click)="openNewClockDialog()"></button>
       </div></div>
     </div>
   </ng-container>
 </div>
+<p-dialog header="Add clock" [(visible)]="showNewClockDialog" [modal]="true" position="top">
+  <div class="clock-dialog">
+    <tze-zone-selector [(ngModel)]="selectedTimezone"></tze-zone-selector>
+    <div class="clock-format">
+      <p-radioButton name="clockFormat" [value]="false" [(ngModel)]="selectLocal" label="ISO date/time format"></p-radioButton>
+      <p-radioButton name="clockFormat" [value]="true" [(ngModel)]="selectLocal" label="Local date/time format"></p-radioButton>
+    </div>
+  </div>
+  <p-footer>
+    <button type="button" pButton (click)="openNewClockDialog()" label="Cancel"></button>
+    <button type="button" pButton (click)="createClock()" label="OK"></button>
+  </p-footer>
+</p-dialog>

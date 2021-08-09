@@ -55,13 +55,30 @@
       position: relative;
       width: 0;
 
-      button {
+      div {
         min-width: 9em;
+        top: -0.1em;
+        position: relative;
       }
     }
   }
 
   tbw-time-editor {
     font-size: 1.5em;
+  }
+}
+
+.clock-dialog {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+
+  .clock-format {
+    display: flex;
+    padding: 1em 0;
+
+    p-radioButton:not(:first-child) {
+      margin-left: 2em;
+    }
   }
 }

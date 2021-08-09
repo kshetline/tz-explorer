@@ -6,7 +6,9 @@
   },
   "extends": [
     "standard",
-    "plugin:@typescript-eslint/eslint-recommended"
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@angular-eslint/recommended",
+    "plugin:@angular-eslint/template/process-inline-templates"
   ],
   "globals": {
     "Atomics": "readonly",
@@ -114,6 +116,14 @@
       {
         "exceptRange": true
       }
+    ],
+    "@angular-eslint/directive-selector": [
+      "error",
+      { "type": "attribute", "prefix": "tze", "style": "camelCase" }
+    ],
+    "@angular-eslint/component-selector": [
+      "error",
+      { "type": "element", "prefix": "tze", "style": "kebab-case" }
     ]
   },
   "overrides": [
@@ -121,6 +131,16 @@
       "files": ["*.js", "*.cjs"],
       "rules": {
         "@typescript-eslint/explicit-function-return-type": "off"
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
+      "rules": {
+        /**
+         * Any template/HTML related rules you wish to use/reconfigure over and above the
+         * recommended set provided by the @angular-eslint project would go here.
+         */
       }
     }
   ]

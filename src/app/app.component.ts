@@ -32,6 +32,10 @@ export class AppComponent implements OnDestroy, OnInit {
 
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
 
+  constructor() {
+    this.computeUtcRange();
+  }
+
   ngOnInit(): void {
     this.updateTime();
   }
@@ -105,5 +109,9 @@ export class AppComponent implements OnDestroy, OnInit {
 
   createClock(): void {
     this.extraClocks.push({ localFormat: this.selectLocal, zone: this.selectedTimezone });
+  }
+
+  private computeUtcRange(): void {
+    Timezone.getLeapSecondList();
   }
 }

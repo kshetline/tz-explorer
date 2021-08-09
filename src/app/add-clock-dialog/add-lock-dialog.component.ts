@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'tze-add-clock-dialog',
@@ -26,7 +26,19 @@ export class AddClockDialogComponent {
 
   @Output() done = new EventEmitter<void>();
 
-  submit(): void {
+  @HostListener('document:keydown.escape', ['$event'])
+  close(evt?: KeyboardEvent): void {
+    if (this.visible && evt)
+      evt.preventDefault();
+
+    this.visible = false;
+  }
+
+  @HostListener('document:keydown.enter', ['$event'])
+  submit(evt?: KeyboardEvent): void {
+    if (this.visible && evt)
+      evt.preventDefault();
+
     this.visible = false;
     this.timezoneChange.emit(this.timezone);
     this.asLocalChange.emit(this.asLocal);

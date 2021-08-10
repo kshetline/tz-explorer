@@ -14,12 +14,14 @@ import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
 import { AddClockDialogComponent } from './add-clock-dialog/add-lock-dialog.component';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
+import { PDropdownFixDirective } from './util/p-dropdown-scroll-fix.directive';
 import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector.component';
 
 @NgModule({
   declarations: [
     AddClockDialogComponent,
     AppComponent,
+    PDropdownFixDirective,
     TimezoneSelectorComponent
   ],
   imports: [
@@ -37,4 +39,4 @@ import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

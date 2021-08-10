@@ -1,7 +1,8 @@
 import { Component, EventEmitter, forwardRef, OnInit, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { noop } from '@tubular/util';
+import { abs, sign } from '@tubular/math';
 import { Timezone, RegionAndSubzones } from '@tubular/time';
+import { noop } from '@tubular/util';
 import { timer } from 'rxjs';
 
 export const SVC_ZONE_SELECTOR_VALUE_ACCESSOR: any = {
@@ -27,7 +28,7 @@ function toCanonicalOffset(offset: string): string {
 
   if ($) {
     off = $[1];
-    dst = ($[2] ?? '').trim();
+    dst = ($[2] ?? '').replace('with', '').trim();
 
     if (dst.includes('two'))
       dst = '#';
@@ -58,15 +59,18 @@ function toDisplayOffset(offset: string): string {
     dst = $[2] ?? '';
 
     if (dst === '§')
-      dst = ' DST';
+      dst = 'DST';
     else if (dst === '#')
-      dst = ' two-hour DST';
+      dst = 'two-hour DST';
     else if (dst === '^')
-      dst = ' half-hour DST';
+      dst = 'half-hour DST';
     else if (dst === '\u2744')
-      dst = ' negative DST';
+      dst = 'negative DST';
     else if (dst === '~')
-      dst = ' non-standard DST';
+      dst = 'non-standard DST';
+
+    if (dst)
+      dst = ' with ' + dst;
   }
 
   return `UTC${off}${dst}`;
@@ -90,6 +94,7 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
 
   private _offset: string;
   private _region: string = this.regions[0];
+  private _searchText = '';
   private _selectByOffset = true;
   private _subzone: string = this.subzones[0];
   private _value: string = UT;
@@ -108,6 +113,7 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
 
   disabled = false;
   error: string;
+  matchZones: string[] = [];
 
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() focus: EventEmitter<any> = new EventEmitter();
@@ -288,6 +294,18 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
     }
   }
 
+  get searchText(): string { return this._searchText; }
+  set searchText(newValue: string) {
+    if (this._searchText !== newValue) {
+      this._searchText = newValue;
+
+      if (newValue)
+        this.value = newValue;
+      else
+        setTimeout(() => this.searchText = '', 100);
+    }
+  }
+
   ngOnInit(): void {
     this.updateTimezones();
 
@@ -295,6 +313,12 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
     //   if (evt.name === IANA_DB_UPDATE)
     //     this.updateTimezones();
     // });
+  }
+
+  searchSelect(s: any): void {
+    const query = (s.query || '#').trim().replace(/\s+/g, '_').toLowerCase();
+
+    this.matchZones = Timezone.getAvailableTimezones().filter(zone => zone.toLowerCase().includes(query));
   }
 
   private updateTimezones(): void {
@@ -339,6 +363,15 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
     this.zonesByOffset.clear();
 
     const oAndZ = Timezone.getOffsetsAndZones();
+
+    oAndZ.sort((a, b) => {
+      const diff = a.offsetSeconds - b.offsetSeconds;
+
+      if (diff !== 0)
+        return sign(diff);
+      else
+        return sign(abs(a.dstOffset) - abs(b.dstOffset));
+    });
 
     for (const offset of oAndZ) {
       this.offsets.push(toDisplayOffset(offset.offset));

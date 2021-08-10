@@ -25,6 +25,23 @@
   color: red;
 }
 
+.zone-search {
+  padding-bottom: 1em;
+  position: relative;
+
+  p-autoComplete ::ng-deep {
+    span, input {
+      width: 100%;
+    }
+  }
+
+  i {
+    position: absolute;
+    right: 0.5em;
+    top: 0.75em;
+  }
+}
+
 .mode-selector {
   display: flex;
   justify-content: center;

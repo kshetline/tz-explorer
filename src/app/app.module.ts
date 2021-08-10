@@ -14,6 +14,7 @@ import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
 import { AddClockDialogComponent } from './add-clock-dialog/add-lock-dialog.component';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { PDropdownFixDirective } from './util/p-dropdown-scroll-fix.directive';
 import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector.component';
 
@@ -26,6 +27,7 @@ import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector
   ],
   imports: [
     AppRoutingModule,
+    AutoCompleteModule,
     BrowserModule,
     BrowserAnimationsModule,
     ButtonModule,

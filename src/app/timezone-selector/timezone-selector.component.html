@@ -1,3 +1,14 @@
+<div class="zone-search">
+  <p-autoComplete [(ngModel)]="searchText"
+      placeholder="Search timezone names"
+      [suggestions]="matchZones"
+      [forceSelection]="true"
+      (completeMethod)="searchSelect($event)"
+      [autofocus]="true"
+      appendTo="body"></p-autoComplete>
+  <i class="pi pi-search"></i>
+</div>
+
 <div class="mode-selector">
   <p-radioButton [value]="true" [(ngModel)]="selectByOffset" label="By UTC offset"></p-radioButton>
   &nbsp;&nbsp;
@@ -13,7 +24,7 @@
 
     <p-dropdown tzeDropdownFix
          [options]="subzones" [(ngModel)]="subzone" [disabled]="disabled || selectByOffset" (focus)="onDropdownFocus($event)"
-         appendTo="body" (blur)="onDropdownBlur($event)" [autofocus]="!selectByOffset || undefined"></p-dropdown>
+         appendTo="body" (blur)="onDropdownBlur($event)"></p-dropdown>
     <div class="caption">Specific timezone</div>
   </div>
 
@@ -25,7 +36,7 @@
 
     <p-dropdown tzeDropdownFix
          [options]="zones" [(ngModel)]="zone" [disabled]="disabled || !selectByOffset" (focus)="onDropdownFocus($event)"
-         appendTo="body" (blur)="onDropdownBlur($event)" [autofocus]="selectByOffset || undefined"></p-dropdown>
+         appendTo="body" (blur)="onDropdownBlur($event)"></p-dropdown>
     <div class="caption">Specific timezone</div>
   </div>
   <p [hidden]="!error" class="error">{{error}}</p>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DateTime, Timezone } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 import { last } from '@tubular/util';
@@ -6,6 +6,11 @@ import { last } from '@tubular/util';
 interface ExtraClock {
   localFormat: boolean;
   zone: string;
+}
+
+interface TzePreferences {
+  extraClocks?: ExtraClock[];
+  runClock?: boolean;
 }
 
 const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
@@ -41,6 +46,18 @@ export class AppComponent implements OnDestroy, OnInit {
 
   constructor() {
     this.computeUtcRange();
+
+    let settings: TzePreferences;
+
+    try {
+      settings = JSON.parse(localStorage.getItem('tze-prefs'));
+    }
+    catch {}
+
+    if (settings) {
+      this.extraClocks = settings.extraClocks ?? this.extraClocks;
+      this.running = settings.runClock ?? true;
+    }
   }
 
   ngOnInit(): void {
@@ -134,6 +151,19 @@ export class AppComponent implements OnDestroy, OnInit {
 
   createClock(): void {
     this.extraClocks.push({ localFormat: this.selectLocal, zone: this.selectedTimezone });
+  }
+
+  @HostListener('window:beforeunload')
+  saveSettings(): void {
+    const settings: TzePreferences = {
+      extraClocks: this.extraClocks,
+      runClock: this.running
+    };
+
+    try {
+      localStorage.setItem('tze-prefs', JSON.stringify(settings));
+    }
+    catch {}
   }
 
   private computeUtcRange(): void {

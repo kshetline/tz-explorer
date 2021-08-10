@@ -141,6 +141,6 @@ export class AppComponent implements OnDestroy, OnInit {
     const date = new DateTime(max(lastLeap?.utcMillis ?? 0, Date.now()), 'UTC').wallTimeSparse;
 
     this.latestUtc = new DateTime({ y: date.y + 1, m: date.m < 7 ? 1 : 7, d: 1 }, 'UTC').taiMillis;
-    this.latestUtcTransition += 31536000000; // plus 365 days;
+    this.latestUtcTransition = this.latestUtc + 31536000000; // plus 365 days;
   }
 }

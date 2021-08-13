@@ -8,32 +8,33 @@
   <tbw-time-editor #localClock tai
       [options]="LOCAL_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"
-      [(ngModel)]="time"
       [viewOnly]="running"
+      [(ngModel)]="time"
       [timezone]="localZone"></tbw-time-editor>
   <div class="clock-label">Your local time, ISO formatted</div>
   <tbw-time-editor tai
-      [options]="ISO_OPTS"
+      [options]="ISO_SHORT_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"
       [viewOnly]="running"
-      [(ngModel)]="time"></tbw-time-editor>
+      [(ngModel)]="time"
+      [timezone]="localZone"></tbw-time-editor>
   <div class="clock-label">{{utForm}}, TAI {{deltaTai}}s</div>
   <tbw-time-editor tai
-      [options]="ISO_OPTS"
+      [options]="ISO_SHORT_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"
       [viewOnly]="running"
       [(ngModel)]="time"
       timezone="UTC"></tbw-time-editor>
-  <div class="clock-label">GPS, TAI - 19s</div>
+  <div class="clock-label">{{gpsForm}}, TAI - 19s</div>
   <tbw-time-editor tai
-      [options]="ISO_OPTS"
+      [options]="ISO_SHORT_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"
       [viewOnly]="running"
       [(ngModel)]="gps"
       timezone="TAI"></tbw-time-editor>
   <div class="clock-label">{{taiForm}} (International Atomic Time)</div>
   <tbw-time-editor tai
-      [options]="ISO_OPTS"
+      [options]="ISO_SHORT_OPTS"
       [min]="MIN_YEAR" [max]="MAX_YEAR"
       [viewOnly]="running"
       [(ngModel)]="time"
@@ -41,7 +42,7 @@
   <div class="clock-label">TT (Terrestrial Time), TAI + 32.184s</div>
   <div class="clock-row">
     <tbw-time-editor tai
-        [options]="ISO_OPTS"
+        [options]="ISO_SHORT_OPTS"
         [min]="MIN_YEAR" [max]="MAX_YEAR"
         [viewOnly]="running"
         [(ngModel)]="tt"

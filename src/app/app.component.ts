@@ -18,6 +18,7 @@ const EARLIEST_TAI = new DateTime('1958-01-01 UTC').taiMillis;
 const EARLIEST_UTC = EARLIEST_TAI;
 const EARLIEST_UTC_TRANSITION = new DateTime('1958-01-01 UTC').subtract('days', 365).taiMillis;
 const UTC_OFFICIAL_START = new DateTime('1972-01-01 UTC').taiMillis;
+const EARLIEST_GPS = new DateTime('1980-01-06 UTC').taiMillis;
 
 @Component({
   selector: 'tze-root',
@@ -25,7 +26,8 @@ const UTC_OFFICIAL_START = new DateTime('1972-01-01 UTC').taiMillis;
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnDestroy, OnInit {
-  ISO_OPTS = ['ISO', { millisDigits: 3, showSeconds: true }];
+  ISO_OPTS = ['ISO', { millisDigits: 3, showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true }];
+  ISO_SHORT_OPTS = ['ISO', { millisDigits: 3, showSeconds: true }];
   LOCAL_OPTS = { showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true, twoDigitYear: false };
   MIN_YEAR = '1000';
   MAX_YEAR = '4000';
@@ -97,6 +99,13 @@ export class AppComponent implements OnDestroy, OnInit {
       return 'Proleptic TAI';
     else
       return 'TAI';
+  }
+
+  get gpsForm(): string {
+    if (this.time < EARLIEST_GPS)
+      return 'Proleptic GPS';
+    else
+      return 'GPS';
   }
 
   get utForm(): string {

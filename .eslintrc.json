@@ -1,6 +1,6 @@
 {
   "env": {
-    "es2017": true,
+    "es6": true,
     "mocha": true,
     "node": true
   },
@@ -20,7 +20,8 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "chai-friendly"
   ],
   "ignorePatterns": ["dist/**/*", "**/polyfills.ts", "**/*.html"],
   "rules": {

@@ -164,7 +164,7 @@ function getApp(): Express {
     });
   }
 
-  theApp.get(/\/(ntp|time)/, (req, res) => {
+  theApp.get(/\/api\/(ntp|time)/, (req, res) => {
     noCache(res);
     jsonOrJsonp(req, res, ntpPoller.getTimeInfo());
   });
@@ -191,12 +191,12 @@ function getApp(): Express {
       res.send(time.text);
   });
 
-  theApp.get('/tai-utc', async (req, res) => {
+  theApp.get('/api/tai-utc', async (req, res) => {
     noCache(res);
     jsonOrJsonp(req, res, await taiUtc.getCurrentDelta());
   });
 
-  theApp.get('/ls-history', async (req, res) => {
+  theApp.get('/api/ls-history', async (req, res) => {
     noCache(res);
     jsonOrJsonp(req, res, await taiUtc.getLeapSecondHistory());
   });

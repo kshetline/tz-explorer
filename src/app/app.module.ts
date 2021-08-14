@@ -1,3 +1,4 @@
+import { HttpClientJsonpModule, HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -17,6 +18,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { PDropdownFixDirective } from './util/p-dropdown-scroll-fix.directive';
 import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector.component';
+import { TzExplorerApi } from './api/api';
+import { HttpTimePoller } from './http-time-poller/http-time-poller';
 
 @NgModule({
   declarations: [
@@ -34,11 +37,16 @@ import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector
     DialogModule,
     DropdownModule,
     FormsModule,
+    HttpClientJsonpModule,
+    HttpClientModule,
     RadioButtonModule,
     RippleModule,
     TubularNgWidgetsModule,
   ],
-  providers: [],
+  providers: [
+    HttpTimePoller,
+    TzExplorerApi
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

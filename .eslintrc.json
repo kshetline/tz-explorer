@@ -23,7 +23,7 @@
     "@typescript-eslint",
     "chai-friendly"
   ],
-  "ignorePatterns": ["dist/**/*", "**/polyfills.ts", "**/*.html"],
+  "ignorePatterns": ["dist/**/*", "tsc-out/**/*", "**/polyfills.ts", "**/*.spec.ts", "**/*.html"],
   "rules": {
     "brace-style": [
       "error",

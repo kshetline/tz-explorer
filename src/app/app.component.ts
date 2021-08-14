@@ -1,7 +1,8 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { DateTime, Timezone } from '@tubular/time';
+import { DateTime, Timezone, utToTaiMillis } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 import { last } from '@tubular/util';
+import { HttpTimePoller } from './http-time-poller/http-time-poller';
 
 interface ExtraClock {
   localFormat: boolean;
@@ -46,7 +47,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
 
-  constructor() {
+  constructor(private timePoller: HttpTimePoller) {
     this.computeUtcRange();
 
     let settings: TzePreferences;
@@ -138,11 +139,14 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   updateTime = (): void => {
-    this.time = new DateTime().taiMillis;
-    this.time = this.time - (this.time % 1000);
+    const timeInfo = this.timePoller.getTimeInfo();
+    const origTime = utToTaiMillis(timeInfo.time, true);
+    const excessMillis = origTime % 1000;
+
+    this.time = origTime - excessMillis;
 
     if (this.running)
-      this.timer = setTimeout(this.updateTime, 1000 - this.time % 1000);
+      this.timer = setTimeout(this.updateTime, 1000 - excessMillis);
   }
 
   now(): void {

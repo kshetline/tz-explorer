@@ -14,5 +14,4 @@ export interface TimeInfo {
   leapSecond: number;
   leapExcess: number;
   text: string;
-  fromGps?: boolean;
 }

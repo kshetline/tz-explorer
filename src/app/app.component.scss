@@ -5,6 +5,26 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.banner {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1em;
+
+  h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  h2 {
+    color: dodgerblue;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+  }
+}
+
 .top-clocks {
   align-items: center;
   display: flex;
@@ -57,6 +77,14 @@
         min-width: 9em;
         top: -0.1em;
         position: relative;
+
+        &.system-diff {
+          align-self: center;
+          color: #CCC;
+          font-size: 0.8em;
+          left: -1em;
+          top: 0;
+        }
       }
     }
   }

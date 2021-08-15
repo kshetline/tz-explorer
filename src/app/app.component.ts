@@ -3,6 +3,7 @@ import { DateTime, Timezone, utToTaiMillis } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 import { last } from '@tubular/util';
 import { HttpTimePoller } from './http-time-poller/http-time-poller';
+import { TzExplorerApi } from './api/api';
 
 interface ExtraClock {
   localFormat: boolean;
@@ -37,17 +38,22 @@ export class AppComponent implements OnDestroy, OnInit {
   private timer: any;
 
   extraClocks: ExtraClock[] = [{ localFormat: false, zone: DEFAULT_EXTRA_ZONE }];
+  latestTzVersion = '';
   latestUtc = new DateTime().taiMillis;
   latestUtcTransition = this.latestUtc + 31536000000; // plus 365 days
   localZone = Timezone.guess();
   selectLocal = false;
   selectedTimezone = DEFAULT_EXTRA_ZONE;
   showAddClockDialog = false;
+  systemDiff = 0;
   time = new DateTime().taiSeconds * 1000;
 
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
 
-  constructor(private timePoller: HttpTimePoller) {
+  constructor(
+    private api: TzExplorerApi,
+    private timePoller: HttpTimePoller
+  ) {
     this.computeUtcRange();
 
     let settings: TzePreferences;
@@ -65,7 +71,20 @@ export class AppComponent implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.updateTime();
+    this.checkTzVersions();
   }
+
+  checkTzVersions = (): void => {
+    let recheckTime = 10000;
+
+    this.api.getTzVersions().then(versions => {
+      if (versions.length > 0) {
+        this.latestTzVersion = versions[0];
+        recheckTime = 600_000;
+      }
+    })
+      .finally(() => setTimeout(this.checkTzVersions, recheckTime));
+  };
 
   ngOnDestroy(): void {
     if (this.timer)
@@ -144,6 +163,7 @@ export class AppComponent implements OnDestroy, OnInit {
     const excessMillis = origTime % 1000;
 
     this.time = origTime - excessMillis;
+    this.systemDiff = timeInfo.time - Date.now();
 
     if (this.running)
       this.timer = setTimeout(this.updateTime, 1000 - excessMillis);

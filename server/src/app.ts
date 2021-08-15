@@ -21,15 +21,20 @@
 import { execSync } from 'child_process';
 import cookieParser from 'cookie-parser';
 import { Daytime, DaytimeData, DEFAULT_DAYTIME_SERVER } from './daytime';
-import express /*, { Router } */, { Express } from 'express';
+import express, { Express } from 'express';
 import * as http from 'http';
-import { asLines, isString, toBoolean } from '@tubular/util';
+import { asLines, isString, processMillis, toBoolean } from '@tubular/util';
 import logger from 'morgan';
 import { DEFAULT_NTP_SERVER } from './ntp';
 import { NtpPoller } from './ntp-poller';
 import * as path from 'path';
 import { DEFAULT_LEAP_SECOND_URLS, TaiUtc } from './tai-utc';
 import { jsonOrJsonp, noCache, normalizePort, timeStamp, unref } from './tze-util';
+import os from 'os';
+import { getAvailableVersions } from '@tubular/time-tzdb';
+import { getDbProperty, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
+import { getTzData, TzFormat, TzPresets } from '@tubular/time-tzdb/dist/tz-writer';
+import { sendMailMessage } from './mail';
 
 const debug = require('debug')('express:server');
 
@@ -42,13 +47,105 @@ const app = getApp();
 let httpServer: http.Server;
 const MAX_START_ATTEMPTS = 3;
 let startAttempts = 0;
+let savingZoneInfo = false;
+let shuttingDown = false;
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 process.on('SIGUSR2', shutdown);
 process.on('unhandledRejection', err => console.error(`${timeStamp()} -- Unhandled rejection:`, err));
 
-createAndStartServer();
+// Poll for tz-database updates
+const UPDATE_POLL_INTERVAL = 1_800_000; // 30 minutes
+const UPDATE_POLL_RETRY_TIME = 30_000; // 5 minutes
+let updatePollTimer: any;
+let tzVersions: string[] = [];
+
+async function checkForUpdate(): Promise<void> {
+  updatePollTimer = undefined;
+
+  let delay = UPDATE_POLL_INTERVAL;
+  let currentVersion: string;
+  const connection = await pool.getConnection();
+
+  try {
+    currentVersion = await getDbProperty(connection, 'tz_latest');
+    tzVersions = (await getAvailableVersions()).reverse();
+
+    for (const version of tzVersions) {
+      if (shuttingDown)
+        break;
+
+      const exists = await hasVersion(connection, version);
+
+      if (!exists) {
+        console.log(`${timeStamp()}: Creating data for ${version}`);
+
+        try {
+          const json = await getTzData({
+            preset: TzPresets.LARGE,
+            systemV: true,
+            urlOrVersion: version
+          }, true);
+          const small = (version < '2021a' ? null : await getTzData({
+            format: TzFormat.TYPESCRIPT,
+            preset: TzPresets.SMALL,
+            systemV: true,
+            urlOrVersion: version
+          }));
+          const large = (version < '2021a' ? null : await getTzData({
+            format: TzFormat.TYPESCRIPT,
+            preset: TzPresets.LARGE,
+            systemV: true,
+            urlOrVersion: version
+          }));
+          const largeAlt = (version < '2021a' ? null : await getTzData({
+            format: TzFormat.TYPESCRIPT,
+            preset: TzPresets.LARGE_ALT,
+            systemV: true,
+            urlOrVersion: version
+          }));
+
+          if (!shuttingDown) {
+            savingZoneInfo = true;
+            console.log(`${timeStamp()}: Saving data for ${version}`);
+            await saveVersion(connection, version, json, small, large, largeAlt);
+            console.log(`${timeStamp()}: Data saved for ${version}`);
+            savingZoneInfo = false;
+          }
+        }
+        catch (e) {
+          console.error(`${timeStamp()}: Error while creating/saving data for ${version} - ${e.message || e.toString()}`);
+        }
+      }
+    }
+
+    const latestVersion = tzVersions[0];
+
+    if (latestVersion && latestVersion > currentVersion) {
+      try {
+        await setDbProperty(connection, 'tz_latest', latestVersion);
+        await sendMailMessage('Timezone update to ' + latestVersion, `Update to ${latestVersion} detected at ${timeStamp()}.`);
+      }
+      catch (e) {
+        console.error(`${timeStamp()}: Error while reporting ${latestVersion} update - ${e.message || e.toString()}`);
+      }
+    }
+  }
+  catch (e) {
+    delay = UPDATE_POLL_RETRY_TIME;
+
+    if (os.uptime() > 90)
+      console.error('%s: Update info request failed: %s', timeStamp(), e.message ?? e.toString());
+  }
+  finally {
+    connection.release();
+  }
+
+  updatePollTimer = unref(setTimeout(checkForUpdate, delay));
+}
+
+checkForUpdate().finally();
 
 const ntpServer = process.env.TZE_NTP_SERVER || DEFAULT_NTP_SERVER;
 const ntpPoller = new NtpPoller(ntpServer);
@@ -58,7 +155,8 @@ const leapSecondsUrls = process.env.TZE_LEAP_SECONDS_URL || DEFAULT_LEAP_SECOND_
 const taiUtc = new TaiUtc(leapSecondsUrls);
 
 function createAndStartServer(): void {
-  console.log(`*** Starting server on port ${httpPort} at ${timeStamp()} ***`);
+  console.log(`*** Starting server on port ${httpPort} at ${timeStamp()}, pid: ${process.pid} ***`);
+  sendMailMessage('tzexplorer.org server start-up', 'Server started at ' + timeStamp()).catch(err => console.error(err));
   httpServer = http.createServer(app);
   httpServer.on('error', onError);
   httpServer.on('listening', onListening);
@@ -124,16 +222,37 @@ function canReleasePortAndRestart(): boolean {
   return false;
 }
 
-function shutdown(signal?: string): void {
+async function shutdown(signal?: string): Promise<void> {
   if (devMode && signal === 'SIGTERM')
     return;
 
+  shuttingDown = true;
+  const beginningOfTheEnd = processMillis();
+  const maxWait = savingZoneInfo ? 60000 : 5000;
+  let ready = false;
+
+  if (updatePollTimer)
+    clearTimeout(updatePollTimer);
+
   console.log(`\n*** ${signal ? signal + ': ' : ''}closing server at ${timeStamp()} ***`);
-  // Make sure that if the orderly clean-up gets stuck, shutdown still happens.
-  unref(setTimeout(() => process.exit(0), 5000));
-  httpServer.close(() => process.exit(0));
+  // Make sure that if an orderly clean-up gets stuck, shutdown still happens.
+  unref(setTimeout(() => process.exit(0), maxWait));
+  try {
+    await sendMailMessage('tzexplorer.org server shutdown', 'Server shut down at ' + timeStamp());
+  }
+  finally {
+    ready = true;
+  }
+
+  const exitWhenReady = (): void => {
+    if (!ready && processMillis() < beginningOfTheEnd + maxWait)
+      setTimeout(exitWhenReady, 100);
+    else
+      process.exit(0);
+  };
 
   NtpPoller.closeAll();
+  httpServer.close(exitWhenReady);
 }
 
 function getApp(): Express {
@@ -169,7 +288,7 @@ function getApp(): Express {
     jsonOrJsonp(req, res, ntpPoller.getTimeInfo());
   });
 
-  theApp.get('/daytime', async (req, res) => {
+  theApp.get('/api/daytime', async (req, res) => {
     noCache(res);
 
     let time: DaytimeData;
@@ -201,5 +320,12 @@ function getApp(): Express {
     jsonOrJsonp(req, res, await taiUtc.getLeapSecondHistory());
   });
 
+  theApp.get('/api/tz-versions', async (req, res) => {
+    noCache(res);
+    jsonOrJsonp(req, res, tzVersions);
+  });
+
   return theApp;
 }
+
+createAndStartServer();

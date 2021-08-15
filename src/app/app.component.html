@@ -1,3 +1,9 @@
+<div class="banner">
+  <h1>Time Zone Database Explorer</h1>
+  <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
+       class="sub-header">Latest tz database version: {{latestTzVersion}}</h2>
+</div>
+
 <div class="top-clocks">
   <div class="edit-mode">
     <p-radioButton name="editMode" [value]="true" [(ngModel)]="running" label="Track current time"></p-radioButton>
@@ -5,12 +11,17 @@
     <button pButton type="button" label="Now" [disabled]="running" (click)="now()"></button>
   </div>
   <div class="clock-label">Your local time, {{localZone}}</div>
-  <tbw-time-editor #localClock tai
-      [options]="LOCAL_OPTS"
-      [min]="MIN_YEAR" [max]="MAX_YEAR"
-      [viewOnly]="running"
-      [(ngModel)]="time"
-      [timezone]="localZone"></tbw-time-editor>
+  <div class="clock-row">
+    <tbw-time-editor #localClock tai
+        [options]="LOCAL_OPTS"
+        [min]="MIN_YEAR" [max]="MAX_YEAR"
+        [viewOnly]="running"
+        [(ngModel)]="time"
+        [timezone]="localZone"></tbw-time-editor>
+    <div class="extra-on-right">
+      <div *ngIf="running" class="system-diff">{{systemDiff}}ms</div>
+    </div>
+  </div>
   <div class="clock-label">Your local time, ISO formatted</div>
   <tbw-time-editor tai
       [options]="ISO_SHORT_OPTS"
@@ -70,6 +81,7 @@
     </div>
   </ng-container>
 </div>
+
 <tze-add-clock-dialog [(visible)]="showAddClockDialog"
     [(asLocal)]="selectLocal"
     [(timezone)]="selectedTimezone"

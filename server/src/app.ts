@@ -32,7 +32,7 @@ import { DEFAULT_LEAP_SECOND_URLS, TaiUtc } from './tai-utc';
 import { jsonOrJsonp, noCache, normalizePort, timeStamp, unref } from './tze-util';
 import os from 'os';
 import { getAvailableVersions } from '@tubular/time-tzdb';
-import { getDbProperty, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
+import { getDbProperty, getVersionData, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
 import { getTzData, TzFormat, TzPresets } from '@tubular/time-tzdb/dist/tz-writer';
 import { sendMailMessage } from './mail';
 
@@ -283,7 +283,7 @@ function getApp(): Express {
     });
   }
 
-  theApp.get(/\/api\/(ntp|time)/, (req, res) => {
+  theApp.get(/^\/api\/(ntp|time)/, (req, res) => {
     noCache(res);
     jsonOrJsonp(req, res, ntpPoller.getTimeInfo());
   });
@@ -323,6 +323,40 @@ function getApp(): Express {
   theApp.get('/api/tz-versions', async (req, res) => {
     noCache(res);
     jsonOrJsonp(req, res, tzVersions);
+  });
+
+  const tzDataUrl = /^\/tzdata\/timezone(?:s?)([-_](\d\d\d\d[a-z][a-z]?))?([-_](small|large|large[-_]alt))?\.(js|json|ts)$/;
+
+  theApp.get(tzDataUrl, async (req, res) => {
+    noCache(res);
+
+    const connection = await pool.getConnection();
+    const $ = tzDataUrl.exec(req.url);
+
+    try {
+      const version = $[2] || await getDbProperty(connection, 'tz_latest');
+      const format = ($[5] === 'js' || $[5] === 'ts' ? $[4]?.replace(/-/g, '_') || 'large' :
+        ($[4] ? '' : 'json'));
+
+      if (version && format) {
+        let data = await getVersionData(connection, version, format);
+
+        if (data) {
+          if ($[5] === 'js')
+            data = data.replace(/export default/g, 'module.exports = ');
+
+          res.set('Content-Type', 'text/plain');
+          res.send(data);
+        }
+        else
+          res.status(401).send('File not found');
+      }
+      else
+        res.status(401).send('File not found');
+    }
+    finally {
+      connection.release();
+    }
   });
 
   return theApp;

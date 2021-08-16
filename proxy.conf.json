@@ -3,5 +3,10 @@
     "target": "http://localhost:4201",
     "secure": false,
     "logLevel": "debug"
+  },
+  "/tzdata": {
+    "target": "http://localhost:4201",
+    "secure": false,
+    "logLevel": "debug"
   }
 }

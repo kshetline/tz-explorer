@@ -34,6 +34,19 @@ export async function saveVersion(connection: PoolConnection, version: string, j
   return false;
 }
 
+export async function getVersionData(connection: PoolConnection, version: string, format = 'json'): Promise<string> {
+  try {
+    const results = await connection.queryResults('SELECT * FROM zone_data WHERE version = ?', [version]);
+
+    return results[0] && results[0][format];
+  }
+  catch (e) {
+    console.error('saveVersion: ', version, e.message || e.toString());
+  }
+
+  return undefined;
+}
+
 export async function getDbProperty(connection: PoolConnection, name: string): Promise<string> {
   try {
     const results = await connection.queryResults('SELECT value from properties WHERE name = ?', [name]);

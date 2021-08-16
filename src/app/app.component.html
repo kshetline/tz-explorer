@@ -64,7 +64,7 @@
     </div></div>
   </div>
   <ng-container *ngFor="let clock of extraClocks; let index = index; let last = last">
-    <div class="clock-label">{{clock.zone}}</div>
+    <div class="clock-label">{{clock.zone.replace('/Kiev', '/Kyiv')}}</div>
     <div class="clock-row">
       <div class="extra-on-left"><div>
         <button pButton pRipple type="button" icon="pi pi-times" (click)="closeClock(index)"

@@ -317,8 +317,13 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
 
   searchSelect(s: any): void {
     const query = (s.query || '#').trim().replace(/\s+/g, '_').toLowerCase();
+    const zones = Timezone.getAvailableTimezones();
+    const kiev = zones.indexOf('Europe/Kiev');
 
-    this.matchZones = Timezone.getAvailableTimezones().filter(zone => zone.toLowerCase().includes(query));
+    if (kiev >= 0)
+      zones.splice(kiev, 0, 'Europe/Kyiv');
+
+    this.matchZones = zones.filter(zone => zone.toLowerCase().includes(query));
   }
 
   private updateTimezones(): void {

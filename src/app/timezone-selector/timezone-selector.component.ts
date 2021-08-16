@@ -139,6 +139,8 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
   }
 
   set value(newValue: string) {
+    newValue = toCanonicalZone(newValue);
+
     if (this._value !== newValue) {
       this._value = newValue;
       this.updateValue(newValue);

@@ -1,13 +1,17 @@
 :host {
-  color: #333;
+  align-items: center;
   box-sizing: border-box;
+  color: #333;
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .banner {
   align-items: center;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   padding-bottom: 1em;
 
@@ -25,28 +29,37 @@
   }
 }
 
-.top-clocks {
+.top-panel {
   align-items: center;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
+  padding-bottom: 1em;
   position: relative;
 
   .edit-mode {
     display: flex;
-    padding-bottom: 1em;
 
     p-radioButton:not(:first-child), button {
       margin-left: 2em;
     }
   }
+}
+
+.clocks {
+  align-items: center;
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
 
   .clock-label {
     padding-top: 0.5em;
+    white-space: nowrap;
   }
 
   .clock-row {
     align-items: center;
     display: flex;
+    padding: 0 140px;
 
     .extra-on-left {
       display: flex;
@@ -74,7 +87,6 @@
       width: 0;
 
       div {
-        min-width: 9em;
         top: -0.1em;
         position: relative;
 
@@ -91,5 +103,11 @@
 
   tbw-time-editor {
     font-size: 1.5em;
+  }
+
+  @media only screen and (max-width: 700px) {
+    .clock-row {
+      padding: 0 50px;
+    }
   }
 }

@@ -33,6 +33,7 @@ export class AppComponent implements OnDestroy, OnInit {
   LOCAL_OPTS = { showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true, twoDigitYear: false };
   MIN_YEAR = '1000';
   MAX_YEAR = '4000';
+  window = window;
 
   private _running = true;
   private timer: any;

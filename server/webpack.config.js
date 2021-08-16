@@ -2,8 +2,8 @@ const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
 const mode = process.env.NODE_ENV || 'production';
-const os = require('os');
 
+// noinspection JSUnresolvedFunction
 module.exports = {
   mode,
   entry: './src/app.ts',
@@ -34,7 +34,8 @@ module.exports = {
     minimize: mode === 'production',
     minimizer: [new TerserPlugin({
       terserOptions: {
-        output: { max_line_len: 511 }
+        output: { max_line_len: 511 },
+        mangle: false
       }
     })],
   },

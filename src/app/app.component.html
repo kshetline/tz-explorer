@@ -3,13 +3,14 @@
   <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
        class="sub-header">Latest tz database version: {{latestTzVersion}}</h2>
 </div>
-
-<div class="top-clocks">
+<div class="top-panel">
   <div class="edit-mode">
     <p-radioButton name="editMode" [value]="true" [(ngModel)]="running" label="Track current time"></p-radioButton>
     <p-radioButton name="editMode" [value]="false" [(ngModel)]="running" label="Allow time to be edited"></p-radioButton>
     <button pButton type="button" label="Now" [disabled]="running" (click)="now()"></button>
   </div>
+</div>
+<div class="clocks">
   <div class="clock-label">Your local time, {{localZone}}</div>
   <div class="clock-row">
     <tbw-time-editor #localClock tai
@@ -50,7 +51,7 @@
       [viewOnly]="running"
       [(ngModel)]="time"
       timezone="TAI"></tbw-time-editor>
-  <div class="clock-label">TT (Terrestrial Time), TAI + 32.184s</div>
+  <div class="clock-label">TT (Terrestrial Time, aka TDT), TAI + 32.184s</div>
   <div class="clock-row">
     <tbw-time-editor tai
         [options]="ISO_SHORT_OPTS"
@@ -59,7 +60,7 @@
         [(ngModel)]="tt"
         timezone="TAI"></tbw-time-editor>
     <div *ngIf="extraClocks.length === 0" class="extra-on-right"><div>
-      <button pButton type="button" label="Add clock" icon="pi pi-plus" (click)="showAddClockDialog = true"></button>
+      <ng-container *ngTemplateOutlet="addButton"></ng-container>
     </div></div>
   </div>
   <ng-container *ngFor="let clock of extraClocks; let index = index; let last = last">
@@ -76,11 +77,24 @@
           [(ngModel)]="time"
           [timezone]="clock.zone"></tbw-time-editor>
       <div *ngIf="last" class="extra-on-right"><div>
-        <button pButton type="button" label="Add clock" icon="pi pi-plus" (click)="openNewClockDialog()"></button>
+        <ng-container *ngTemplateOutlet="addButton"></ng-container>
       </div></div>
     </div>
   </ng-container>
 </div>
+
+<ng-template #addButton>
+  <button *ngIf="window.innerWidth > 700"
+      class="tze-dont-wrap-label"
+      pButton type="button"
+      label="Add clock"
+      icon="pi pi-plus"
+      (click)="openNewClockDialog()"></button>
+  <button *ngIf="window.innerWidth <= 700"
+      pButton type="button"
+      icon="pi pi-plus"
+      (click)="openNewClockDialog()"></button>
+</ng-template>
 
 <tze-add-clock-dialog [(visible)]="showAddClockDialog"
     [(asLocal)]="selectLocal"

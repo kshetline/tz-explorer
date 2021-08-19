@@ -22,12 +22,13 @@ import { execSync } from 'child_process';
 import cookieParser from 'cookie-parser';
 import { Daytime, DaytimeData, DEFAULT_DAYTIME_SERVER } from './daytime';
 import express, { Express } from 'express';
-import * as http from 'http';
+import http from 'http';
 import { asLines, isString, processMillis, toBoolean } from '@tubular/util';
 import logger from 'morgan';
 import { DEFAULT_NTP_SERVER } from './ntp';
 import { NtpPoller } from './ntp-poller';
-import * as path from 'path';
+import fs, { ReadStream } from 'fs';
+import path from 'path';
 import { DEFAULT_LEAP_SECOND_URLS, TaiUtc } from './tai-utc';
 import { jsonOrJsonp, noCache, normalizePort, timeStamp, unref } from './tze-util';
 import os from 'os';
@@ -35,6 +36,7 @@ import { getAvailableVersions } from '@tubular/time-tzdb';
 import { getDbProperty, getVersionData, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
 import { getTzData, TzFormat, TzPresets } from '@tubular/time-tzdb/dist/tz-writer';
 import { sendMailMessage } from './mail';
+import { codeAndDataToZip, codeToZip, dataToZip } from './archive-convert';
 
 const debug = require('debug')('express:server');
 
@@ -155,8 +157,14 @@ const leapSecondsUrls = process.env.TZE_LEAP_SECONDS_URL || DEFAULT_LEAP_SECOND_
 const taiUtc = new TaiUtc(leapSecondsUrls);
 
 function createAndStartServer(): void {
-  console.log(`*** Starting server on port ${httpPort} at ${timeStamp()}, pid: ${process.pid} ***`);
+  console.log(`*** Starting server on port ${httpPort} at ${timeStamp()} ***`);
+  console.log(`*** user: ${process.env.USER}, pid: ${process.pid}, cwd: ${__dirname} ***`);
+
   sendMailMessage('tzexplorer.org server start-up', 'Server started at ' + timeStamp()).catch(err => console.error(err));
+
+  if (process.env.TZE_ZIP_DIR && !fs.existsSync(process.env.TZE_ZIP_DIR))
+    fs.mkdirSync(process.env.TZE_ZIP_DIR, { recursive: true });
+
   httpServer = http.createServer(app);
   httpServer.on('error', onError);
   httpServer.on('listening', onListening);
@@ -325,25 +333,25 @@ function getApp(): Express {
     jsonOrJsonp(req, res, tzVersions);
   });
 
-  const tzDataUrl = /^\/tzdata\/timezone(?:s?)([-_](\d\d\d\d[a-z][a-z]?))?([-_](small|large|large[-_]alt))?\.(js|json|ts)$/;
+  const tzDataUrl = /^\/tzdata\/timezone(?:s?)([-_](\d\d\d\d[a-z][a-z]?))?([-_](small|large|large[-_]alt))?\.(js|json|ts)$/i;
 
   theApp.get(tzDataUrl, async (req, res) => {
     noCache(res);
 
     const connection = await pool.getConnection();
-    const $ = tzDataUrl.exec(req.url);
+    const [, , tzVersion, , edition, ext] = tzDataUrl.exec(req.url.toLowerCase());
 
     try {
-      const version = $[2] || await getDbProperty(connection, 'tz_latest');
-      const format = ($[5] === 'js' || $[5] === 'ts' ? $[4]?.replace(/-/g, '_') || 'large' :
-        ($[4] ? '' : 'json'));
+      const version = tzVersion || await getDbProperty(connection, 'tz_latest');
+      const format = (ext === 'js' || ext === 'ts' ? edition?.replace(/-/g, '_') || 'large' :
+        (edition ? '' : 'json'));
 
       if (version && format) {
         let data = await getVersionData(connection, version, format);
 
         if (data) {
-          if ($[5] === 'js')
-            data = data.replace(/export default/g, 'module.exports = ');
+          if (ext === 'js')
+            data = data.replace(/export default/g, 'module.exports =');
 
           res.set('Content-Type', 'text/plain');
           res.send(data);
@@ -357,6 +365,35 @@ function getApp(): Express {
     finally {
       connection.release();
     }
+  });
+
+  const tzArchiveUrl = /^\/tzdata\/tz(code|data|db-)([a-z0-9]+)\.zip$/i;
+
+  theApp.get(tzArchiveUrl, async (req, res) => {
+    noCache(res);
+
+    const [, edition, tzVersion] = tzArchiveUrl.exec(req.url.toLowerCase());
+
+    if (!tzVersions.includes(tzVersion)) {
+      res.status(401).send('File not found');
+
+      return;
+    }
+
+    let fileStream: ReadStream;
+
+    try {
+      if (edition === 'code')
+        fileStream = await codeToZip(tzVersion);
+      else if (edition === 'data')
+        fileStream = await dataToZip(tzVersion);
+      else
+        fileStream = await codeAndDataToZip(tzVersion);
+
+      res.set('Content-Type', 'application/zip');
+      fileStream.pipe(res);
+    }
+    catch {}
   });
 
   return theApp;

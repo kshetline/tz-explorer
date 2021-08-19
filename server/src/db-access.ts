@@ -36,7 +36,7 @@ export async function saveVersion(connection: PoolConnection, version: string, j
 
 export async function getVersionData(connection: PoolConnection, version: string, format = 'json'): Promise<string> {
   try {
-    const results = await connection.queryResults('SELECT * FROM zone_data WHERE version = ?', [version]);
+    const results = await connection.queryResults('SELECT ?? FROM zone_data WHERE version = ?', [format, version]);
 
     return results[0] && results[0][format];
   }

@@ -160,7 +160,8 @@ function createAndStartServer(): void {
   console.log(`*** Starting server on port ${httpPort} at ${timeStamp()} ***`);
   console.log(`*** user: ${process.env.USER}, pid: ${process.pid}, cwd: ${__dirname} ***`);
 
-  sendMailMessage('tzexplorer.org server start-up', 'Server started at ' + timeStamp()).catch(err => console.error(err));
+  sendMailMessage('tzexplorer.org server start-up',
+    `Server started at ${timeStamp()}, pid: ${process.pid}`).catch(err => console.error(err));
 
   if (process.env.TZE_ZIP_DIR && !fs.existsSync(process.env.TZE_ZIP_DIR))
     fs.mkdirSync(process.env.TZE_ZIP_DIR, { recursive: true });
@@ -331,6 +332,11 @@ function getApp(): Express {
   theApp.get('/api/tz-versions', async (req, res) => {
     noCache(res);
     jsonOrJsonp(req, res, tzVersions);
+  });
+
+  theApp.get('/api/tz-version', async (req, res) => {
+    noCache(res);
+    jsonOrJsonp(req, res, tzVersions[0] || null);
   });
 
   const tzDataUrl = /^\/tzdata\/timezone(?:s?)([-_](\d\d\d\d[a-z][a-z]?))?([-_](small|large|large[-_]alt))?\.(js|json|ts)$/i;

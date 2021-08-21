@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { TzExplorerApi } from './api/api';
+import { AppService } from './app.service';
 
 @Component({
   selector: 'tze-root',
@@ -9,7 +10,10 @@ import { TzExplorerApi } from './api/api';
 export class AppComponent implements OnInit {
   latestTzVersion = '';
 
-  constructor(private api: TzExplorerApi) {}
+  constructor(
+    private app: AppService,
+    private api: TzExplorerApi
+  ) {}
 
   ngOnInit(): void {
     this.checkTzVersion();
@@ -26,4 +30,9 @@ export class AppComponent implements OnInit {
     })
       .finally(() => setTimeout(this.checkTzVersion, recheckTime));
   };
+
+  @HostListener('window:beforeunload')
+  updatePreferences(): void {
+    this.app.updatePreferences();
+  }
 }

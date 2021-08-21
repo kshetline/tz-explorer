@@ -1,21 +1,11 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DateTime, Timezone, utToTaiMillis } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 import { last } from '@tubular/util';
 import { HttpTimePoller } from '../http-time-poller/http-time-poller';
 import { TzExplorerApi } from '../api/api';
+import { AppService, DEFAULT_EXTRA_ZONE, ExtraClock } from '../app.service';
 
-interface ExtraClock {
-  localFormat: boolean;
-  zone: string;
-}
-
-interface TzePreferences {
-  extraClocks?: ExtraClock[];
-  runClock?: boolean;
-}
-
-const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
 const EARLIEST_TAI = new DateTime('1958-01-01 UTC').taiMillis;
 const EARLIEST_UTC = EARLIEST_TAI;
 const EARLIEST_UTC_TRANSITION = new DateTime('1958-01-01 UTC').subtract('days', 365).taiMillis;
@@ -38,7 +28,7 @@ export class ClocksComponent implements OnDestroy, OnInit {
   private _running = true;
   private timer: any;
 
-  extraClocks: ExtraClock[] = [{ localFormat: false, zone: DEFAULT_EXTRA_ZONE }];
+  extraClocks: ExtraClock[];
   latestUtc = new DateTime().taiMillis;
   latestUtcTransition = this.latestUtc + 31536000000; // plus 365 days
   localZone = Timezone.guess();
@@ -51,22 +41,15 @@ export class ClocksComponent implements OnDestroy, OnInit {
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
 
   constructor(
+    private app: AppService,
     private api: TzExplorerApi,
     private timePoller: HttpTimePoller
   ) {
+    const prefs = app.preferences;
+
+    this.extraClocks = prefs.extraClocks;
+    this.running = prefs.runClock;
     this.computeUtcRange();
-
-    let settings: TzePreferences;
-
-    try {
-      settings = JSON.parse(localStorage.getItem('tze-prefs'));
-    }
-    catch {}
-
-    if (settings) {
-      this.extraClocks = settings.extraClocks ?? this.extraClocks;
-      this.running = settings.runClock ?? true;
-    }
   }
 
   ngOnInit(): void {
@@ -141,6 +124,8 @@ export class ClocksComponent implements OnDestroy, OnInit {
         setTimeout(() => ((this.localClock.nativeElement as HTMLElement)
           .querySelector('.tbw-dse-wrapper') as HTMLElement)?.focus());
       }
+
+      this.app.updatePreferences({ runClock: newValue });
     }
   }
 
@@ -162,6 +147,7 @@ export class ClocksComponent implements OnDestroy, OnInit {
 
   closeClock(index: number): void {
     this.extraClocks.splice(index, 1);
+    this.app.updatePreferences({ extraClocks: this.extraClocks });
   }
 
   openNewClockDialog(): void {
@@ -171,19 +157,7 @@ export class ClocksComponent implements OnDestroy, OnInit {
 
   createClock(): void {
     this.extraClocks.push({ localFormat: this.selectLocal, zone: this.selectedTimezone });
-  }
-
-  @HostListener('window:beforeunload')
-  saveSettings(): void {
-    const settings: TzePreferences = {
-      extraClocks: this.extraClocks,
-      runClock: this.running
-    };
-
-    try {
-      localStorage.setItem('tze-prefs', JSON.stringify(settings));
-    }
-    catch {}
+    this.app.updatePreferences({ extraClocks: this.extraClocks });
   }
 
   private computeUtcRange(): void {

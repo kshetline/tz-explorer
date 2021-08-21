@@ -1,0 +1,97 @@
+<div class="top-panel">
+  <div class="edit-mode">
+    <p-radioButton name="editMode" [value]="true" [(ngModel)]="running" label="Track current time"></p-radioButton>
+    <p-radioButton name="editMode" [value]="false" [(ngModel)]="running" label="Allow time to be edited"></p-radioButton>
+    <button pButton type="button" label="Now" [disabled]="running" (click)="now()"></button>
+  </div>
+</div>
+<div class="clocks">
+  <div class="clock-label">Your local time, {{localZone}}</div>
+  <div class="clock-row">
+    <tbw-time-editor #localClock tai
+        [options]="LOCAL_OPTS"
+        [min]="MIN_YEAR" [max]="MAX_YEAR"
+        [viewOnly]="running"
+        [(ngModel)]="time"
+        [timezone]="localZone"></tbw-time-editor>
+    <div class="extra-on-right">
+      <div *ngIf="running" class="system-diff">{{systemDiff}}ms</div>
+    </div>
+  </div>
+  <div class="clock-label">Your local time, ISO formatted</div>
+  <tbw-time-editor tai
+      [options]="ISO_SHORT_OPTS"
+      [min]="MIN_YEAR" [max]="MAX_YEAR"
+      [viewOnly]="running"
+      [(ngModel)]="time"
+      [timezone]="localZone"></tbw-time-editor>
+  <div class="clock-label">{{utForm}}, TAI {{deltaTai}}s</div>
+  <tbw-time-editor tai
+      [options]="ISO_SHORT_OPTS"
+      [min]="MIN_YEAR" [max]="MAX_YEAR"
+      [viewOnly]="running"
+      [(ngModel)]="time"
+      timezone="UTC"></tbw-time-editor>
+  <div class="clock-label">{{gpsForm}}, TAI - 19s</div>
+  <tbw-time-editor tai
+      [options]="ISO_SHORT_OPTS"
+      [min]="MIN_YEAR" [max]="MAX_YEAR"
+      [viewOnly]="running"
+      [(ngModel)]="gps"
+      timezone="TAI"></tbw-time-editor>
+  <div class="clock-label">{{taiForm}} (International Atomic Time)</div>
+  <tbw-time-editor tai
+      [options]="ISO_SHORT_OPTS"
+      [min]="MIN_YEAR" [max]="MAX_YEAR"
+      [viewOnly]="running"
+      [(ngModel)]="time"
+      timezone="TAI"></tbw-time-editor>
+  <div class="clock-label">TT (Terrestrial Time, aka TDT), TAI + 32.184s</div>
+  <div class="clock-row">
+    <tbw-time-editor tai
+        [options]="ISO_SHORT_OPTS"
+        [min]="MIN_YEAR" [max]="MAX_YEAR"
+        [viewOnly]="running"
+        [(ngModel)]="tt"
+        timezone="TAI"></tbw-time-editor>
+    <div *ngIf="extraClocks.length === 0" class="extra-on-right"><div>
+      <ng-container *ngTemplateOutlet="addButton"></ng-container>
+    </div></div>
+  </div>
+  <ng-container *ngFor="let clock of extraClocks; let index = index; let last = last">
+    <div class="clock-label">{{clock.zone.replace('/Kiev', '/Kyiv')}}</div>
+    <div class="clock-row">
+      <div class="extra-on-left"><div>
+        <button pButton pRipple type="button" icon="pi pi-times" (click)="closeClock(index)"
+                class="p-button-rounded p-button-danger p-button-outlined p-button-sm"></button>
+      </div></div>
+      <tbw-time-editor tai
+          [options]="clock.localFormat ? LOCAL_OPTS : ISO_OPTS"
+          [min]="MIN_YEAR" [max]="MAX_YEAR"
+          [viewOnly]="running"
+          [(ngModel)]="time"
+          [timezone]="clock.zone"></tbw-time-editor>
+      <div *ngIf="last" class="extra-on-right"><div>
+        <ng-container *ngTemplateOutlet="addButton"></ng-container>
+      </div></div>
+    </div>
+  </ng-container>
+</div>
+
+<ng-template #addButton>
+  <button *ngIf="window.innerWidth > 700"
+      class="tze-dont-wrap-label"
+      pButton type="button"
+      label="Add clock"
+      icon="pi pi-plus"
+      (click)="openNewClockDialog()"></button>
+  <button *ngIf="window.innerWidth <= 700"
+      pButton type="button"
+      icon="pi pi-plus"
+      (click)="openNewClockDialog()"></button>
+</ng-template>
+
+<tze-add-clock-dialog [(visible)]="showAddClockDialog"
+    [(asLocal)]="selectLocal"
+    [(timezone)]="selectedTimezone"
+    (done)="createClock()"></tze-add-clock-dialog>

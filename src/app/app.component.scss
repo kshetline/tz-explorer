@@ -1,12 +1,9 @@
 :host {
   align-items: center;
   box-sizing: border-box;
-  color: #333;
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   position: relative;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .banner {
@@ -26,88 +23,5 @@
     font-size: 1em;
     font-weight: normal;
     margin: 0;
-  }
-}
-
-.top-panel {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  padding-bottom: 1em;
-  position: relative;
-
-  .edit-mode {
-    display: flex;
-
-    p-radioButton:not(:first-child), button {
-      margin-left: 2em;
-    }
-  }
-}
-
-.clocks {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  position: relative;
-
-  .clock-label {
-    padding-top: 0.5em;
-    white-space: nowrap;
-  }
-
-  .clock-row {
-    align-items: center;
-    display: flex;
-    padding: 0 140px;
-
-    .extra-on-left {
-      display: flex;
-      height: 2em;
-      right: 4.9em;
-      overflow: visible;
-      position: relative;
-      width: 0;
-
-      div {
-        display: flex;
-        flex-direction: row-reverse;
-        min-width: 4em;
-        position: relative;
-        top: 0.1em;
-      }
-    }
-
-    .extra-on-right {
-      display: flex;
-      height: 2em;
-      left: 1em;
-      overflow: visible;
-      position: relative;
-      width: 0;
-
-      div {
-        top: -0.1em;
-        position: relative;
-
-        &.system-diff {
-          align-self: center;
-          color: #CCC;
-          font-size: 0.8em;
-          left: -1em;
-          top: 0;
-        }
-      }
-    }
-  }
-
-  tbw-time-editor {
-    font-size: 1.5em;
-  }
-
-  @media only screen and (max-width: 700px) {
-    .clock-row {
-      padding: 0 50px;
-    }
   }
 }

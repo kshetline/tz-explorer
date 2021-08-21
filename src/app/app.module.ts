@@ -9,6 +9,7 @@ import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { RippleModule } from 'primeng/ripple';
+import { TabViewModule } from 'primeng/tabview';
 
 import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
 
@@ -20,11 +21,13 @@ import { PDropdownFixDirective } from './util/p-dropdown-scroll-fix.directive';
 import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector.component';
 import { TzExplorerApi } from './api/api';
 import { HttpTimePoller } from './http-time-poller/http-time-poller';
+import { ClocksComponent } from './clocks/clocks.component';
 
 @NgModule({
   declarations: [
     AddClockDialogComponent,
     AppComponent,
+    ClocksComponent,
     PDropdownFixDirective,
     TimezoneSelectorComponent
   ],
@@ -41,6 +44,7 @@ import { HttpTimePoller } from './http-time-poller/http-time-poller';
     HttpClientModule,
     RadioButtonModule,
     RippleModule,
+    TabViewModule,
     TubularNgWidgetsModule,
   ],
   providers: [

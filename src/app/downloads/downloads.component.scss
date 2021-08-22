@@ -34,4 +34,10 @@
     display: flex;
     flex-direction: column;
   }
+
+  .invalid-link {
+    color: #AAA;
+    pointer-events: none;
+    text-decoration: line-through;
+  }
 }

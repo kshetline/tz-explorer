@@ -11,6 +11,10 @@ export class TzExplorerApi {
     return this.httpClient.get<TimeInfo>('/api/time').toPromise();
   }
 
+  getTzReleases(): Promise<string[]> {
+    return this.httpClient.get<string[]>('/api/tz-releases').toPromise();
+  }
+
   getTzVersion(): Promise<string> {
     return this.httpClient.get<string>('/api/tz-version').toPromise();
   }

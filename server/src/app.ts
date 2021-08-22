@@ -37,6 +37,7 @@ import { getDbProperty, getVersionData, hasVersion, pool, saveVersion, setDbProp
 import { getTzData, TzFormat, TzPresets } from '@tubular/time-tzdb/dist/tz-writer';
 import { sendMailMessage } from './mail';
 import { codeAndDataToZip, codeToZip, dataToZip } from './archive-convert';
+import { requestText } from 'by-request';
 
 const debug = require('debug')('express:server');
 
@@ -339,6 +340,21 @@ function getApp(): Express {
     jsonOrJsonp(req, res, tzVersions[0] || null);
   });
 
+  theApp.get('/api/tz-releases', async (req, res) => {
+    noCache(res);
+
+    try {
+      const releases = (await requestText('https://data.iana.org/time-zones/releases/'))
+        .split(/(href="tz[^"]+(?="))/g).filter(s => s.startsWith('href="tz')).map(s => s.substr(6))
+        .filter(s => !s.endsWith('.asc'));
+
+      jsonOrJsonp(req, res, releases);
+    }
+    catch (e) {
+      res.status(500).send(`Error retrieving release list: ${e.message || e.toString()}`);
+    }
+  });
+
   const tzDataUrl = /^\/tzdata\/timezone(?:s?)([-_](\d\d\d\d[a-z][a-z]?))?([-_](small|large|large[-_]alt))?\.(js|json|ts)$/i;
 
   theApp.get(tzDataUrl, async (req, res) => {
@@ -399,7 +415,9 @@ function getApp(): Express {
       res.set('Content-Type', 'application/zip');
       fileStream.pipe(res);
     }
-    catch {}
+    catch (e) {
+      res.status(500).send(`Error retrieving file: ${e.message || e.toString()}`);
+    }
   });
 
   return theApp;

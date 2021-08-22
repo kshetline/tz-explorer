@@ -9,8 +9,7 @@ export const pool = new Pool({
 });
 
 pool.on('connection', connection => {
-  // noinspection JSIgnoredPromiseFromCall
-  connection.query("SET NAMES 'utf8'");
+  connection.query("SET NAMES 'utf8'").finally();
 });
 
 export async function hasVersion(connection: PoolConnection, version: string): Promise<boolean> {
@@ -69,10 +68,8 @@ export async function setDbProperty(connection: PoolConnection, name: string, va
   try {
     if (value === undefined)
       await connection.queryResults('DELETE FROM properties WHERE name = ?', [name]);
-    else if ((await getDbProperty(connection, name)) === undefined)
-      await connection.queryResults('INSERT INTO properties (name, value) VALUES (?, ?)', [name, value]);
     else
-      await connection.queryResults('UPDATE properties SET value = ? WHERE name = ?', [value, name]);
+      await connection.queryResults('REPLACE INTO properties (name, value) VALUES (?, ?)', [name, value]);
 
     return true;
   }
@@ -81,4 +78,68 @@ export async function setDbProperty(connection: PoolConnection, name: string, va
   }
 
   return false;
+}
+
+export async function getReleaseNote(connection: PoolConnection, version: string): Promise<string> {
+  try {
+    const results = await connection.queryResults('SELECT notes from release_notes WHERE version = ?', [version]);
+
+    return results[0]?.notes;
+  }
+  catch (e) {
+    console.error('getReleaseNotes: ', version, e.message || e.toString());
+  }
+
+  return undefined;
+}
+
+export async function setReleaseNote(connection: PoolConnection, version: string, notes: string): Promise<boolean> {
+  try {
+    if (notes === undefined)
+      await connection.queryResults('DELETE FROM release_notes WHERE version = ?', [version]);
+    else
+      await connection.queryResults('REPLACE INTO release_notes (version, notes) VALUES (?, ?)', [version, notes]);
+
+    return true;
+  }
+  catch (e) {
+    console.error('setReleaseNotes: ', version, e.message || e.toString());
+  }
+
+  return false;
+}
+
+export async function parseAndUpdateReleaseNotes(news: string): Promise<void> {
+  const notes = news.split(/(^Release \d\d\d\d[a-z][a-z]?.*?(?=\nRelease (?:\d\d\d\d[a-z][a-z]?|code)))/gms)
+    .map(s => s.trim()).filter((s, index) => s && index % 3 === 1 && !/^Release code/.test(s));
+
+  // Manually tack on two oldest release notes for available downloads.
+  notes.push(
+`Release 1996n - 1996-12-16 09:42:02 -0500
+
+  link snapping fix from Bruce Evans (via Garrett Wollman)`,
+`Release 1996l - 1996-09-08 17:12:20 -0400
+
+  tzcode96k was missing a couple of pieces.
+
+  No functional changes [to data] here; the files have simply been changed to
+  make more use of ISO style dates in comments. The names of the above
+  files now include the year in full.`);
+
+  const connection = await pool.getConnection();
+
+  try {
+    const noteCount = (await connection.queryResults('SELECT COUNT(*) as count FROM release_notes'))[0]?.count ?? 0;
+
+    if (noteCount < notes.length) {
+      notes.forEach(note => {
+        const version = /^Release (\d\d\d\d[a-z][a-z]?)/.exec(note)[1];
+
+        setReleaseNote(connection, version, note);
+      });
+    }
+  }
+  finally {
+    connection.release();
+  }
 }

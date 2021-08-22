@@ -5,6 +5,9 @@ import needle from 'needle';
 import path from 'path';
 import { spawn } from 'child_process';
 import tar from 'tar-stream';
+import { tapStream } from './stream-tap';
+import { parseAndUpdateReleaseNotes } from './db-access';
+import { noop } from '@tubular/util';
 
 const baseUrl = 'https://data.iana.org/time-zones/releases/';
 
@@ -23,24 +26,33 @@ export async function dataToZip(version: string): Promise<ReadStream> {
 async function compressedTarToZip(url: string): Promise<ReadStream> {
   const fileName = /([-a-z0-9]+)\.tar\.[lg]z$/i.exec(url)[1] + '.zip';
   const filePath = path.join(process.env.TZE_ZIP_DIR || path.join(__dirname, 'tz-zip-cache'), fileName);
+  let stats: fs.Stats | false;
 
-  if (await fsp.stat(filePath).catch(() => false))
+  if ((stats = await fsp.stat(filePath).catch(() => false)) && stats.size > 1023)
     return fs.createReadStream(filePath);
 
   const [command, args] = url.endsWith('.lz') ? ['lzip', ['-d']] : ['gzip', ['-dc']];
-  const originalArchive = needle.get(url, { headers: { 'User-Agent': 'curl/7.64.1' } });
+  const originalArchive = needle.get(url.replace('tzcode2006b', 'tz64code2006b'),
+    { headers: { 'User-Agent': 'curl/7.64.1' } });
   const tarExtract = tar.extract({ allowUnknownFormat: true });
   const zipPack = archiver('zip');
   const writeFile = fs.createWriteStream(filePath);
   const commandProc = spawn(command, args);
+  let forwardReject = noop;
 
-  commandProc.stderr.on('data', msg => { throw new Error(`${command} error: ${msg}`); });
-  commandProc.stderr.on('error', err => { throw err; });
+  commandProc.stderr.on('data', msg => forwardReject(new Error(`${command} error: ${msg}`)));
+  commandProc.stderr.on('error', forwardReject);
 
   originalArchive.pipe(commandProc.stdin);
   commandProc.stdout.pipe(tarExtract);
 
   tarExtract.on('entry', (header, stream, next) => {
+    if (header.name.replace(/^.*\//, '') === 'NEWS') {
+      stream = tapStream(stream, content => {
+        parseAndUpdateReleaseNotes(content);
+      });
+    }
+
     zipPack.append(stream, { name: header.name, date: header.mtime });
     stream.on('end', next);
   });
@@ -52,6 +64,7 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
     const rejectWithError = (err: any): void =>
       reject(err instanceof Error ? err : new Error(err.message || err.toString()));
 
+    forwardReject = rejectWithError;
     writeFile.on('error', rejectWithError);
     writeFile.on('finish', () => resolve(fs.createReadStream(filePath)));
     tarExtract.on('error', err => {

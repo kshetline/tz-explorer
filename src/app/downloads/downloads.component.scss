@@ -1,0 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.download-list {
+  flex: 1 1 10em;
+  overflow: auto;
+}

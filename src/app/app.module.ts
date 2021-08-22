@@ -23,6 +23,7 @@ import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector
 import { TzExplorerApi } from './api/api';
 import { HttpTimePoller } from './http-time-poller/http-time-poller';
 import { ClocksComponent } from './clocks/clocks.component';
+import { DownloadsComponent } from './downloads/downloads.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { ClocksComponent } from './clocks/clocks.component';
     AppComponent,
     ClocksComponent,
     PDropdownFixDirective,
-    TimezoneSelectorComponent
+    TimezoneSelectorComponent,
+    DownloadsComponent
   ],
   imports: [
     AppRoutingModule,

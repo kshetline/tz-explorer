@@ -3,14 +3,14 @@
   <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
        class="sub-header">Latest tz database version: {{latestTzVersion}}</h2>
 </div>
-<p-tabView>
-  <p-tabPanel header="Current Time/Time Conversions">
+<p-tabView class="tab-view" (onChange)="tabIndex = $event.index">
+  <p-tabPanel header="Current Time/Time Conversions" [class.tze-tab-selected]="tabIndex === 0">
     <tze-clocks></tze-clocks>
   </p-tabPanel>
-  <p-tabPanel header="Timezone Histories">
+  <p-tabPanel header="Timezone Histories" [class.tze-tab-selected]="tabIndex === 1">
     Timezone Histories
   </p-tabPanel>
-  <p-tabPanel header="Downloads">
-    Downloads
+  <p-tabPanel header="Downloads" [class.tze-tab-selected]="tabIndex === 2">
+    <tze-downloads></tze-downloads>
   </p-tabPanel>
 </p-tabView>

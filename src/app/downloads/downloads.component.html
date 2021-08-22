@@ -1,11 +1,20 @@
 <div class="download-list">
-  <div *ngFor="let version of versions">
-    {{version}}&nbsp;&nbsp;
-    <a [href]="getTarCodeLink(version)">{{nameFromLink(getTarCodeLink(version))}}</a>&nbsp;&nbsp;
-    <a [href]="getTarDataLink(version)">{{nameFromLink(getTarDataLink(version))}}</a>&nbsp;&nbsp;
-    <a [href]="getTarFullLink(version)">{{nameFromLink(getTarFullLink(version))}}</a>&nbsp;&nbsp;
-    <a [href]="getZipCodeLink(version)">{{nameFromLink(getZipCodeLink(version))}}</a>&nbsp;&nbsp;
-    <a [href]="getZipDataLink(version)">{{nameFromLink(getZipDataLink(version))}}</a>&nbsp;&nbsp;
-    <a [href]="getZipFullLink(version)">{{nameFromLink(getZipFullLink(version))}}</a>
+  <div class="header">
+    <div>Release</div>
+    <div>Direct from iana.org</div>
+    <div>.zip format</div>
   </div>
+  <ng-container *ngFor="let version of versions">
+    <div class="version">{{version}}</div>
+    <div class="links">
+      <a [href]="getTarFullLink(version)">{{nameFromLink(getTarFullLink(version))}}</a>
+      <a [href]="getTarCodeLink(version)">{{nameFromLink(getTarCodeLink(version))}}</a>
+      <a [href]="getTarDataLink(version)">{{nameFromLink(getTarDataLink(version))}}</a>
+    </div>
+    <div class="links">
+      <a [href]="getZipFullLink(version)">{{nameFromLink(getZipFullLink(version))}}</a>
+      <a [href]="getZipCodeLink(version)">{{nameFromLink(getZipCodeLink(version))}}</a>
+      <a [href]="getZipDataLink(version)">{{nameFromLink(getZipDataLink(version))}}</a>
+    </div>
+  </ng-container>
 </div>

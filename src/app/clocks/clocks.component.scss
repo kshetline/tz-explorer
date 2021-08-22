@@ -3,6 +3,7 @@
   box-sizing: border-box;
   display: inline-flex;
   flex-direction: column;
+  height: 100%;
   position: relative;
 }
 
@@ -25,7 +26,10 @@
 .clocks {
   align-items: center;
   display: inline-flex;
+  flex: 1 1 4em;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
 
   .clock-label {

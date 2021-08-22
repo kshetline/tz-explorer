@@ -5,6 +5,30 @@
 }
 
 .download-list {
+  display: grid;
   flex: 1 1 10em;
+  grid-template-columns: auto auto auto;
+  grid-column-gap: 2em;
+  grid-row-gap: 1em;
   overflow: auto;
+  position: relative;
+
+  .header {
+    display: contents;
+
+    > div {
+      background-color: white;
+      position: sticky;
+      top: 0;
+    }
+  }
+
+  .version {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .links {
+    display: flex;
+    flex-direction: column;
+  }
 }

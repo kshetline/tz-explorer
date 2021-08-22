@@ -10,6 +10,7 @@ import { AppService } from './app.service';
 export class AppComponent implements OnInit {
   latestTzVersion = '';
   tabIndex = 0;
+  window = window;
 
   constructor(
     private app: AppService,

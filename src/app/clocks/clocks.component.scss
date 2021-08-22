@@ -1,7 +1,7 @@
 :host {
   align-items: center;
   box-sizing: border-box;
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   height: 100%;
   position: relative;
@@ -25,6 +25,7 @@
 
 .clocks {
   align-items: center;
+  align-self: stretch;
   display: inline-flex;
   flex: 1 1 4em;
   flex-direction: column;
@@ -84,6 +85,24 @@
 
   tbw-time-editor {
     font-size: 1.5em;
+  }
+
+  @media only screen and (max-device-width: 400px) {
+    tbw-time-editor {
+      font-size: 1.2em;
+    }
+  }
+
+  @media only screen and (min-device-width: 401px) and (max-device-width: 425px) {
+    tbw-time-editor {
+      font-size: 1.3em;
+    }
+  }
+
+  @media only screen and (min-device-width: 426px) and (max-device-width: 450px) {
+    tbw-time-editor {
+      font-size: 1.4em;
+    }
   }
 
   @media only screen and (max-width: 700px) {

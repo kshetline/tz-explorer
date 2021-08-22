@@ -1,13 +1,14 @@
 <div class="banner">
-  <h1>Time Zone Database Explorer</h1>
+  <h1>Timezone Database Explorer</h1>
   <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
-       class="sub-header">Latest tz database version: {{latestTzVersion}}</h2>
+      class="sub-header">Latest tz database version: {{latestTzVersion}}</h2>
 </div>
 <p-tabView class="tab-view" (onChange)="tabIndex = $event.index">
-  <p-tabPanel header="Current Time/Time Conversions" [class.tze-tab-selected]="tabIndex === 0">
+  <p-tabPanel [header]="'Current Time/Time Conv' + (window.innerWidth < 600 ? '.' : 'ersions')"
+      [class.tze-tab-selected]="tabIndex === 0">
     <tze-clocks></tze-clocks>
   </p-tabPanel>
-  <p-tabPanel header="Timezone Histories" [class.tze-tab-selected]="tabIndex === 1">
+  <p-tabPanel header="Timezone History" [class.tze-tab-selected]="tabIndex === 1">
     Timezone Histories
   </p-tabPanel>
   <p-tabPanel header="Downloads" [class.tze-tab-selected]="tabIndex === 2">

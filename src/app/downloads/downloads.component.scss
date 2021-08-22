@@ -10,8 +10,10 @@
   grid-template-columns: auto auto auto;
   grid-column-gap: 2em;
   grid-row-gap: 1em;
+  justify-content: center;
   overflow: auto;
   position: relative;
+  text-align: start;
 
   .header {
     display: contents;
@@ -19,6 +21,7 @@
     > div {
       background-color: white;
       position: sticky;
+      text-decoration: underline;
       top: 0;
     }
   }

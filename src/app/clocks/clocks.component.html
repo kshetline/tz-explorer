@@ -79,13 +79,13 @@
 </div>
 
 <ng-template #addButton>
-  <button *ngIf="window.innerWidth > 700"
+  <button *ngIf="window.innerWidth > 740"
       class="tze-dont-wrap-label"
       pButton type="button"
       label="Add clock"
       icon="pi pi-plus"
       (click)="openNewClockDialog()"></button>
-  <button *ngIf="window.innerWidth <= 700"
+  <button *ngIf="window.innerWidth <= 740"
       pButton type="button"
       icon="pi pi-plus"
       (click)="openNewClockDialog()"></button>

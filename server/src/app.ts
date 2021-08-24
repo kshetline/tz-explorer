@@ -63,6 +63,7 @@ const UPDATE_POLL_INTERVAL = 1_800_000; // 30 minutes
 const UPDATE_POLL_RETRY_TIME = 30_000; // 5 minutes
 let updatePollTimer: any;
 let tzVersions: string[] = [];
+let tzVersionsWithCode: string[] = [];
 
 async function checkForUpdate(): Promise<void> {
   updatePollTimer = undefined;
@@ -74,6 +75,7 @@ async function checkForUpdate(): Promise<void> {
   try {
     currentVersion = await getDbProperty(connection, 'tz_latest');
     tzVersions = (await getAvailableVersions()).reverse();
+    tzVersionsWithCode = (await getAvailableVersions(true)).reverse();
 
     for (const version of tzVersions) {
       if (shuttingDown)
@@ -332,7 +334,7 @@ function getApp(): Express {
 
   theApp.get('/api/tz-versions', async (req, res) => {
     noCache(res);
-    jsonOrJsonp(req, res, tzVersions);
+    jsonOrJsonp(req, res, toBoolean(req.query.code, false, true) ? tzVersionsWithCode : tzVersions);
   });
 
   theApp.get('/api/tz-version', async (req, res) => {
@@ -384,6 +386,9 @@ function getApp(): Express {
       else
         res.status(401).send('File not found');
     }
+    catch (e) {
+      res.status(500).send(`Error retrieving file: ${e.message || e.toString()}`);
+    }
     finally {
       connection.release();
     }
@@ -396,7 +401,7 @@ function getApp(): Express {
 
     const [, edition, tzVersion] = tzArchiveUrl.exec(req.url.toLowerCase());
 
-    if (!tzVersions.includes(tzVersion)) {
+    if (!tzVersions.includes(tzVersion) && (edition !== 'code' || !tzVersionsWithCode.includes(tzVersion))) {
       res.status(401).send('File not found');
 
       return;

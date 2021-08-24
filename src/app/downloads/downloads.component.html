@@ -7,14 +7,14 @@
   <ng-container *ngFor="let version of versions">
     <div class="version">{{version}}</div>
     <div class="links">
-      <a [class.invalid-link]="!linkValid(getTarFullLink(version))" [href]="getTarFullLink(version)">{{nameFromLink(getTarFullLink(version))}}</a>
-      <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" [href]="getTarCodeLink(version)">{{nameFromLink(getTarCodeLink(version))}}</a>
-      <a [class.invalid-link]="!linkValid(getTarDataLink(version))" [href]="getTarDataLink(version)">{{nameFromLink(getTarDataLink(version))}}</a>
+      <a [class.invalid-link]="!linkValid(getTarFullLink(version))" download [href]="getTarFullLink(version)">{{nameFromLink(getTarFullLink(version))}}</a>
+      <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" download [href]="getTarCodeLink(version)">{{nameFromLink(getTarCodeLink(version))}}</a>
+      <a [class.invalid-link]="!linkValid(getTarDataLink(version))" download [href]="getTarDataLink(version)">{{nameFromLink(getTarDataLink(version))}}</a>
     </div>
     <div class="links">
-      <a [class.invalid-link]="!linkValid(getTarFullLink(version))" [href]="getZipFullLink(version)">{{nameFromLink(getZipFullLink(version))}}</a>
-      <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" [href]="getZipCodeLink(version)">{{nameFromLink(getZipCodeLink(version))}}</a>
-      <a [class.invalid-link]="!linkValid(getTarDataLink(version))" [href]="getZipDataLink(version)">{{nameFromLink(getZipDataLink(version))}}</a>
+      <a [class.invalid-link]="!linkValid(getTarFullLink(version))" download [href]="getZipFullLink(version)">{{nameFromLink(getZipFullLink(version))}}</a>
+      <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" download [href]="getZipCodeLink(version)">{{nameFromLink(getZipCodeLink(version))}}</a>
+      <a [class.invalid-link]="!linkValid(getTarDataLink(version))" download [href]="getZipDataLink(version)">{{nameFromLink(getZipDataLink(version))}}</a>
     </div>
   </ng-container>
 </div>

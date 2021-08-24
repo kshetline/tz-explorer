@@ -113,19 +113,6 @@ export async function parseAndUpdateReleaseNotes(news: string): Promise<void> {
   const notes = news.split(/(^Release \d\d\d\d[a-z][a-z]?.*?(?=\nRelease (?:\d\d\d\d[a-z][a-z]?|code)))/gms)
     .map(s => s.trim()).filter((s, index) => s && index % 3 === 1 && !/^Release code/.test(s));
 
-  // Manually tack on two oldest release notes for available downloads.
-  notes.push(
-`Release 1996n - 1996-12-16 09:42:02 -0500
-
-  link snapping fix from Bruce Evans (via Garrett Wollman)`,
-`Release 1996l - 1996-09-08 17:12:20 -0400
-
-  tzcode96k was missing a couple of pieces.
-
-  No functional changes [to data] here; the files have simply been changed to
-  make more use of ISO style dates in comments. The names of the above
-  files now include the year in full.`);
-
   const connection = await pool.getConnection();
 
   try {

@@ -1,6 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { TzExplorerApi } from '../api/api';
 
+function adjustVersion(version: string): string {
+  if (version < '1996l')
+    version = version.substr(2);
+
+  if (version === '93a')
+    version = '93';
+
+  return version;
+}
+
 @Component({
   selector: 'tze-downloads',
   templateUrl: './downloads.component.html',
@@ -17,23 +27,33 @@ export class DownloadsComponent implements OnInit {
       .then(releases => this.releases = new Set(releases))
       .catch(err => console.error('Error retrieving available timezone releases:', err));
 
-    this.api.getTzVersions()
+    this.api.getTzVersions(true)
       .then(versions => this.versions = versions)
       .catch(err => console.error('Error retrieving available timezone versions:', err));
   }
 
   getTarCodeLink(version: string): string {
+    const suffix = (version < '1993g' ? 'Z' : 'gz');
+
+    version = adjustVersion(version);
+
     if (version === '2006b')
-      return 'https://data.iana.org/time-zones/releases/tz64code2006b.tar.gz';
+      return `https://data.iana.org/time-zones/releases/tz64code2006b.tar.${suffix}`;
     else
-      return `https://data.iana.org/time-zones/releases/tzcode${version}.tar.gz`;
+      return `https://data.iana.org/time-zones/releases/tzcode${version}.tar.${suffix}`;
   }
 
   getTarDataLink(version: string): string {
-    return `https://data.iana.org/time-zones/releases/tzdata${version}.tar.gz`;
+    const suffix = (version < '1993g' ? 'Z' : 'gz');
+
+    version = adjustVersion(version);
+
+    return `https://data.iana.org/time-zones/releases/tzdata${version}.tar.${suffix}`;
   }
 
   getTarFullLink(version: string): string {
+    version = adjustVersion(version);
+
     return `https://data.iana.org/time-zones/releases/tzdb-${version}.tar.lz`;
   }
 

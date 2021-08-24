@@ -19,7 +19,7 @@ export class TzExplorerApi {
     return this.httpClient.get<string>('/api/tz-version').toPromise();
   }
 
-  getTzVersions(): Promise<string[]> {
-    return this.httpClient.get<string[]>('/api/tz-versions').toPromise();
+  getTzVersions(withCode = false): Promise<string[]> {
+    return this.httpClient.get<string[]>(`/api/tz-versions${withCode ? '?code' : ''}`).toPromise();
   }
 }

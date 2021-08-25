@@ -1,5 +1,5 @@
 import { Pool, PoolConnection } from './my-sql-async';
-import { isString } from '@tubular/util';
+import { asLines, isString } from '@tubular/util';
 
 export const pool = new Pool({
   host: process.env.TZE_DB_HOST || '127.0.0.1',
@@ -110,19 +110,66 @@ export async function setReleaseNote(connection: PoolConnection, version: string
 }
 
 export async function parseAndUpdateReleaseNotes(news: string): Promise<void> {
-  const notes = news.split(/(^Release \d\d\d\d[a-z][a-z]?.*?(?=\nRelease (?:\d\d\d\d[a-z][a-z]?|code)))/gms)
-    .map(s => s.trim()).filter((s, index) => s && index % 3 === 1 && !/^Release code/.test(s));
+  const lines = asLines(news);
+  let note = '';
+  let release = '';
+  const notes: Record<string, string> = {};
 
+  for (const line of lines) {
+    const $ = /^Release ([-0-9a-z]+?) /i.exec(line);
+
+    if ($ || line.startsWith('The 1989 update')) {
+      if (note && release) {
+        note = note.trim();
+
+        let start: string;
+        let end: string;
+
+        if (release.includes('-'))
+          [start, end] = release.split('-').map(s => s.trim());
+        else {
+          start = end = release;
+        }
+
+        [start, end] = [start, end].map(s => {
+          s = s.replace(/^(data|code)/, '');
+
+          if (s.length < 4)
+            s = '19' + s;
+
+          return s;
+        });
+
+        // Note: There are no ranges that cross a year boundary. The following code wouldn't work for such cases.
+        const startLetter = start.charCodeAt(4);
+        const endLetter = end.charCodeAt(4);
+
+        for (let letter = startLetter; letter <= endLetter; ++letter) {
+          release = start.substr(0, 4) + String.fromCharCode(letter);
+          notes[release] = (notes[release] ? notes[release] + '\n\n' : '') + note;
+        }
+      }
+
+      if ($) {
+        release = $[1];
+        note = line;
+      }
+      else
+        break;
+    }
+    else if (note)
+      note += '\n' + line;
+  }
+
+  const releases = Object.keys(notes);
   const connection = await pool.getConnection();
 
   try {
     const noteCount = (await connection.queryResults('SELECT COUNT(*) as count FROM release_notes'))[0]?.count ?? 0;
 
-    if (noteCount < notes.length) {
-      notes.forEach(note => {
-        const version = /^Release (\d\d\d\d[a-z][a-z]?)/.exec(note)[1];
-
-        setReleaseNote(connection, version, note);
+    if (noteCount < releases.length) {
+      releases.forEach(release => {
+        setReleaseNote(connection, release, notes[release]);
       });
     }
   }

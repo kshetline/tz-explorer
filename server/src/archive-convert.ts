@@ -68,11 +68,8 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
   commandProc.stdout.pipe(tarExtract);
 
   tarExtract.on('entry', (header, stream, next) => {
-    if (header.name.replace(/^.*\//, '') === 'NEWS') {
-      stream = tapStream(stream, content => {
-        parseAndUpdateReleaseNotes(content);
-      });
-    }
+    if (header.name.replace(/^.*\//, '') === 'NEWS')
+      stream = tapStream(stream, content => parseAndUpdateReleaseNotes(content));
 
     // Skip duplicate entries - they are garbage data with bad streams.
     if (!entries.has(header.name)) {

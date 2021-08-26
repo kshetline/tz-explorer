@@ -5,7 +5,7 @@
     <button pButton type="button" label="Now" [disabled]="running" (click)="now()"></button>
   </div>
 </div>
-<div class="clocks">
+<div #clocksScroller class="clocks">
   <div class="clock-label">Your local time, {{localZone}}</div>
   <div class="clock-row">
     <tbw-time-editor #localClock tai
@@ -60,7 +60,7 @@
   </div>
   <ng-container *ngFor="let clock of extraClocks; let index = index; let last = last">
     <div class="clock-label">{{clock.zone.replace('/Kiev', '/Kyiv')}}</div>
-    <div class="clock-row">
+    <div #clockRow class="clock-row">{{checkIfNewClock(index, clockRow)}}
       <div class="extra-on-left"><div>
         <button pButton pRipple type="button" icon="pi pi-times" (click)="closeClock(index)"
                 class="p-button-rounded p-button-danger p-button-outlined p-button-sm"></button>

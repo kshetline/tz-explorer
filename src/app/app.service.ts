@@ -14,7 +14,7 @@ export interface TzePreferences {
   runClock?: boolean;
 }
 
-export enum AppTab { CLOCKS, HISTORY, DOWNLOADS };
+export enum AppTab { CLOCKS, HISTORY, DOWNLOADS }
 const tabNames = ['clocks', 'history', 'downloads'];
 export const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
 

@@ -25,6 +25,7 @@ export class ClocksComponent implements OnDestroy, OnInit {
   MAX_YEAR = '4000';
   window = window;
 
+  private newClockIndex = -1;
   private _running = true;
   private timer: any;
 
@@ -38,6 +39,7 @@ export class ClocksComponent implements OnDestroy, OnInit {
   systemDiff = 0;
   time = new DateTime().taiSeconds * 1000;
 
+  @ViewChild('clocksScroller', { static: true }) clocksScroller: ElementRef;
   @ViewChild('localClock', { read: ElementRef, static: true }) localClock: ElementRef;
 
   constructor(
@@ -157,7 +159,18 @@ export class ClocksComponent implements OnDestroy, OnInit {
 
   createClock(): void {
     this.extraClocks.push({ localFormat: this.selectLocal, zone: this.selectedTimezone });
+    this.newClockIndex = this.extraClocks.length - 1;
     this.app.updatePreferences({ extraClocks: this.extraClocks });
+  }
+
+  checkIfNewClock(clockIndex: number, elem: HTMLElement): string {
+    if (this.newClockIndex === clockIndex) {
+      elem.scrollIntoView(false);
+      setTimeout(() => this.clocksScroller.nativeElement.scrollTop += 8); // Extra nudge to bring clock fully into view.
+      this.newClockIndex = -1;
+    }
+
+    return '';
   }
 
   private computeUtcRange(): void {

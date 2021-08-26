@@ -20,6 +20,6 @@
     </div>
   </ng-container>
 </div>
-<div *ngIf="displayNote" class="note-display" (click)="displayNote = ''">
-  <div class="inner-note" [innerHTML]="getNote(displayNote)" (click)="onNoteClick($event)"></div>
+<div *ngIf="displayNote" class="note-wrapper" (click)="displayNote = ''">
+  <div class="note-display" [innerHTML]="getNote(displayNote)" (click)="onNoteClick($event)"></div>
 </div>

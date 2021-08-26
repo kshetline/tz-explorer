@@ -94,11 +94,13 @@ export class DownloadsComponent implements OnInit {
           const $ = /^<div>(Release )([-0-9a-z]+) (.+)<\/div>$/.exec(s);
 
           if ($)
-            s = `<div class="top-line">${$[1]}<span class="release">${$[2]}</span> <span class="date-time">${$[3]}</span></div>`;
+            s = `<div class="top-line"><span class="release">${$[1]}</span><span class="release-version">` +
+              `${$[2]}</span> <span class="date-time">${$[3]}</span>` +
+              `<div class="top-mask">&nbsp;</div><i class="pi pi-times closer"></i></div>`;
         }
 
         return s;
-      }).join('\n') + '\n<i class="pi pi-times closer"></i>\n';
+      }).join('\n');
   }
 
   onNoteClick(evt: MouseEvent): void {

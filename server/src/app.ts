@@ -33,11 +33,12 @@ import { DEFAULT_LEAP_SECOND_URLS, TaiUtc } from './tai-utc';
 import { jsonOrJsonp, noCache, normalizePort, timeStamp, unref } from './tze-util';
 import os from 'os';
 import { getAvailableVersions } from '@tubular/time-tzdb';
-import { getDbProperty, getVersionData, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
+import { getDbProperty, getReleaseNote, getReleaseNotes, getVersionData, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
 import { getTzData, TzFormat, TzPresets } from '@tubular/time-tzdb/dist/tz-writer';
 import { sendMailMessage } from './mail';
 import { codeAndDataToZip, codeToZip, dataToZip } from './archive-convert';
 import { requestText } from 'by-request';
+import { PoolConnection } from './my-sql-async';
 
 const debug = require('debug')('express:server');
 
@@ -355,6 +356,54 @@ function getApp(): Express {
     catch (e) {
       res.status(500).send(`Error retrieving release list: ${e.message || e.toString()}`);
     }
+  });
+
+  let connection: PoolConnection;
+
+  theApp.get('/api/tz-note', async (req, res) => {
+    noCache(res);
+    connection = await pool.getConnection();
+
+    let note = '';
+    let error: any;
+
+    try {
+      note = await getReleaseNote(connection, req.query.v?.toString() || tzVersions[0] || 'x');
+    }
+    catch (e) {
+      error = e;
+    }
+    finally {
+      connection?.release();
+    }
+
+    if (note)
+      jsonOrJsonp(req, res, note);
+    else
+      res.status(error ? 500 : 400).send(error?.message || error?.toString() || 'Unknown version');
+  });
+
+  theApp.get('/api/tz-notes', async (req, res) => {
+    noCache(res);
+    connection = await pool.getConnection();
+
+    let notes: Record<string, string>;
+    let error: any;
+
+    try {
+      notes = await getReleaseNotes(connection);
+    }
+    catch (e) {
+      error = e;
+    }
+    finally {
+      connection?.release();
+    }
+
+    if (notes)
+      jsonOrJsonp(req, res, notes);
+    else
+      res.status(error ? 500 : 400).send(error?.message || error?.toString() || 'Notes not found');
   });
 
   const tzDataUrl = /^\/tzdata\/timezone(?:s?)([-_](\d\d\d\d[a-z][a-z]?))?([-_](small|large|large[-_]alt))?\.(js|json|ts)$/i;

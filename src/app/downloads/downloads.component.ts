@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TzExplorerApi } from '../api/api';
+import { htmlEscape } from '@tubular/util';
 
 function adjustVersion(version: string): string {
   if (version < '1996l')
@@ -17,12 +18,18 @@ function adjustVersion(version: string): string {
   styleUrls: ['./downloads.component.scss']
 })
 export class DownloadsComponent implements OnInit {
+  displayNote = '';
+  notes: Record<string, string> = {};
   releases = new Set<string>();
   versions: string[] = [];
 
   constructor(private api: TzExplorerApi) {}
 
   ngOnInit(): void {
+    this.api.getTzReleaseNotes()
+      .then(notes => this.notes = notes)
+      .catch(err => console.error('Error retrieving release notes:', err));
+
     this.api.getTzReleases()
       .then(releases => this.releases = new Set(releases))
       .catch(err => console.error('Error retrieving available timezone releases:', err));
@@ -75,5 +82,29 @@ export class DownloadsComponent implements OnInit {
 
   nameFromLink(link: string): string {
     return link.replace(/^.*\//, '');
+  }
+
+  getNote(version: string): string {
+    return this.notes[version]
+      .replace(/\n( )+/g, (m: string) => '\n' + '\xA0'.repeat(2 * (m.length - 1)))
+      .split('\n').map((s, index) => {
+        s = `<div>${htmlEscape(s) || '&nbsp;'}</div>`;
+
+        if (index === 0) {
+          const $ = /^<div>(Release )([-0-9a-z]+) (.+)<\/div>$/.exec(s);
+
+          if ($)
+            s = `<div class="top-line">${$[1]}<span class="release">${$[2]}</span> <span class="date-time">${$[3]}</span></div>`;
+        }
+
+        return s;
+      }).join('\n') + '\n<i class="pi pi-times closer"></i>\n';
+  }
+
+  onNoteClick(evt: MouseEvent): void {
+    if ((evt.target as HTMLElement).classList?.contains('closer'))
+      this.displayNote = '';
+    else
+      evt.stopPropagation();
   }
 }

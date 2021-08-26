@@ -1,11 +1,13 @@
 <div class="download-list">
   <div class="header">
     <div>Release</div>
+    <div>Notes</div>
     <div>Direct from iana.org</div>
     <div>.zip format</div>
   </div>
   <ng-container *ngFor="let version of versions">
     <div class="version">{{version}}</div>
+    <i class="fas fa-info-circle fa-2x info-icon" [class.disabled]="!notes[version]" (click)="displayNote = version"></i>
     <div class="links">
       <a [class.invalid-link]="!linkValid(getTarFullLink(version))" download [href]="getTarFullLink(version)">{{nameFromLink(getTarFullLink(version))}}</a>
       <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" download [href]="getTarCodeLink(version)">{{nameFromLink(getTarCodeLink(version))}}</a>
@@ -17,4 +19,7 @@
       <a [class.invalid-link]="!linkValid(getTarDataLink(version))" download [href]="getZipDataLink(version)">{{nameFromLink(getZipDataLink(version))}}</a>
     </div>
   </ng-container>
+</div>
+<div *ngIf="displayNote" class="note-display" (click)="displayNote = ''">
+  <div class="inner-note" [innerHTML]="getNote(displayNote)" (click)="onNoteClick($event)"></div>
 </div>

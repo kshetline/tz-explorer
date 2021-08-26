@@ -130,7 +130,10 @@ export class PoolConnection {
   }
 
   release(): void {
-    this.connection.release();
+    try {
+      this.connection.release();
+    }
+    catch {}
   }
 
   private logError(err: MysqlError): void {

@@ -87,7 +87,27 @@ export async function getReleaseNote(connection: PoolConnection, version: string
     return results[0]?.notes;
   }
   catch (e) {
-    console.error('getReleaseNotes: ', version, e.message || e.toString());
+    console.error('getReleaseNote: ', version, e.message || e.toString());
+  }
+
+  return undefined;
+}
+
+export async function getReleaseNotes(connection: PoolConnection): Promise<Record<string, string>> {
+  try {
+    const results = await connection.queryResults('SELECT version, notes from release_notes WHERE 1');
+
+    if (!results || results.length === 0)
+      return null;
+
+    const notes: Record<string, string> = {};
+
+    results.forEach((row: any) => notes[row.version] = row.notes);
+
+    return notes;
+  }
+  catch (e) {
+    console.error('getReleaseNotes: ', e.message || e.toString());
   }
 
   return undefined;
@@ -120,7 +140,7 @@ export async function parseAndUpdateReleaseNotes(news: string): Promise<void> {
 
     if ($ || line.startsWith('The 1989 update')) {
       if (note && release) {
-        note = note.trim();
+        note = note.trim().replace(/\n(\t+)/g, m => '\n' + ' '.repeat(4 * (m.length - 1)));
 
         let start: string;
         let end: string;
@@ -136,6 +156,9 @@ export async function parseAndUpdateReleaseNotes(news: string): Promise<void> {
 
           if (s.length < 4)
             s = '19' + s;
+
+          if (s.length === 4)
+            s += 'a';
 
           return s;
         });

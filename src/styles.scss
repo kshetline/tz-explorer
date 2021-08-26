@@ -36,3 +36,71 @@ body {
 .tze-dont-wrap-label .p-button-label {
   white-space: nowrap;
 }
+
+.info-icon {
+  cursor: pointer;
+  color: dodgerblue;
+  text-align: center;
+
+  &.disabled {
+    color: #CCC;
+    cursor: default;
+    pointer-events: none;
+  }
+}
+
+.note-display {
+  align-items: center;
+  background-color: transparent;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  overflow: hidden;
+  padding: 1em;
+  position: fixed;
+  right: 0;
+  top: 0;
+
+  .inner-note {
+    background-color: #FFD;
+    border: solid 1px black;
+    box-sizing: border-box;
+    max-height: 800px;
+    max-width: 600px;
+    overflow: auto;
+    padding: 1em 1em 1em 4em;
+    position: relative;
+
+    .closer {
+      cursor: pointer;
+      padding: 0.5em;
+      pointer-events: all;
+      position: absolute;
+      right: 0.25em;
+      top: 0.25em;
+    }
+
+    .top-line {
+      background-color: #FFD;
+      position: sticky;
+      top: 0;
+
+      .date-time {
+        color: #06F;
+      }
+
+      .release {
+        font-weight: bold;
+      }
+    }
+
+    > div {
+      overflow: visible;
+      padding-left: 0;
+      text-align: start;
+      text-indent: -3em;
+      white-space: pre-line;
+    }
+  }
+}

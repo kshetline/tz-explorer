@@ -11,6 +11,10 @@ export class TzExplorerApi {
     return this.httpClient.get<TimeInfo>('/api/time').toPromise();
   }
 
+  getTzReleaseNotes(): Promise<Record<string, string>> {
+    return this.httpClient.get<Record<string, string>>('/api/tz-notes').toPromise();
+  }
+
   getTzReleases(): Promise<string[]> {
     return this.httpClient.get<string[]>('/api/tz-releases').toPromise();
   }

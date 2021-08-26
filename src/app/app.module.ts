@@ -13,7 +13,7 @@ import { TabViewModule } from 'primeng/tabview';
 
 import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
 
-import { AddClockDialogComponent } from './add-clock-dialog/add-lock-dialog.component';
+import { AddClockDialogComponent } from './add-clock-dialog/add-clock-dialog.component';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppService } from './app.service';
@@ -24,6 +24,7 @@ import { TzExplorerApi } from './api/api';
 import { HttpTimePoller } from './http-time-poller/http-time-poller';
 import { ClocksComponent } from './clocks/clocks.component';
 import { DownloadsComponent } from './downloads/downloads.component';
+import { ZoneHistoryComponent } from './zone-history/zone-history.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { DownloadsComponent } from './downloads/downloads.component';
     ClocksComponent,
     PDropdownFixDirective,
     TimezoneSelectorComponent,
-    DownloadsComponent
+    DownloadsComponent,
+    ZoneHistoryComponent
   ],
   imports: [
     AppRoutingModule,

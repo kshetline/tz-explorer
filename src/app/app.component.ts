@@ -1,6 +1,6 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { TzExplorerApi } from './api/api';
-import { AppService } from './app.service';
+import { AppService, AppTab } from './app.service';
 
 @Component({
   selector: 'tze-root',
@@ -8,17 +8,32 @@ import { AppService } from './app.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
+  CLOCKS = AppTab.CLOCKS;
+  DOWNLOADS = AppTab.DOWNLOADS;
+  HISTORY = AppTab.HISTORY;
+
+  private _tabIndex = AppTab.CLOCKS;
+
   latestTzVersion = '';
-  tabIndex = 0;
   window = window;
 
   constructor(
     private app: AppService,
     private api: TzExplorerApi
-  ) {}
+  ) {
+    app.getCurrentTabUpdates(tabIndex => this._tabIndex = tabIndex);
+  }
 
   ngOnInit(): void {
     this.checkTzVersion();
+  }
+
+  get tabIndex(): number { return this._tabIndex; }
+  set tabIndex(value: number) {
+    if (this._tabIndex !== null) {
+      this._tabIndex = value;
+      this.app.currentTab = value;
+    }
   }
 
   checkTzVersion = (): void => {

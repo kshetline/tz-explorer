@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Timezone } from '@tubular/time';
 import { clone } from '@tubular/util';
 import { NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { TzExplorerApi } from './api/api';
+import { setInterval } from 'timers';
 
 export interface ExtraClock {
   localFormat: boolean;
@@ -20,13 +21,15 @@ const tabNames = ['clocks', 'history', 'downloads'];
 export const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
 
 @Injectable()
-export class AppService {
+export class AppService implements OnDestroy {
+  private currentRelease = '';
   private _currentTab = new BehaviorSubject<AppTab>(AppTab.CLOCKS);
   private currentTabObserver: Observable<AppTab> = this._currentTab.asObservable();
   private _notes: Record<string, string> = {};
   private readonly prefs: TzePreferences;
   private prefsTimer: any;
   private _releases = new Set<string>();
+  private readonly releaseTimer: any;
   private _versions: string[] = [];
 
   constructor(
@@ -45,6 +48,7 @@ export class AppService {
     this.prefs.runClock = this.prefs.runClock ?? true;
 
     this.updateReleaseInfo();
+    this.releaseTimer = setInterval(() => this.updateReleaseInfo(true), 60000);
 
     router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
@@ -57,6 +61,11 @@ export class AppService {
           this.currentTab = AppTab.CLOCKS;
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.releaseTimer)
+      clearInterval(this.releaseTimer);
   }
 
   get notes(): Record<string, string> { return this._notes; };
@@ -87,6 +96,7 @@ export class AppService {
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   get currentTab(): AppTab { return this._currentTab.getValue(); }
   set currentTab(newTab: AppTab) {
     if (this._currentTab.getValue() !== newTab) {
@@ -99,17 +109,27 @@ export class AppService {
     return this.currentTabObserver.subscribe(callback);
   }
 
-  updateReleaseInfo(): void {
-    this.api.getTzReleaseNotes()
-      .then(notes => this._notes = notes)
-      .catch(err => console.error('Error retrieving release notes:', err));
+  updateReleaseInfo(checkLatestRelease = false): void {
+    if (checkLatestRelease) {
+      this.api.getTzVersion().then(version => {
+        if (this.currentRelease !== version) {
+          this.currentRelease = version;
+          this.updateReleaseInfo();
+        }
+      });
+    }
+    else {
+      this.api.getTzReleaseNotes()
+        .then(notes => this._notes = notes)
+        .catch(err => console.error('Error retrieving release notes:', err));
 
-    this.api.getTzReleases()
-      .then(releases => this._releases = new Set(releases))
-      .catch(err => console.error('Error retrieving available timezone releases:', err));
+      this.api.getTzReleases()
+        .then(releases => this._releases = new Set(releases))
+        .catch(err => console.error('Error retrieving available timezone releases:', err));
 
-    this.api.getTzVersions(true)
-      .then(versions => this._versions = versions)
-      .catch(err => console.error('Error retrieving available timezone versions:', err));
+      this.api.getTzVersions(true)
+        .then(versions => this._versions = versions)
+        .catch(err => console.error('Error retrieving available timezone versions:', err));
+    }
   }
 }

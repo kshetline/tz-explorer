@@ -4,7 +4,6 @@ import { clone } from '@tubular/util';
 import { NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { TzExplorerApi } from './api/api';
-import { setInterval } from 'timers';
 
 export interface ExtraClock {
   localFormat: boolean;

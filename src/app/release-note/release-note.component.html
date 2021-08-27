@@ -1,0 +1,3 @@
+<div *ngIf="release" class="note-wrapper" (click)="release = ''">
+  <div class="note-display" [innerHTML]="getNote(release)" (click)="onNoteClick($event)"></div>
+</div>

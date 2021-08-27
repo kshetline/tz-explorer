@@ -1,7 +1,9 @@
 <div class="banner">
   <h1>Timezone Database Explorer</h1>
   <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
-      class="sub-header">Latest tz database version: {{latestTzVersion}}</h2>
+      class="sub-header">Latest tz database version: {{latestTzVersion}}
+    <i class="fas fa-info-circle fa-2x info-icon info-icon-adjust" (click)="releaseNote = latestTzVersion"></i>
+  </h2>
 </div>
 <p-tabView class="tab-view" [(activeIndex)]="tabIndex">
   <p-tabPanel [header]="'Current Time/Time Conv' + (window.innerWidth < 600 ? '.' : 'ersions')"
@@ -15,3 +17,4 @@
     <tze-downloads></tze-downloads>
   </p-tabPanel>
 </p-tabView>
+<tze-release-note [(release)]="releaseNote"></tze-release-note>

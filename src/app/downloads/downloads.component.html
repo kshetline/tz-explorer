@@ -7,7 +7,7 @@
   </div>
   <ng-container *ngFor="let version of versions">
     <div class="version">{{version}}</div>
-    <i class="fas fa-info-circle fa-2x info-icon" [class.disabled]="!notes[version]" (click)="displayNote = version"></i>
+    <i class="fas fa-info-circle fa-2x info-icon" [class.disabled]="!notes[version]" (click)="releaseNote = version"></i>
     <div class="links">
       <a [class.invalid-link]="!linkValid(getTarFullLink(version))" download [href]="getTarFullLink(version)">{{nameFromLink(getTarFullLink(version))}}</a>
       <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" download [href]="getTarCodeLink(version)">{{nameFromLink(getTarCodeLink(version))}}</a>
@@ -20,6 +20,4 @@
     </div>
   </ng-container>
 </div>
-<div *ngIf="displayNote" class="note-wrapper" (click)="displayNote = ''">
-  <div class="note-display" [innerHTML]="getNote(displayNote)" (click)="onNoteClick($event)"></div>
-</div>
+<tze-release-note [(release)]="releaseNote"></tze-release-note>

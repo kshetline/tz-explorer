@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { TzExplorerApi } from '../api/api';
-import { htmlEscape } from '@tubular/util';
+import { Component } from '@angular/core';
+import { AppService } from '../app.service';
 
 function adjustVersion(version: string): string {
   if (version < '1996l')
@@ -17,27 +16,14 @@ function adjustVersion(version: string): string {
   templateUrl: './downloads.component.html',
   styleUrls: ['./downloads.component.scss']
 })
-export class DownloadsComponent implements OnInit {
-  displayNote = '';
-  notes: Record<string, string> = {};
-  releases = new Set<string>();
-  versions: string[] = [];
+export class DownloadsComponent {
+  releaseNote = '';
 
-  constructor(private api: TzExplorerApi) {}
+  constructor(private app: AppService) {}
 
-  ngOnInit(): void {
-    this.api.getTzReleaseNotes()
-      .then(notes => this.notes = notes)
-      .catch(err => console.error('Error retrieving release notes:', err));
+  get notes(): Record<string, string> { return this.app.notes; };
 
-    this.api.getTzReleases()
-      .then(releases => this.releases = new Set(releases))
-      .catch(err => console.error('Error retrieving available timezone releases:', err));
-
-    this.api.getTzVersions(true)
-      .then(versions => this.versions = versions)
-      .catch(err => console.error('Error retrieving available timezone versions:', err));
-  }
+  get versions(): string[] { return this.app.versions; };
 
   getTarCodeLink(version: string): string {
     const suffix = (version < '1993g' ? 'Z' : 'gz');
@@ -77,36 +63,10 @@ export class DownloadsComponent implements OnInit {
   }
 
   linkValid(link: string): boolean {
-    return this.releases.has(this.nameFromLink(link));
+    return this.app.releases.has(this.nameFromLink(link));
   }
 
   nameFromLink(link: string): string {
     return link.replace(/^.*\//, '');
-  }
-
-  getNote(version: string): string {
-    return this.notes[version]
-      .replace(/\n( )+/g, (m: string) => '\n' + '\xA0'.repeat(2 * (m.length - 1)))
-      .split('\n').map((s, index) => {
-        s = `<div>${htmlEscape(s) || '&nbsp;'}</div>`;
-
-        if (index === 0) {
-          const $ = /^<div>(Release )([-0-9a-z]+) (.+)<\/div>$/.exec(s);
-
-          if ($)
-            s = `<div class="top-line"><span class="release">${$[1]}</span><span class="release-version">` +
-              `${$[2]}</span> <span class="date-time">${$[3]}</span>` +
-              `<div class="top-mask">&nbsp;</div><i class="pi pi-times closer"></i></div>`;
-        }
-
-        return s;
-      }).join('\n');
-  }
-
-  onNoteClick(evt: MouseEvent): void {
-    if ((evt.target as HTMLElement).classList?.contains('closer'))
-      this.displayNote = '';
-    else
-      evt.stopPropagation();
   }
 }

@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
   private _tabIndex = AppTab.CLOCKS;
 
   latestTzVersion = '';
+  releaseNote = '';
   window = window;
 
   constructor(

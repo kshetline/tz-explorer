@@ -25,6 +25,7 @@ import { HttpTimePoller } from './http-time-poller/http-time-poller';
 import { ClocksComponent } from './clocks/clocks.component';
 import { DownloadsComponent } from './downloads/downloads.component';
 import { ZoneHistoryComponent } from './zone-history/zone-history.component';
+import { ReleaseNoteComponent } from './release-note/release-note.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { ZoneHistoryComponent } from './zone-history/zone-history.component';
     PDropdownFixDirective,
     TimezoneSelectorComponent,
     DownloadsComponent,
-    ZoneHistoryComponent
+    ZoneHistoryComponent,
+    ReleaseNoteComponent
   ],
   imports: [
     AppRoutingModule,

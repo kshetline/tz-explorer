@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@tubular/math": "^3.1.0",
-    "@tubular/time": "^3.4.0",
+    "@tubular/time": "^3.5.0",
     "@tubular/time-tzdb": "^1.1.0-beta.10",
     "@tubular/util": "^4.3.1",
     "archiver": "^5.3.0",

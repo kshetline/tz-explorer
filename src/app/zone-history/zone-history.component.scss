@@ -1,0 +1,56 @@
+:host {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding-top: 0.25em;
+}
+
+.transition-list {
+  align-items: center;
+  display: grid;
+  flex: 1 1 0;
+  font-variant-numeric: tabular-nums;
+  grid-column-gap: 1em;
+  grid-template-columns: repeat(8, auto);
+  margin: 1em 0;
+  overflow: auto;
+  position: relative;
+  text-align: start;
+
+  .header-1, .header-2 {
+    display: contents;
+
+    > div {
+      background-color: white;
+      font-weight: bold;
+      justify-self: stretch;
+      position: sticky;
+      text-align: center;
+      z-index: 1;
+    }
+  }
+
+  .header-1 > div {
+    padding-bottom: 4px;
+    top: 0;
+  }
+
+  .header-2 > div {
+    box-shadow: 0 0 4px 4px white;
+    top: calc(1.2em + 4px);
+  }
+
+  .no-dst {
+    font-style: italic;
+    opacity: 0.25;
+  }
+
+  .change-icon {
+    font-size: 0.6em;
+    position: relative;
+    top: 0.2em;
+  }
+}

@@ -1,1 +1,34 @@
-<p>zone-history works!</p>
+<tze-zone-selector [(ngModel)]="selectedTimezone"></tze-zone-selector>
+<div *ngIf="transitions; else simpleZone" class="transition-list">
+  <div class="header-1">
+    <div style="grid-column: 1 / span 3">Before transition</div>
+    <div>&nbsp;</div>
+    <div style="grid-column: 5 / span 3">After transition</div>
+    <div>&nbsp;</div>
+  </div>
+
+  <div class="header-2">
+    <div>Time</div>
+    <div>UTC offset</div>
+    <div>DST</div>
+    <div>&nbsp;</div>
+    <div>Time</div>
+    <div>UTC offset</div>
+    <div>DST</div>
+    <div>&nbsp;</div>
+  </div>
+
+  <ng-container *ngFor="let t of transitions">
+    <div>{{ momentBefore(t) }}</div>
+    <div>{{ offsetBefore(t) }}</div>
+    <div [class.no-dst]="!dstBefore(t, true)">{{ dstBefore(t) }}</div>
+    <i class="change-icon" [ngClass]="getTransitionIcon(t)"></i>
+    <div>{{ momentAfter(t) }}</div>
+    <div>{{ offsetAfter(t) }}</div>
+    <div [class.no-dst]="!dstAfter(t, true)">{{ dstAfter(t) }}</div>
+    <div>&nbsp;</div>
+  </ng-container>
+</div>
+<ng-template #simpleZone>
+  This timezone has a fixed UTC offset of {{timezone.getFormattedOffset(0)}}
+</ng-template>

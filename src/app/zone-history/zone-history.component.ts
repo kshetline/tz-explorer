@@ -116,9 +116,12 @@ export class ZoneHistoryComponent implements OnInit {
   }
 
   abbreviationAfter(t: Transition): string {
+    if (t.name && !/[-+:]/.test(t.name))
+      return t.name;
+
     this.time.utcTimeMillis = max(t.transitionTime, -5_364_662_400_000);
 
-    return this.time.format('z');
+    return this.time.format('z').replace(/-/g, '\u2212');
   }
 
   getGapMessage(t1: Transition, index: number): string {

@@ -156,6 +156,13 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
       return;
     }
 
+    if (!this.knownIanaZones.has(newZone) && Timezone.has(newZone)) {
+      const aliasFor = Timezone.getTimezone(newZone).aliasFor;
+
+      if (aliasFor)
+        newZone = aliasFor;
+    }
+
     const groups: string[] = /^(America\/Argentina\/|America\/Indiana\/|SystemV\/\w+|\w+\/|[-+:0-9A-Za-z]+)(.+)?$/.exec(newZone);
 
     if (groups) {

@@ -1,14 +1,14 @@
 <tze-zone-selector [(ngModel)]="selectedTimezone"></tze-zone-selector>
 <div *ngIf="transitions; else simpleZone" class="transition-list">
   <div class="header-1">
-    <div style="grid-column: 1 / span 3">Before transition</div>
+    <div class="header-elem-1" style="grid-column: 1 / span 3">Before transition</div>
     <div>&nbsp;</div>
     <div style="grid-column: 5 / span 3">After transition</div>
     <div>&nbsp;</div>
   </div>
 
   <div class="header-2">
-    <div>Time</div>
+    <div class="header-elem-2">Time</div>
     <div>UTC offset</div>
     <div>DST</div>
     <div>&nbsp;</div>
@@ -18,9 +18,10 @@
     <div>Abbr.</div>
   </div>
 
-  <ng-container *ngFor="let t of transitions">
+  <ng-container *ngFor="let t of transitions; index as i">
+    <div *ngIf="getGapMessage(t, i) as msg" class="gap-row">{{ msg }}</div>
     <div *ngIf="t.transitionTime === upcomingTransition" class="upcoming-row">&nbsp;</div>
-    <div *ngIf="getRowMessage(t) as msg" class="message-row">{{msg}}</div>
+    <div *ngIf="getRowMessage(t) as msg" class="message-row">{{ msg }}</div>
     <div class="trans-row" [class.upcoming]="t.transitionTime === upcomingTransition">
       <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentBefore(t) }}</div>
       <div [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ offsetBefore(t) }}</div>

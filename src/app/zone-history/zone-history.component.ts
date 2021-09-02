@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DateTime, Timezone, Transition, ttime } from '@tubular/time';
-import { max } from '@tubular/math';
+import { abs, max } from '@tubular/math';
 
 const NMSI = Number.MIN_SAFE_INTEGER;
 
@@ -47,8 +47,11 @@ export class ZoneHistoryComponent implements OnInit {
     const upcoming = transList?.querySelector('.upcoming-row') as HTMLElement;
 
     if (upcoming) {
+      const height1 = (transList?.querySelector('.header-elem-1') as HTMLElement)?.getBoundingClientRect().height ?? 21;
+      const height2 = (transList?.querySelector('.header-elem-2') as HTMLElement)?.getBoundingClientRect().height ?? 21;
+
       upcoming.scrollIntoView(true);
-      setTimeout(() => transList.scrollBy(0, -44));
+      setTimeout(() => transList.scrollBy(0, -(height1 + height2 + 4)));
     }
   }
 
@@ -118,8 +121,26 @@ export class ZoneHistoryComponent implements OnInit {
     return this.time.format('z');
   }
 
+  getGapMessage(t1: Transition, index: number): string {
+    if (index > 0 && index < this.transitions.length - 1) {
+      const t0 = this.transitions[index - 1];
+
+      if (t0.transitionTime - t1.transitionTime > 31_449_600_000) {
+        const y0 = this.time.getTimeOfDayFieldsFromMillis(t0.transitionTime).y;
+        const y1 = this.time.getTimeOfDayFieldsFromMillis(t1.transitionTime).y;
+
+        if (y0 - y1 === 2)
+          return `No transitions during year ${y1 + 1}`;
+        else if (y0 - y1 > 2)
+          return `No transitions during years ${y1 + 1}-${y0 - 1}`;
+      }
+    }
+
+    return '';
+  }
+
   getRowMessage(t: Transition): string {
-    if (t.deltaOffset > 7200)
+    if (abs(t.deltaOffset) > 7200)
       return 'Large transition: ' + Timezone.formatUtcOffset(t.deltaOffset);
     else if (t.deltaOffset % 900 !== 0)
       return 'Irregular transition: ' + Timezone.formatUtcOffset(t.deltaOffset);

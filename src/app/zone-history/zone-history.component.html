@@ -15,20 +15,24 @@
     <div>Time</div>
     <div>UTC offset</div>
     <div>DST</div>
-    <div>&nbsp;</div>
+    <div>Abbr.</div>
   </div>
 
   <ng-container *ngFor="let t of transitions">
-    <div>{{ momentBefore(t) }}</div>
-    <div>{{ offsetBefore(t) }}</div>
-    <div [class.no-dst]="!dstBefore(t, true)">{{ dstBefore(t) }}</div>
-    <i class="change-icon" [ngClass]="getTransitionIcon(t)"></i>
-    <div>{{ momentAfter(t) }}</div>
-    <div>{{ offsetAfter(t) }}</div>
-    <div [class.no-dst]="!dstAfter(t, true)">{{ dstAfter(t) }}</div>
-    <div>&nbsp;</div>
+    <div *ngIf="t.transitionTime === upcomingTransition" class="upcoming-row">&nbsp;</div>
+    <div *ngIf="getRowMessage(t) as msg" class="message-row">{{msg}}</div>
+    <div class="trans-row" [class.upcoming]="t.transitionTime === upcomingTransition">
+      <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentBefore(t) }}</div>
+      <div [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ offsetBefore(t) }}</div>
+      <div [class.no-dst]="!dstBefore(t, true)" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ dstBefore(t) }}</div>
+      <div class="change-icon"><i [ngClass]="getTransitionIcon(t)"></i></div>
+      <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentAfter(t) }}</div>
+      <div>{{ offsetAfter(t) }}</div>
+      <div [class.no-dst]="!dstAfter(t, true)" [ngClass]="dstAfterStyle(t)">{{ dstAfter(t) }}</div>
+      <div>{{ abbreviationAfter(t) }}</div>
+    </div>
   </ng-container>
 </div>
 <ng-template #simpleZone>
-  This timezone has a fixed UTC offset of {{timezone.getFormattedOffset(0)}}
+  <div class="simple">This timezone has a fixed UTC offset of {{timezone.getFormattedOffset(0)}}</div>
 </ng-template>

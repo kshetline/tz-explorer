@@ -18,6 +18,8 @@
       <div *ngIf="running" class="system-diff">{{systemDiff}}ms</div>
     </div>
   </div>
+  <div class="dst-legend">DST symbols: <b>§</b>: 1 hour, <b>^</b>: ½ hour, <b>#</b>: 2 hour,
+    <b>❄︎</b>: negative DST, <b>~</b>: other positive DST</div>
   <div class="clock-label">Your local time, ISO formatted</div>
   <tbw-time-editor tai
       [options]="ISO_SHORT_OPTS"

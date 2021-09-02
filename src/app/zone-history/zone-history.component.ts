@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DateTime, Timezone, Transition, ttime } from '@tubular/time';
+import { DateTime, Timezone, Transition } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 
 const NMSI = Number.MIN_SAFE_INTEGER;
@@ -65,7 +65,7 @@ export class ZoneHistoryComponent implements OnInit {
 
     this.time.utcTimeMillis = t.transitionTime - delta;
 
-    return this.time.format('ddd ' + ttime.DATETIME_LOCAL_SECONDS);
+    return this.time.format('ddd YYYY-MM-DD\xA0\xA0\xA0HH:mm:ss');
   }
 
   getTransitionIcon(t: Transition): string {

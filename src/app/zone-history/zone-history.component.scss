@@ -35,11 +35,13 @@
 .transition-list {
   align-content: start;
   align-items: center;
+  box-sizing: border-box;
   display: grid;
   font-variant-numeric: tabular-nums;
   grid-template-columns: repeat(8, auto);
   justify-items: stretch;
   overflow: auto;
+  padding-right: 2em;
   position: relative;
   text-align: start;
   width: auto;

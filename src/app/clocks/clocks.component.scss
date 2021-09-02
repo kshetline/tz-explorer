@@ -87,6 +87,19 @@
     font-size: 1.5em;
   }
 
+  .dst-legend {
+    background-color: #EEE;
+    color: dodgerblue;
+    font: 12px Arial, Helvetica, sans-serif;
+    margin-top: 0.33em;
+    padding: 0.25em 1em;
+
+    b {
+      color: black;
+      font-weight: normal;
+    }
+  }
+
   @media only screen and (max-device-width: 400px) {
     tbw-time-editor {
       font-size: 1.2em;

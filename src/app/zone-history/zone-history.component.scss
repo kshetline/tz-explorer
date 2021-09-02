@@ -8,21 +8,45 @@
   padding-top: 0.25em;
 }
 
+.list-wrapper {
+  align-items: stretch;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: stretch;
+  height: 100%;
+  margin: 1em 0;
+  max-width: calc(100vw - 4em);
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+
+  .scroll-guard {
+    background-color: white;
+    height: 2px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: -1px;
+    z-index: 1;
+  }
+}
+
 .transition-list {
   align-content: start;
   align-items: center;
   display: grid;
-  flex: 1 1 0;
   font-variant-numeric: tabular-nums;
   grid-template-columns: repeat(8, auto);
   justify-items: stretch;
-  margin: 1em 0;
   overflow: auto;
   position: relative;
   text-align: start;
+  width: auto;
 
   > div > div {
     padding: 0 0.5em;
+    white-space: nowrap;
   }
 
   .header-1, .header-2 {
@@ -47,7 +71,7 @@
 
     &.upcoming {
       > div, i {
-        background-color: #BDF;
+        background-color: #CEF;
       }
     }
   }

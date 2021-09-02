@@ -26,6 +26,7 @@ import { ClocksComponent } from './clocks/clocks.component';
 import { DownloadsComponent } from './downloads/downloads.component';
 import { ZoneHistoryComponent } from './zone-history/zone-history.component';
 import { ReleaseNoteComponent } from './release-note/release-note.component';
+import { CodeComponent } from './code/code.component';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { ReleaseNoteComponent } from './release-note/release-note.component';
     TimezoneSelectorComponent,
     DownloadsComponent,
     ZoneHistoryComponent,
-    ReleaseNoteComponent
+    ReleaseNoteComponent,
+    CodeComponent
   ],
   imports: [
     AppRoutingModule,

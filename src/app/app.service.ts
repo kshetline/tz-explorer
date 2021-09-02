@@ -15,8 +15,8 @@ export interface TzePreferences {
   runClock?: boolean;
 }
 
-export enum AppTab { CLOCKS, HISTORY, DOWNLOADS }
-const tabNames = ['clocks', 'history', 'downloads'];
+export enum AppTab { CLOCKS, HISTORY, DOWNLOADS, CODE }
+const tabNames = ['clocks', 'history', 'downloads', 'code'];
 export const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
 
 @Injectable()
@@ -100,7 +100,7 @@ export class AppService implements OnDestroy {
   set currentTab(newTab: AppTab) {
     if (this._currentTab.getValue() !== newTab) {
       this._currentTab.next(newTab);
-      this.router.navigate(['/' + tabNames[this._currentTab.getValue()]]).then(foo => console.log(foo)).catch(err => console.error(err));
+      this.router.navigate(['/' + tabNames[this._currentTab.getValue()]]).catch(err => console.error(err));
     }
   }
 

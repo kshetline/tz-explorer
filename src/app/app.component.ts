@@ -9,6 +9,7 @@ import { AppService, AppTab } from './app.service';
 })
 export class AppComponent implements OnInit {
   CLOCKS = AppTab.CLOCKS;
+  CODE = AppTab.CODE;
   DOWNLOADS = AppTab.DOWNLOADS;
   HISTORY = AppTab.HISTORY;
 

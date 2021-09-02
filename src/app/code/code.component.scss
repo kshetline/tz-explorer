@@ -1,0 +1,15 @@
+:host {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding-top: 0.25em;
+}
+
+.wrapper {
+  flex: 1 1 0;
+  max-width: 800px;
+  overflow: auto;
+  text-align: start;
+}

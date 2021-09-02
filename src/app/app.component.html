@@ -6,15 +6,18 @@
   </h2>
 </div>
 <p-tabView class="tab-view" [(activeIndex)]="tabIndex">
-  <p-tabPanel [header]="'Current Time/Time Conv' + (window.innerWidth < 600 ? '.' : 'ersions')"
+  <p-tabPanel [header]="'Current Time/Time Conv' + (window.innerWidth < 620 ? '.' : 'ersions')"
       [class.tze-tab-selected]="tabIndex === CLOCKS">
     <tze-clocks></tze-clocks>
   </p-tabPanel>
-  <p-tabPanel header="Timezone History" [class.tze-tab-selected]="tabIndex === HISTORY">
+  <p-tabPanel [header]="(window.innerWidth < 620 ? 'TZ' : 'Timezone') + ' History'" [class.tze-tab-selected]="tabIndex === HISTORY">
     <tze-zone-history></tze-zone-history>
   </p-tabPanel>
   <p-tabPanel header="Downloads" [class.tze-tab-selected]="tabIndex === DOWNLOADS">
     <tze-downloads></tze-downloads>
+  </p-tabPanel>
+  <p-tabPanel header="Code" [class.tze-tab-selected]="tabIndex === CODE">
+    <tze-code></tze-code>
   </p-tabPanel>
 </p-tabView>
 <tze-release-note [(release)]="releaseNote"></tze-release-note>

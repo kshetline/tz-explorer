@@ -15,7 +15,7 @@ const defaultSettings = {
   float: false,
   floatPosition: null as Point,
   native: false,
-  showSeconds: false,
+  secondsMode: 0,
   timeDisabled: false,
   viewOnly: true,
   wideSpinner: false,
@@ -189,6 +189,8 @@ export class CodeComponent {
 
   get secondsMode(): number { return this._secondsMode; }
   set secondsMode(value: number) {
+    value = toNumber(value);
+
     if (this._secondsMode !== value) {
       this._secondsMode = value;
       this.showSeconds = (value > 0);

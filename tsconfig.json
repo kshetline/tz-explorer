@@ -24,7 +24,7 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictTemplates": false
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "server", "**/*.spec.ts"]

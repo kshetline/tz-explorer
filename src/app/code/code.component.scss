@@ -12,4 +12,37 @@
   max-width: 800px;
   overflow: auto;
   text-align: start;
+
+  .demo {
+    .custom-config {
+      border-top: 1px solid #CCC;
+      display: flex;
+      flex-wrap: wrap;
+      padding: 1em 0;
+
+      *:not(:first-child) {
+        margin-left: 1em;
+      }
+
+      .wrap {
+        flex-basis: 100%;
+        height: 0.5em
+      }
+
+      .line-start {
+        margin-left: 0;
+      }
+    }
+
+    .custom-time {
+      tbw-time-editor {
+        font-size: 20px;
+      }
+    }
+
+    .calendar {
+      font-size: 1.5em;
+      padding: 1em 0;
+    }
+  }
 }

@@ -25,6 +25,94 @@
   <p><a href="https://github.com/kshetline/tubular_ng-widgets" target="_blank">@tubular/ng-widgets</a> •
     provides, among other components, the date/time editor used on this website.</p>
 
+  <div class="demo">
+    <div class='custom-config'>
+      <label><input type="checkbox" [ngModel]="float" (change)="setFloat($any($event.target).checked)"/>Float</label>
+      <label><input type="checkbox" [(ngModel)]="viewOnly" (change)="settingsUpdated()">View only</label>
+      <label><input type="checkbox" [(ngModel)]="timeDisabled" (change)="settingsUpdated()">Disabled</label>
+      <label><input type="checkbox" [(ngModel)]="wideSpinner">Wide spinner</label>
+
+      <label>Locale: <input type="text" autocorrect="off" [(ngModel)]="customLocale" [style.background-color]="inputBackground(localeGood)"></label>
+      <label>IANA timezone: <input type="text" autocorrect="off" [(ngModel)]="customTimezone" [style.background-color]="inputBackground(timezoneGood)"></label>
+      <label>Numbering: <input type="text" autocorrect="off" [(ngModel)]="numSystem" [style.background-color]="inputBackground(numSystemGood)"></label>
+      <div class="wrap">&nbsp;</div>
+
+      <select class="line-start" [(ngModel)]="customStyle" (change)="settingsUpdated()">
+        <option value="0">Date and time</option>
+        <option value="1">Date only</option>
+        <option value="2">Time only</option>
+      </select>
+      <select *ngIf="customStyle !== '2'" [(ngModel)]="yearStyle" (change)="settingsUpdated()">
+        <option value="0">Positive-only years</option>
+        <option value="1">AD/BC years</option>
+        <option value="2">Signed years</option>
+      </select>
+      <select *ngIf="customStyle !== '2'" [(ngModel)]="customYear" (change)="settingsUpdated()">
+        <option value="">Year length per locale</option>
+        <option value="false">4/variable-digit year</option>
+        <option value="true">2-digit year</option>
+      </select>
+      <select *ngIf="customStyle !== '1'" [(ngModel)]="customCycle" (change)="settingsUpdated()">
+        <option value="0">12/24 hours, per locale</option>
+        <option value="1">24-hour time</option>
+        <option value="2">AM/PM time</option>
+      </select>
+      <select *ngIf="customStyle !== '1'" [(ngModel)]="secondsMode" (change)="settingsUpdated()">
+        <option value="0">No seconds</option>
+        <option value="1">Seconds</option>
+        <option value="2">Seconds/10</option>
+        <option value="3">Seconds/100</option>
+        <option value="4">Milliseconds</option>
+      </select>
+      <div class="wrap">&nbsp;</div>
+
+      <label class="line-start">Minimum value: <input type="text" autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
+      <label>Maximum value: <input type="text" autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
+    </div>
+
+    <div class='custom-time'>
+      &nbsp;<span>{{getCustomCaption()}}</span><br>
+
+      <tbw-time-editor #sample="ngModel" name="sample" id="sample"
+          tai
+          [max]="max"
+          [min]="min"
+          [viewOnly]="viewOnly"
+          [disabled]="float || timeDisabled"
+          [wideSpinner]="wideSpinner"
+          [options]="getOptions()"
+          [timezone]="customTimezone"
+          [(ngModel)]="time"></tbw-time-editor>
+      <tbw-time-editor *ngIf="float"
+          tai
+          [max]="max"
+          [min]="min"
+          [viewOnly]="viewOnly"
+          [disabled]="timeDisabled"
+          [wideSpinner]="wideSpinner"
+          [options]="getOptions()"
+          [timezone]="customTimezone"
+          floating
+          showCloser
+          (close)="setFloat(false)"
+          [(position)]="floatPosition"
+          [(ngModel)]="time"></tbw-time-editor>
+     <tbw-form-error-display [control]="sample"></tbw-form-error-display>
+      <!-- Annoyingly, the perfectly valid HTML `dir="auto"` produces an Angular compilation error
+           unless `angularCompilerOptions.strictTemplates` is set to false. -->
+     <div class="text-time" dir="auto">{{format(customTimezone, customLocale, getFormat())}}</div>
+    </div>
+
+    <div class='calendar'>
+      <tbw-calendar minYear=-9999
+          [locale]="customLocale"
+          showDst
+          weekDayFormat="dd"
+          yearMonthFormat="MMM~y~n"
+          [(ngModel)]="calendarDate"></tbw-calendar>
+    </div>
+  </div>
+
   <p>No API documentation yet exists for these components, but sample code for their use can be found below, and also
     in the code for <a href="https://github.com/kshetline/sky-view-cafe-astronomy">Sky View Café</a>.
 

@@ -22,7 +22,7 @@
     "@angular/router": "^12.2.1",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@tubular/math": "^3.1.0",
-    "@tubular/ng-widgets": "^1.1.0",
+    "@tubular/ng-widgets": "^1.1.1",
     "@tubular/time": "^3.5.1",
     "@tubular/util": "^4.3.1",
     "primeicons": "^4.1.0",

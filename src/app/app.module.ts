@@ -5,6 +5,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { RadioButtonModule } from 'primeng/radiobutton';
@@ -46,6 +47,7 @@ import { CodeComponent } from './code/code.component';
     BrowserModule,
     BrowserAnimationsModule,
     ButtonModule,
+    CheckboxModule,
     DialogModule,
     DropdownModule,
     FormsModule,

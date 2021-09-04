@@ -3,6 +3,7 @@ import { DateTimeStyle, HourStyle, TimeEditorLimit, TimeEditorOptions, YearStyle
 import { clone, isAndroid, isEqual, isIOS, isString, toBoolean, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
 import { DateAndTime, DateTime, newDateTimeFormat, Timezone, YMDDate } from '@tubular/time';
+import { AppService } from '../app.service';
 
 const intl_DisplayNames = (Intl as any).DisplayNames;
 const mobile = isAndroid() || isIOS();
@@ -10,11 +11,13 @@ const defaultSettings = {
   blank: false,
   customCycle: '0',
   customStyle:'0',
+  customTimezone: 'America/New_York',
   customYear: 'false',
   darkMode: true,
   float: false,
   floatPosition: null as Point,
   native: false,
+  numSystem: '',
   secondsMode: 0,
   timeDisabled: false,
   viewOnly: true,
@@ -38,12 +41,17 @@ export class CodeComponent {
   private _calendarDate: YMDDate;
   private _customLocale = navigator.language;
   private _customTimezone = 'America/New_York';
+  // noinspection TypeScriptFieldCanBeMadeReadonly
+  private initDone = false;
+  // noinspection JSMismatchedCollectionQueryUpdate
+  private lastZones: string[];
   private _max = '';
   private millis = 0;
   private _min = '';
   private _numSystem = '';
   private _secondsMode = 0;
   private showSeconds = false;
+  private timezoneChoices: any[];
   private updateTimer: any;
 
   blank = false;
@@ -65,7 +73,26 @@ export class CodeComponent {
   wideSpinner = false;
   yearStyle = '0';
 
-  constructor() {
+  localeList = [
+    'af', 'ar', 'ar-dz', 'ar-kw', 'ar-ly', 'ar-ma', 'ar-sa', 'ar-tn', 'az', 'be', 'bg', 'bm', 'bn', 'bn-bd',
+    'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'de-at', 'de-ch', 'el', 'en', 'en-au', 'en-ca', 'en-gb',
+    'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et', 'eu', 'fa',
+    'fi', 'fil', 'fo', 'fr', 'fr-ca', 'fr-ch', 'fy', 'ga', 'gd', 'gl', 'gu', 'hi', 'hr', 'hu', 'hy-am',
+    'is', 'it', 'it-ch', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lb', 'lo', 'lt', 'lv',
+    'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'ms-my', 'mt', 'my', 'nb', 'ne', 'nl', 'nl-be', 'nn', 'pl', 'pt',
+    'pt-br', 'ro', 'ru', 'sd', 'se', 'si', 'sk', 'sl', 'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'tg', 'th',
+    'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw'
+  ];
+
+// noinspection SpellCheckingInspection
+  numSystems = [
+    '',
+    'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'grek', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
+    'lanatham', 'laoo', 'latn', 'lepc', 'limb', 'mlym', 'mong', 'mtei', 'mymr', 'mymrshan', 'mymrtlng', 'nkoo',
+    'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii'
+  ].map(s => ({ name: s || 'default', value: s }));
+
+  constructor(private appService: AppService) {
     let settings: any;
 
     try {
@@ -83,17 +110,22 @@ export class CodeComponent {
 
       this.saveSettings();
     });
+
+    this.initDone = true;
   }
 
   private saveSettings(): void {
+    if (!this.initDone)
+      return;
+
     const settings: any = {};
 
     Object.keys(defaultSettings).forEach(key => settings[key] = (this as any)[key]);
     localStorage.setItem('tze-code-settings', JSON.stringify(settings));
   }
 
-  settingsUpdated(): boolean {
-    if (this.updateTimer === undefined) {
+  settingsUpdated(): boolean { // TODO: Make void
+    if (this.initDone && this.updateTimer === undefined) {
       this.updateTimer = setTimeout(() => {
         this.saveSettings();
         this.updateTimer = undefined;
@@ -101,6 +133,15 @@ export class CodeComponent {
     }
 
     return true;
+  }
+
+  get timezones(): any[] {
+    if (this.lastZones !== this.appService.timezones || !this.timezoneChoices) {
+      this.lastZones = this.appService.timezones;
+      this.timezoneChoices = this.appService.timezones.map(zone => ({ name: zone, value: zone }));
+    }
+
+    return this.timezoneChoices;
   }
 
   setFloat(state: boolean): void {
@@ -143,7 +184,7 @@ export class CodeComponent {
   get customTimezone(): string { return this._customTimezone; }
   set customTimezone(newValue: string) {
     if (this._customTimezone !== newValue || !this.timezoneGood) {
-      if (Timezone.has(newValue) && new DateTime(null, newValue).valid) {
+      if (newValue && Timezone.has(newValue) && new DateTime(null, newValue).valid) {
         this._customTimezone = newValue;
         this.timezoneGood = true;
         this.settingsUpdated();
@@ -256,7 +297,7 @@ export class CodeComponent {
     const hourCycle = cycle && styleNum !== DateTimeStyle.DATE_ONLY ?
       ',hourCycle:' + (cycle === HourStyle.HOURS_24 ? 'h23' : 'h12') : '';
     const seconds = this.showSeconds && styleNum !== DateTimeStyle.DATE_ONLY ? ',second:2-digit' : '';
-    const numbering = this.numSystem && ',numberingSystem:' + this.numSystem;
+    const numbering = (this.numSystem || '') && ',numberingSystem:' + this.numSystem;
 
     return `I${style}{${era}${year}${monthDay}${hour}${hourCycle}${seconds}${numbering}}`
       .replace('{,', '{').replace('{},', '');

@@ -27,14 +27,17 @@
 
   <div class="demo">
     <div class='custom-config'>
-      <label><input type="checkbox" [ngModel]="float" (change)="setFloat($any($event.target).checked)"/>Float</label>
-      <label><input type="checkbox" [(ngModel)]="viewOnly" (change)="settingsUpdated()">View only</label>
-      <label><input type="checkbox" [(ngModel)]="timeDisabled" (change)="settingsUpdated()">Disabled</label>
-      <label><input type="checkbox" [(ngModel)]="wideSpinner">Wide spinner</label>
+      <p-checkbox binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()" label="View only"></p-checkbox>
+      <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
+      <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
 
-      <label>Locale: <input type="text" autocorrect="off" [(ngModel)]="customLocale" [style.background-color]="inputBackground(localeGood)"></label>
-      <label>IANA timezone: <input type="text" autocorrect="off" [(ngModel)]="customTimezone" [style.background-color]="inputBackground(timezoneGood)"></label>
-      <label>Numbering: <input type="text" autocorrect="off" [(ngModel)]="numSystem" [style.background-color]="inputBackground(numSystemGood)"></label>
+      <label>Locale: <p-dropdown name="locale" [options]="localeList" [(ngModel)]="customLocale" editable="true"
+          [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+      <div class="wrap">&nbsp;</div>
+      <label>IANA timezone: <p-dropdown [options]="timezones" optionLabel="name" optionValue="value" [(ngModel)]="customTimezone"
+          [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+      <label>Numbering: <p-dropdown [options]="numSystems" optionLabel="name" optionValue="value" [(ngModel)]="numSystem"
+          [filter]="true" filterBy="name" [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
       <div class="wrap">&nbsp;</div>
 
       <select class="line-start" [(ngModel)]="customStyle" (change)="settingsUpdated()">
@@ -77,12 +80,13 @@
           tai
           [max]="max"
           [min]="min"
-          [viewOnly]="viewOnly"
-          [disabled]="float || timeDisabled"
+          [viewOnly]="viewOnly && !float"
+          [disabled]="timeDisabled || float"
           [wideSpinner]="wideSpinner"
           [options]="getOptions()"
           [timezone]="customTimezone"
           [(ngModel)]="time"></tbw-time-editor>
+      <p-checkbox binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)" label="Float"></p-checkbox>
       <tbw-time-editor *ngIf="float"
           tai
           [max]="max"

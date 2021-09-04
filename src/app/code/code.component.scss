@@ -18,10 +18,23 @@
       border-top: 1px solid #CCC;
       display: flex;
       flex-wrap: wrap;
-      padding: 1em 0;
+      padding: 0.5em;
 
       *:not(:first-child) {
         margin-left: 1em;
+      }
+
+      label {
+        align-items: baseline;
+        display: flex;
+
+        p-dropdown {
+          margin-left: 0.5em;
+        }
+      }
+
+      [name=locale] {
+        width: 7em;
       }
 
       .wrap {
@@ -31,6 +44,12 @@
 
       .line-start {
         margin-left: 0;
+      }
+
+      .bad-input ::ng-deep {
+        input, .p-dropdown-label {
+          background-color: #FBC;
+        }
       }
     }
 

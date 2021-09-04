@@ -29,6 +29,7 @@ export class AppService implements OnDestroy {
   private prefsTimer: any;
   private _releases = new Set<string>();
   private readonly releaseTimer: any;
+  private _timezones = Timezone.getAvailableTimezones();
   private _versions: string[] = [];
 
   constructor(
@@ -72,6 +73,8 @@ export class AppService implements OnDestroy {
   get preferences(): TzePreferences { return clone(this.prefs); }
 
   get releases(): Set<string> { return this._releases; }
+
+  get timezones(): string[] { return this._timezones; }
 
   get versions(): string[] { return this._versions; };
 
@@ -118,6 +121,8 @@ export class AppService implements OnDestroy {
       });
     }
     else {
+      this._timezones = Timezone.getAvailableTimezones();
+
       this.api.getTzReleaseNotes()
         .then(notes => this._notes = notes)
         .catch(err => console.error('Error retrieving release notes:', err));

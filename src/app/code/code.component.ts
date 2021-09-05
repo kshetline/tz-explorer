@@ -1,28 +1,27 @@
 import { Component } from '@angular/core';
 import { DateTimeStyle, HourStyle, TimeEditorLimit, TimeEditorOptions, YearStyle } from '@tubular/ng-widgets';
-import { clone, isAndroid, isEqual, isIOS, isString, toBoolean, toNumber } from '@tubular/util';
+import { clone, isEqual, isString, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
 import { DateAndTime, DateTime, newDateTimeFormat, Timezone, YMDDate } from '@tubular/time';
 import { AppService } from '../app.service';
 
 const intl_DisplayNames = (Intl as any).DisplayNames;
-const mobile = isAndroid() || isIOS();
 const defaultSettings = {
   blank: false,
-  customCycle: '0',
-  customStyle:'0',
+  customCycle: HourStyle.PER_LOCALE,
+  customLocale: '',
+  customStyle: DateTimeStyle.DATE_AND_TIME,
   customTimezone: 'America/New_York',
-  customYear: 'false',
   darkMode: true,
   float: false,
   floatPosition: null as Point,
-  native: false,
   numSystem: '',
   secondsMode: 0,
   timeDisabled: false,
-  viewOnly: true,
+  viewOnly: false,
   wideSpinner: false,
-  yearStyle: '0'
+  yearLength: 0,
+  yearStyle: YearStyle.POSITIVE_ONLY
 };
 
 @Component({
@@ -31,11 +30,7 @@ const defaultSettings = {
   styleUrls: ['./code.component.scss']
 })
 export class CodeComponent {
-  AD_BC = YearStyle.AD_BC;
-  AM_PM = HourStyle.AM_PM;
-  mobile = mobile;
-  POSITIVE_ONLY = YearStyle.POSITIVE_ONLY;
-  SIGNED = YearStyle.SIGNED;
+  DATE_ONLY = DateTimeStyle.DATE_ONLY;
   TIME_ONLY = DateTimeStyle.TIME_ONLY;
 
   private _calendarDate: YMDDate;
@@ -55,9 +50,9 @@ export class CodeComponent {
   private updateTimer: any;
 
   blank = false;
-  customCycle = '0';
-  customStyle = '0';
-  customYear = 'false';
+  customCycle = HourStyle.PER_LOCALE;
+  customStyle = DateTimeStyle.DATE_AND_TIME;
+  defaultLocale = DateTime.getDefaultLocale();
   darkMode = true;
   date = new DateTime().toIsoString(10);
   float = false;
@@ -71,9 +66,17 @@ export class CodeComponent {
   timezoneGood = true;
   viewOnly = true;
   wideSpinner = false;
-  yearStyle = '0';
+  yearLength = 0;
+  yearStyle = YearStyle.POSITIVE_ONLY;
+
+  cycleChoices = [
+    { label: '12/24 hours, per locale', value: HourStyle.PER_LOCALE },
+    { label: '24-hour time', value: HourStyle.HOURS_24 },
+    { label: 'AM/PM time', value: HourStyle.AM_PM }
+  ];
 
   localeList = [
+    '',
     'af', 'ar', 'ar-dz', 'ar-kw', 'ar-ly', 'ar-ma', 'ar-sa', 'ar-tn', 'az', 'be', 'bg', 'bm', 'bn', 'bn-bd',
     'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'de-at', 'de-ch', 'el', 'en', 'en-au', 'en-ca', 'en-gb',
     'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et', 'eu', 'fa',
@@ -82,7 +85,7 @@ export class CodeComponent {
     'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'ms-my', 'mt', 'my', 'nb', 'ne', 'nl', 'nl-be', 'nn', 'pl', 'pt',
     'pt-br', 'ro', 'ru', 'sd', 'se', 'si', 'sk', 'sl', 'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'tg', 'th',
     'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw'
-  ];
+  ].map(s => ({ label: s || 'default', value: s }));
 
 // noinspection SpellCheckingInspection
   numSystems = [
@@ -90,7 +93,25 @@ export class CodeComponent {
     'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'grek', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
     'lanatham', 'laoo', 'latn', 'lepc', 'limb', 'mlym', 'mong', 'mtei', 'mymr', 'mymrshan', 'mymrtlng', 'nkoo',
     'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii'
-  ].map(s => ({ name: s || 'default', value: s }));
+  ].map(s => ({ label: s || 'default', value: s }));
+
+  styleChoices = [
+    { label: 'Date and time', value: DateTimeStyle.DATE_AND_TIME },
+    { label: 'Date only', value: DateTimeStyle.DATE_ONLY },
+    { label: 'Time only', value: DateTimeStyle.TIME_ONLY }
+  ];
+
+  yearLengthChoices = [
+    { label: 'Year length per locale', value: 0 },
+    { label: '4/variable-digit year', value: 4 },
+    { label: '2-digit year', value: 2 }
+  ];
+
+  yearStyleChoices = [
+    { label: 'Positive-only years', value: YearStyle.POSITIVE_ONLY },
+    { label: 'AD/BC years', value: YearStyle.AD_BC },
+    { label: 'Signed years', value: YearStyle.SIGNED }
+  ];
 
   constructor(private appService: AppService) {
     let settings: any;
@@ -104,7 +125,7 @@ export class CodeComponent {
     this.updateTimer = null;
     Object.keys(defaultSettings).forEach(key => (this as any)[key] = settings[key]);
     this.updateTimer = undefined;
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('visibilitychange', () => {
       if (this.updateTimer)
         clearTimeout(this.updateTimer);
 
@@ -138,7 +159,7 @@ export class CodeComponent {
   get timezones(): any[] {
     if (this.lastZones !== this.appService.timezones || !this.timezoneChoices) {
       this.lastZones = this.appService.timezones;
-      this.timezoneChoices = this.appService.timezones.map(zone => ({ name: zone, value: zone }));
+      this.timezoneChoices = this.appService.timezones.map(zone => ({ label: zone, value: zone }));
     }
 
     return this.timezoneChoices;
@@ -166,6 +187,8 @@ export class CodeComponent {
 
   get customLocale(): string { return this._customLocale; }
   set customLocale(newValue: string) {
+    newValue = newValue ?? defaultSettings.customLocale;
+
     if (this._customLocale !== newValue || !this.localeGood) {
       try {
         if (newValue) new Intl.DateTimeFormat(newValue);
@@ -183,6 +206,8 @@ export class CodeComponent {
 
   get customTimezone(): string { return this._customTimezone; }
   set customTimezone(newValue: string) {
+    newValue = newValue ?? defaultSettings.customTimezone;
+
     if (this._customTimezone !== newValue || !this.timezoneGood) {
       if (newValue && Timezone.has(newValue) && new DateTime(null, newValue).valid) {
         this._customTimezone = newValue;
@@ -190,7 +215,7 @@ export class CodeComponent {
         this.settingsUpdated();
       }
       else
-        this.timezoneGood = false;
+        this.timezoneGood = !this.timezoneGood || !newValue;
     }
   }
 
@@ -241,6 +266,8 @@ export class CodeComponent {
 
   get numSystem(): string { return this._numSystem; }
   set numSystem(newValue: string) {
+    newValue = newValue ?? defaultSettings.numSystem;
+
     if (this._numSystem !== newValue || !this.numSystemGood) {
       try {
         if (!newValue || new Intl.NumberFormat('en-u-nu-' + newValue).resolvedOptions().numberingSystem === newValue) {
@@ -276,11 +303,11 @@ export class CodeComponent {
     return {
       dateTimeStyle: toNumber(this.customStyle),
       hourStyle: toNumber(this.customCycle),
-      locale: this.customLocale,
+      locale: this.customLocale || this.defaultLocale,
       millisDigits: this.millis,
       numbering: this.numSystem || undefined,
       showSeconds: this.showSeconds,
-      twoDigitYear: this.customYear ? toBoolean(this.customYear) : undefined,
+      twoDigitYear: this.yearLength ? this.yearLength === 2 : undefined,
       yearStyle: toNumber(this.yearStyle)
     };
   }
@@ -289,8 +316,8 @@ export class CodeComponent {
     const styleNum = toNumber(this.customStyle);
     const style = styleNum ? (styleNum === DateTimeStyle.DATE_ONLY ? 'S' : 'xS') : 'SS';
     const era = toNumber(this.yearStyle) === YearStyle.AD_BC ? ',era:short' : '';
-    const year = this.customYear && styleNum !== DateTimeStyle.TIME_ONLY ?
-      ',year:' + (toBoolean(this.customYear) ? '2-digit' : 'numeric') : '';
+    const year = this.yearLength && styleNum !== DateTimeStyle.TIME_ONLY ?
+      ',year:' + (this.yearLength === 2 ? '2-digit' : 'numeric') : '';
     const monthDay = styleNum !== DateTimeStyle.TIME_ONLY ? ',month:2-digit,day:2-digit' : '';
     const cycle = toNumber(this.customCycle);
     const hour =  styleNum !== DateTimeStyle.DATE_ONLY ? ',hour:2-digit' : '';

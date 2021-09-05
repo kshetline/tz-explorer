@@ -31,36 +31,26 @@
       <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
       <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
 
-      <label>Locale: <p-dropdown name="locale" [options]="localeList" [(ngModel)]="customLocale" editable="true"
+      <label>Locale: <p-dropdown name="locale" [options]="localeList" optionLabel="label" optionValue="value"
+          [(ngModel)]="customLocale" editable="true"
           [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown></label>
       <div class="wrap">&nbsp;</div>
-      <label>IANA timezone: <p-dropdown [options]="timezones" optionLabel="name" optionValue="value" [(ngModel)]="customTimezone"
+      <label>IANA timezone: <p-dropdown [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
           [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-      <label>Numbering: <p-dropdown [options]="numSystems" optionLabel="name" optionValue="value" [(ngModel)]="numSystem"
+      <label>Numbering: <p-dropdown [options]="numSystems" optionLabel="label" optionValue="value" [(ngModel)]="numSystem"
           [filter]="true" filterBy="name" [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
       <div class="wrap">&nbsp;</div>
 
-      <select class="line-start" [(ngModel)]="customStyle" (change)="settingsUpdated()">
-        <option value="0">Date and time</option>
-        <option value="1">Date only</option>
-        <option value="2">Time only</option>
-      </select>
-      <select *ngIf="customStyle !== '2'" [(ngModel)]="yearStyle" (change)="settingsUpdated()">
-        <option value="0">Positive-only years</option>
-        <option value="1">AD/BC years</option>
-        <option value="2">Signed years</option>
-      </select>
-      <select *ngIf="customStyle !== '2'" [(ngModel)]="customYear" (change)="settingsUpdated()">
-        <option value="">Year length per locale</option>
-        <option value="false">4/variable-digit year</option>
-        <option value="true">2-digit year</option>
-      </select>
-      <select *ngIf="customStyle !== '1'" [(ngModel)]="customCycle" (change)="settingsUpdated()">
-        <option value="0">12/24 hours, per locale</option>
-        <option value="1">24-hour time</option>
-        <option value="2">AM/PM time</option>
-      </select>
-      <select *ngIf="customStyle !== '1'" [(ngModel)]="secondsMode" (change)="settingsUpdated()">
+      <p-dropdown [options]="styleChoices" optionLabel="label" optionValue="value" [(ngModel)]="customStyle"
+          (onChange)="settingsUpdated()"></p-dropdown>
+      <p-dropdown  *ngIf="customStyle !== TIME_ONLY" [options]="yearStyleChoices" optionLabel="label" optionValue="value"
+          [(ngModel)]="yearStyle" (onChange)="settingsUpdated()"></p-dropdown>
+      <p-dropdown  *ngIf="customStyle !== TIME_ONLY" [options]="yearLengthChoices" optionLabel="label" optionValue="value"
+          [(ngModel)]="yearLength" (onChange)="settingsUpdated()"></p-dropdown>
+      <p-dropdown  *ngIf="customStyle !== DATE_ONLY" [options]="cycleChoices" optionLabel="label" optionValue="value"
+          [(ngModel)]="customCycle" (onChange)="settingsUpdated()"></p-dropdown>
+
+      <select *ngIf="customStyle !== DATE_ONLY" [(ngModel)]="secondsMode" (change)="settingsUpdated()">
         <option value="0">No seconds</option>
         <option value="1">Seconds</option>
         <option value="2">Seconds/10</option>

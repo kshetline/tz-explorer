@@ -50,7 +50,7 @@ export class AppComponent implements OnInit {
       .finally(() => setTimeout(this.checkTzVersion, recheckTime));
   };
 
-  @HostListener('window:beforeunload')
+  @HostListener('window:visibilitychange')
   updatePreferences(): void {
     this.app.updatePreferences();
   }

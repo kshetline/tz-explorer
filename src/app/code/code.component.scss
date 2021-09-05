@@ -17,33 +17,21 @@
     .custom-config {
       border-top: 1px solid #CCC;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       padding: 0.5em;
 
-      *:not(:first-child) {
-        margin-left: 1em;
+      > *:not(:first-child) {
+        margin-top: 0.5em;
       }
 
       label {
         align-items: baseline;
         display: flex;
+        white-space: nowrap;
 
         p-dropdown {
           margin-left: 0.5em;
         }
-      }
-
-      [name=locale] {
-        width: 7em;
-      }
-
-      .wrap {
-        flex-basis: 100%;
-        height: 0.5em
-      }
-
-      .line-start {
-        margin-left: 0;
       }
 
       .bad-input ::ng-deep {
@@ -51,11 +39,33 @@
           background-color: #FBC;
         }
       }
+
+      .row {
+        display: flex;
+        position: relative;
+
+        > *:not(:first-child) {
+          margin-left: 1em;
+        }
+
+        > p-checkbox {
+          position: relative;
+          top: 1px;
+        }
+      }
     }
 
     .custom-time {
+      position: relative;
+
       tbw-time-editor {
         font-size: 20px;
+      }
+
+      p-checkbox {
+        margin-left: 1em;
+        position: relative;
+        top: -0.5em;
       }
     }
 

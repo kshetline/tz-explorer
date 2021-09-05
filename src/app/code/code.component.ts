@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { DateTimeStyle, HourStyle, TimeEditorLimit, TimeEditorOptions, YearStyle } from '@tubular/ng-widgets';
-import { clone, isEqual, isString, toNumber } from '@tubular/util';
+import { DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle } from '@tubular/ng-widgets';
+import { clone, isEqual, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
-import { DateAndTime, DateTime, newDateTimeFormat, Timezone, YMDDate } from '@tubular/time';
+import { DateAndTime, DateTime, Timezone, YMDDate } from '@tubular/time';
 import { AppService } from '../app.service';
 
 const intl_DisplayNames = (Intl as any).DisplayNames;
@@ -12,11 +12,15 @@ const defaultSettings = {
   customLocale: '',
   customStyle: DateTimeStyle.DATE_AND_TIME,
   customTimezone: 'America/New_York',
-  darkMode: true,
+  darkMode: false,
   float: false,
   floatPosition: null as Point,
+  iso: false,
   numSystem: '',
   secondsMode: 0,
+  showDst: false,
+  showOccurrence: false,
+  showOffset: false,
   timeDisabled: false,
   viewOnly: false,
   wideSpinner: false,
@@ -57,10 +61,14 @@ export class CodeComponent {
   date = new DateTime().toIsoString(10);
   float = false;
   floatPosition: Point = null;
+  iso = false;
   localeGood = true;
   maxGood = true;
   minGood = true;
   numSystemGood = true;
+  showDst = false;
+  showOccurrence = false;
+  showOffset = false;
   time = new DateTime().taiMillis;
   timeDisabled = false;
   timezoneGood = true;
@@ -95,6 +103,14 @@ export class CodeComponent {
     'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii'
   ].map(s => ({ label: s || 'default', value: s }));
 
+  secondsChoices = [
+    { label: 'No seconds', value: 0 },
+    { label: 'Seconds', value: 1 },
+    { label: 'Seconds/10', value: 2 },
+    { label: 'Seconds/100', value: 3 },
+    { label: 'Milliseconds', value: 4 }
+  ];
+
   styleChoices = [
     { label: 'Date and time', value: DateTimeStyle.DATE_AND_TIME },
     { label: 'Date only', value: DateTimeStyle.DATE_ONLY },
@@ -109,9 +125,11 @@ export class CodeComponent {
 
   yearStyleChoices = [
     { label: 'Positive-only years', value: YearStyle.POSITIVE_ONLY },
-    { label: 'AD/BC years', value: YearStyle.AD_BC },
+    { label: 'AD/BC years', value: YearStyle.AD_BC, disabled: false },
     { label: 'Signed years', value: YearStyle.SIGNED }
   ];
+
+  yearStyleChoicesIso = clone(this.yearStyleChoices);
 
   constructor(private appService: AppService) {
     let settings: any;
@@ -133,6 +151,7 @@ export class CodeComponent {
     });
 
     this.initDone = true;
+    this.yearStyleChoicesIso[1].disabled = true;
   }
 
   private saveSettings(): void {
@@ -145,15 +164,13 @@ export class CodeComponent {
     localStorage.setItem('tze-code-settings', JSON.stringify(settings));
   }
 
-  settingsUpdated(): boolean { // TODO: Make void
+  settingsUpdated(): void {
     if (this.initDone && this.updateTimer === undefined) {
       this.updateTimer = setTimeout(() => {
         this.saveSettings();
         this.updateTimer = undefined;
       }, 1000);
     }
-
-    return true;
   }
 
   get timezones(): any[] {
@@ -283,54 +300,38 @@ export class CodeComponent {
     }
   }
 
-  format(zone: string = null, locale: string = null, fmt: string | Intl.DateTimeFormatOptions): string {
-    const dt = new DateTime({ tai: this.time }, zone, locale);
-    let result: string;
-
-    if (isString(fmt))
-      result = dt.format(fmt);
-    else {
-      if (zone)
-        fmt.timeZone = zone;
-
-      result = newDateTimeFormat(locale, fmt).format(dt.epochMillis);
-    }
-
-    return result;
-  }
-
-  getOptions(): TimeEditorOptions {
-    return {
-      dateTimeStyle: toNumber(this.customStyle),
-      hourStyle: toNumber(this.customCycle),
-      locale: this.customLocale || this.defaultLocale,
-      millisDigits: this.millis,
-      numbering: this.numSystem || undefined,
-      showSeconds: this.showSeconds,
-      twoDigitYear: this.yearLength ? this.yearLength === 2 : undefined,
-      yearStyle: toNumber(this.yearStyle)
-    };
-  }
-
-  getFormat(): string {
-    const styleNum = toNumber(this.customStyle);
-    const style = styleNum ? (styleNum === DateTimeStyle.DATE_ONLY ? 'S' : 'xS') : 'SS';
-    const era = toNumber(this.yearStyle) === YearStyle.AD_BC ? ',era:short' : '';
-    const year = this.yearLength && styleNum !== DateTimeStyle.TIME_ONLY ?
-      ',year:' + (this.yearLength === 2 ? '2-digit' : 'numeric') : '';
-    const monthDay = styleNum !== DateTimeStyle.TIME_ONLY ? ',month:2-digit,day:2-digit' : '';
-    const cycle = toNumber(this.customCycle);
-    const hour =  styleNum !== DateTimeStyle.DATE_ONLY ? ',hour:2-digit' : '';
-    const hourCycle = cycle && styleNum !== DateTimeStyle.DATE_ONLY ?
-      ',hourCycle:' + (cycle === HourStyle.HOURS_24 ? 'h23' : 'h12') : '';
-    const seconds = this.showSeconds && styleNum !== DateTimeStyle.DATE_ONLY ? ',second:2-digit' : '';
-    const numbering = (this.numSystem || '') && ',numberingSystem:' + this.numSystem;
-
-    return `I${style}{${era}${year}${monthDay}${hour}${hourCycle}${seconds}${numbering}}`
-      .replace('{,', '{').replace('{},', '');
+  getOptions(): MixedTimeEditorOptions {
+    if (this.iso)
+      return ['ISO', {
+        dateTimeStyle: this.customStyle || DateTimeStyle.DATE_AND_TIME,
+        millisDigits: this.millis,
+        showDstSymbol: this.showDst,
+        showOccurrence: this.showOccurrence,
+        showSeconds: this.showSeconds,
+        showUtcOffset: this.showOffset,
+        yearStyle: (this.yearStyle ?
+          (this.iso && this.yearStyle === YearStyle.AD_BC ? YearStyle.SIGNED : this.yearStyle) : YearStyle.POSITIVE_ONLY)
+      }];
+    else
+      return {
+        dateTimeStyle: this.customStyle || DateTimeStyle.DATE_AND_TIME,
+        hourStyle: this.customCycle || HourStyle.PER_LOCALE,
+        locale: this.customLocale || this.defaultLocale,
+        millisDigits: this.millis,
+        numbering: this.numSystem || undefined,
+        showDstSymbol: this.showDst,
+        showOccurrence: this.showOccurrence,
+        showSeconds: this.showSeconds,
+        showUtcOffset: this.showOffset,
+        twoDigitYear: this.yearLength ? this.yearLength === 2 : undefined,
+        yearStyle: this.yearStyle || YearStyle.POSITIVE_ONLY
+      };
   }
 
   getCustomCaption(lang?: string): string {
+    if (this.iso)
+      return 'ISO 8601 format';
+
     lang = lang || this.customLocale.toLowerCase().substr(0, 2) || navigator.language;
 
     let result = '?';

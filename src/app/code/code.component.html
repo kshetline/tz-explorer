@@ -27,44 +27,54 @@
 
   <div class="demo">
     <div class='custom-config'>
-      <p-checkbox binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()" label="View only"></p-checkbox>
-      <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
-      <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
+      <div class="row">
+        <p-dropdown [options]="styleChoices" optionLabel="label" optionValue="value" [(ngModel)]="customStyle"
+            (onChange)="settingsUpdated()"></p-dropdown>
+        <p-checkbox binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()" label="View only"></p-checkbox>
+        <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
+        <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
+        <p-checkbox binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()" label="ISO"></p-checkbox>
+      </div>
 
-      <label>Locale: <p-dropdown name="locale" [options]="localeList" optionLabel="label" optionValue="value"
-          [(ngModel)]="customLocale" editable="true"
-          [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-      <div class="wrap">&nbsp;</div>
-      <label>IANA timezone: <p-dropdown [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
-          [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-      <label>Numbering: <p-dropdown [options]="numSystems" optionLabel="label" optionValue="value" [(ngModel)]="numSystem"
-          [filter]="true" filterBy="name" [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-      <div class="wrap">&nbsp;</div>
+      <div class="row">
+        <label>IANA timezone: <p-dropdown [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
+            [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+      </div>
 
-      <p-dropdown [options]="styleChoices" optionLabel="label" optionValue="value" [(ngModel)]="customStyle"
-          (onChange)="settingsUpdated()"></p-dropdown>
-      <p-dropdown  *ngIf="customStyle !== TIME_ONLY" [options]="yearStyleChoices" optionLabel="label" optionValue="value"
-          [(ngModel)]="yearStyle" (onChange)="settingsUpdated()"></p-dropdown>
-      <p-dropdown  *ngIf="customStyle !== TIME_ONLY" [options]="yearLengthChoices" optionLabel="label" optionValue="value"
-          [(ngModel)]="yearLength" (onChange)="settingsUpdated()"></p-dropdown>
-      <p-dropdown  *ngIf="customStyle !== DATE_ONLY" [options]="cycleChoices" optionLabel="label" optionValue="value"
-          [(ngModel)]="customCycle" (onChange)="settingsUpdated()"></p-dropdown>
+      <div class="row">
+        <p-checkbox binary="true" [(ngModel)]="showOffset" (onChange)="settingsUpdated()" label="Show UTC offset"></p-checkbox>
+        <p-checkbox binary="true" [(ngModel)]="showDst" (onChange)="settingsUpdated()" label="Show DST symbol"></p-checkbox>
+        <p-checkbox binary="true" [(ngModel)]="showOccurrence" (onChange)="settingsUpdated()" label="Show occurrence"></p-checkbox>
+      </div>
 
-      <select *ngIf="customStyle !== DATE_ONLY" [(ngModel)]="secondsMode" (change)="settingsUpdated()">
-        <option value="0">No seconds</option>
-        <option value="1">Seconds</option>
-        <option value="2">Seconds/10</option>
-        <option value="3">Seconds/100</option>
-        <option value="4">Milliseconds</option>
-      </select>
-      <div class="wrap">&nbsp;</div>
+      <div class="row">
+        <label [class.tze-disabled]="iso">Locale: <p-dropdown [disabled]="iso" [options]="localeList"
+            [(ngModel)]="customLocale" editable="true"
+            [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+        <label [class.tze-disabled]="iso">Numbering: <p-dropdown [disabled]="iso" [options]="numSystems"
+            [(ngModel)]="numSystem" [filter]="true" filterBy="name"
+            [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+      </div>
 
-      <label class="line-start">Minimum value: <input type="text" autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
-      <label>Maximum value: <input type="text" autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
+      <div class="row">
+        <p-dropdown [disabled]="customStyle === TIME_ONLY" [options]="iso ? yearStyleChoicesIso : yearStyleChoices"
+            [(ngModel)]="yearStyle" (onChange)="settingsUpdated()"></p-dropdown>
+        <p-dropdown [disabled]="customStyle === TIME_ONLY || iso" [options]="yearLengthChoices"
+            [(ngModel)]="yearLength" (onChange)="settingsUpdated()"></p-dropdown>
+        <p-dropdown [disabled]="customStyle === DATE_ONLY || iso" [options]="cycleChoices"
+            [(ngModel)]="customCycle" (onChange)="settingsUpdated()"></p-dropdown>
+        <p-dropdown [disabled]="customStyle === DATE_ONLY" [options]="secondsChoices" optionLabel="label" optionValue="value"
+            [(ngModel)]="secondsMode" (onChange)="settingsUpdated()"></p-dropdown>
+      </div>
+
+      <div class="row">
+        <label>Minimum value:&nbsp;&nbsp;<input pInputText autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
+        <label>Maximum value:&nbsp;&nbsp;<input pInputText autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
+      </div>
     </div>
 
     <div class='custom-time'>
-      &nbsp;<span>{{getCustomCaption()}}</span><br>
+      &nbsp;<span>{{ getCustomCaption() }}</span><br>
 
       <tbw-time-editor #sample="ngModel" name="sample" id="sample"
           tai
@@ -92,9 +102,6 @@
           [(position)]="floatPosition"
           [(ngModel)]="time"></tbw-time-editor>
      <tbw-form-error-display [control]="sample"></tbw-form-error-display>
-      <!-- Annoyingly, the perfectly valid HTML `dir="auto"` produces an Angular compilation error
-           unless `angularCompilerOptions.strictTemplates` is set to false. -->
-     <div class="text-time" dir="auto">{{format(customTimezone, customLocale, getFormat())}}</div>
     </div>
 
     <div class='calendar'>

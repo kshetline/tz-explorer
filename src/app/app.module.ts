@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { RippleModule } from 'primeng/ripple';
 import { TabViewModule } from 'primeng/tabview';
@@ -53,6 +54,7 @@ import { CodeComponent } from './code/code.component';
     FormsModule,
     HttpClientJsonpModule,
     HttpClientModule,
+    InputTextModule,
     RadioButtonModule,
     RippleModule,
     TabViewModule,

@@ -25,7 +25,7 @@ export class PDropdownAutosizerDirective implements AfterViewInit {
     const trigger = elem.querySelector('.p-dropdown-trigger');
     const triggerWidth = trigger?.getBoundingClientRect()?.width;
 
-    if (!triggerWidth || !!this.host.options || this.host.options.length === 0) {
+    if (!triggerWidth || !this.host.options || this.host.options.length === 0) {
       if (++this.calcWidthTries < 30)
         setTimeout(() => this.calcWidth(), 100);
 
@@ -33,20 +33,20 @@ export class PDropdownAutosizerDirective implements AfterViewInit {
     }
 
     let maxWidth = 0;
+    const label = elem.querySelector('.p-dropdown-label') as HTMLElement;
 
     for (const opt of this.host.options) {
       let text: string;
 
       if (isObject(opt))
-        text = opt[this.host.optionValue];
+        text = opt[this.host.optionLabel || 'label'];
       else
         text = opt.toString();
 
-      maxWidth = max(getTextWidth(text, elem), maxWidth);
+      maxWidth = max(getTextWidth(text, label), maxWidth);
     }
 
     const comp = elem.querySelector('.p-dropdown.p-component');
-    const label = elem.querySelector('.p-dropdown-label');
 
     maxWidth += (comp && getCssValues(comp, ['border-left-width', 'border-right-width'])
       .reduce((sum, curr) => sum + parseFloat(curr), 0)) ?? 2;

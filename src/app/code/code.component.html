@@ -28,7 +28,7 @@
   <div class="demo">
     <div class='custom-config'>
       <div class="row">
-        <p-dropdown [options]="styleChoices" optionLabel="label" optionValue="value" [(ngModel)]="customStyle"
+        <p-dropdown tzeDropdownAutosizer [options]="styleChoices" [(ngModel)]="customStyle"
             (onChange)="settingsUpdated()"></p-dropdown>
         <p-checkbox binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()" label="View only"></p-checkbox>
         <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
@@ -37,7 +37,7 @@
       </div>
 
       <div class="row">
-        <label>IANA timezone: <p-dropdown [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
+        <label>IANA timezone: <p-dropdown tzeDropdownAutosizer [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
             [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
       </div>
 
@@ -48,22 +48,26 @@
       </div>
 
       <div class="row">
-        <label [class.tze-disabled]="iso">Locale: <p-dropdown [disabled]="iso" [options]="localeList"
-            [(ngModel)]="customLocale" editable="true"
+        <label [class.tze-disabled]="iso">Locale: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
+            [options]="localeList" [(ngModel)]="customLocale" editable="true"
             [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-        <label [class.tze-disabled]="iso">Numbering: <p-dropdown [disabled]="iso" [options]="numSystems"
-            [(ngModel)]="numSystem" [filter]="true" filterBy="name"
+        <label [class.tze-disabled]="iso">Numbering: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
+            [options]="numSystems" [(ngModel)]="numSystem" [filter]="true" filterBy="name"
             [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
       </div>
 
       <div class="row">
-        <p-dropdown [disabled]="customStyle === TIME_ONLY" [options]="iso ? yearStyleChoicesIso : yearStyleChoices"
+        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === TIME_ONLY"
+            [options]="iso ? yearStyleChoicesIso : yearStyleChoices"
             [(ngModel)]="yearStyle" (onChange)="settingsUpdated()"></p-dropdown>
-        <p-dropdown [disabled]="customStyle === TIME_ONLY || iso" [options]="yearLengthChoices"
+        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === TIME_ONLY || iso"
+            [options]="yearLengthChoices"
             [(ngModel)]="yearLength" (onChange)="settingsUpdated()"></p-dropdown>
-        <p-dropdown [disabled]="customStyle === DATE_ONLY || iso" [options]="cycleChoices"
+        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === DATE_ONLY || iso"
+            [options]="cycleChoices"
             [(ngModel)]="customCycle" (onChange)="settingsUpdated()"></p-dropdown>
-        <p-dropdown [disabled]="customStyle === DATE_ONLY" [options]="secondsChoices" optionLabel="label" optionValue="value"
+        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === DATE_ONLY"
+            [options]="secondsChoices" optionLabel="label" optionValue="value"
             [(ngModel)]="secondsMode" (onChange)="settingsUpdated()"></p-dropdown>
       </div>
 

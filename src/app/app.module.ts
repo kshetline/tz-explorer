@@ -29,12 +29,14 @@ import { DownloadsComponent } from './downloads/downloads.component';
 import { ZoneHistoryComponent } from './zone-history/zone-history.component';
 import { ReleaseNoteComponent } from './release-note/release-note.component';
 import { CodeComponent } from './code/code.component';
+import { PDropdownAutosizerDirective } from './util/p-dropdown-autosizer.directive';
 
 @NgModule({
   declarations: [
     AddClockDialogComponent,
     AppComponent,
     ClocksComponent,
+    PDropdownAutosizerDirective,
     PDropdownFixDirective,
     TimezoneSelectorComponent,
     DownloadsComponent,

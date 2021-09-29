@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { DateTime, Timezone, Transition } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 
@@ -32,6 +32,8 @@ export class ZoneHistoryComponent implements OnInit {
   timezone: Timezone;
   transitions: TransitionExt[] | null = [];
   upcomingTransition = NMSI;
+
+  @Input() hideTransitions = false;
 
   constructor() {
     this.selectedTimezone = Timezone.guess();

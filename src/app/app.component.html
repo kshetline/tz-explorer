@@ -11,7 +11,7 @@
     <tze-clocks></tze-clocks>
   </p-tabPanel>
   <p-tabPanel [header]="(window.innerWidth < 620 ? 'TZ' : 'Timezone') + ' History'" [class.tze-tab-selected]="tabIndex === HISTORY">
-    <tze-zone-history *ngIf="tabIndex === HISTORY"></tze-zone-history>
+    <tze-zone-history [hideTransitions]="tabIndex !== HISTORY"></tze-zone-history>
   </p-tabPanel>
   <p-tabPanel header="Downloads" [class.tze-tab-selected]="tabIndex === DOWNLOADS">
     <tze-downloads></tze-downloads>

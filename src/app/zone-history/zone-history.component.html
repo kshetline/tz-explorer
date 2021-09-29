@@ -20,7 +20,7 @@
       <div>Abbr.</div>
     </div>
 
-    <ng-container *ngFor="let t of transitions; index as i">
+    <ng-container *ngFor="let t of (hideTransitions ? [] : transitions); index as i">
       <div *ngIf="getGapMessage(t, i) as msg" class="gap-row">{{ msg }}</div>
       <div *ngIf="t.transitionTime === upcomingTransition" class="upcoming-row">&nbsp;</div>
       <div *ngIf="getRowMessage(t) as msg" class="message-row">{{ msg }}</div>

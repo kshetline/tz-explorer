@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle } from '@tubular/ng-widgets';
+import { DateFieldOrder, DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle } from '@tubular/ng-widgets';
 import { clone, isEqual, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
 import { DateAndTime, DateTime, Timezone, YMDDate } from '@tubular/time';
@@ -13,6 +13,7 @@ const defaultSettings = {
   customStyle: DateTimeStyle.DATE_AND_TIME,
   customTimezone: 'America/New_York',
   darkMode: false,
+  dateFieldOrder: DateFieldOrder.PER_LOCALE,
   float: false,
   floatPosition: null as Point,
   iso: false,
@@ -59,6 +60,7 @@ export class CodeComponent {
   defaultLocale = DateTime.getDefaultLocale();
   darkMode = true;
   date = new DateTime().toIsoString(10);
+  dateFieldOrder = DateFieldOrder.PER_LOCALE;
   float = false;
   floatPosition: Point = null;
   iso = false;
@@ -81,6 +83,13 @@ export class CodeComponent {
     { label: '12/24 hours, per locale', value: HourStyle.PER_LOCALE },
     { label: '24-hour time', value: HourStyle.HOURS_24 },
     { label: 'AM/PM time', value: HourStyle.AM_PM }
+  ];
+
+  fieldOrderChoices = [
+    { label: 'Per locale', value: DateFieldOrder.PER_LOCALE },
+    { label: 'Year/Month/Date', value: DateFieldOrder.YMD },
+    { label: 'Date/Month/Year', value: DateFieldOrder.DMY },
+    { label: 'Month/Date/Year', value: DateFieldOrder.MDY },
   ];
 
   localeList = [
@@ -314,6 +323,7 @@ export class CodeComponent {
       }];
     else
       return {
+        dateFieldOrder: this.dateFieldOrder || DateFieldOrder.PER_LOCALE,
         dateTimeStyle: this.customStyle || DateTimeStyle.DATE_AND_TIME,
         hourStyle: this.customCycle || HourStyle.PER_LOCALE,
         locale: this.customLocale || this.defaultLocale,

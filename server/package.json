@@ -17,9 +17,9 @@
   },
   "dependencies": {
     "@tubular/math": "^3.1.0",
-    "@tubular/time": "^3.5.0",
-    "@tubular/time-tzdb": "^1.1.0-beta.10",
-    "@tubular/util": "^4.3.1",
+    "@tubular/time": "^3.6.1",
+    "@tubular/time-tzdb": "^1.1.2",
+    "@tubular/util": "^4.4.0",
     "archiver": "^5.3.0",
     "by-request": "^1.2.7",
     "cookie-parser": "^1.4.5",

@@ -33,18 +33,22 @@
         <p-checkbox binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()" label="View only"></p-checkbox>
         <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
         <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
-        <p-checkbox binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()" label="ISO"></p-checkbox>
+        <p-checkbox binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()" label="ISO format"></p-checkbox>
       </div>
 
       <div class="row">
-        <label>IANA timezone: <p-dropdown tzeDropdownAutosizer [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
+        <label>IANA timezone: <p-dropdown tzeDropdownAutosizer
+            [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
             [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
       </div>
 
       <div class="row">
-        <p-checkbox binary="true" [(ngModel)]="showOffset" (onChange)="settingsUpdated()" label="Show UTC offset"></p-checkbox>
-        <p-checkbox binary="true" [(ngModel)]="showDst" (onChange)="settingsUpdated()" label="Show DST symbol"></p-checkbox>
-        <p-checkbox binary="true" [(ngModel)]="showOccurrence" (onChange)="settingsUpdated()" label="Show occurrence"></p-checkbox>
+        <p-checkbox [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOffset"
+            (onChange)="settingsUpdated()" label="Show UTC offset"></p-checkbox>
+        <p-checkbox [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showDst"
+            (onChange)="settingsUpdated()" label="Show DST symbol"></p-checkbox>
+        <p-checkbox [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOccurrence"
+            (onChange)="settingsUpdated()" label="Show occurrence"></p-checkbox>
       </div>
 
       <div class="row">
@@ -54,6 +58,8 @@
         <label [class.tze-disabled]="iso">Numbering: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
             [options]="numSystems" [(ngModel)]="numSystem" [filter]="true" filterBy="name"
             [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+        <label [class.tze-disabled]="iso">Date component order: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
+            [options]="fieldOrderChoices" [(ngModel)]="dateFieldOrder" (onChange)="settingsUpdated()"></p-dropdown></label>
       </div>
 
       <div class="row">
@@ -72,8 +78,13 @@
       </div>
 
       <div class="row">
-        <label>Minimum value:&nbsp;&nbsp;<input pInputText autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
-        <label>Maximum value:&nbsp;&nbsp;<input pInputText autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
+        <label>Minimum value<span class="footnote-mark">*</span>:&nbsp;&nbsp;
+          <input pInputText autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
+        <label>Maximum value<span class="footnote-mark">*</span>:&nbsp;&nbsp;
+          <input pInputText autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
+      </div>
+      <div class="row footnote">
+        *A full or partial ISO date/time value, e.g. 2010-10 to mean nothing earlier or later than October 2010.
       </div>
     </div>
 

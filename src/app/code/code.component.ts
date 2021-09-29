@@ -104,13 +104,14 @@ export class CodeComponent {
     'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw'
   ].map(s => ({ label: s || 'default', value: s }));
 
-// noinspection SpellCheckingInspection
+  /* cspell:disable */ // noinspection SpellCheckingInspection
   numSystems = [
     '',
     'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'grek', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
     'lanatham', 'laoo', 'latn', 'lepc', 'limb', 'mlym', 'mong', 'mtei', 'mymr', 'mymrshan', 'mymrtlng', 'nkoo',
     'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii'
   ].map(s => ({ label: s || 'default', value: s }));
+  /* cspell:enable */
 
   secondsChoices = [
     { label: 'No seconds', value: 0 },

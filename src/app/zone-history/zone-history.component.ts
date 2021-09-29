@@ -69,6 +69,8 @@ export class ZoneHistoryComponent implements OnInit {
       upcoming.scrollIntoView(true);
       setTimeout(() => transList.scrollBy(0, -(height1 + height2 + 4)));
     }
+    else
+      setTimeout(() => transList.scrollTo(0, 0));
   }
 
   momentBefore(t: TransitionExt): string {
@@ -178,6 +180,8 @@ export class ZoneHistoryComponent implements OnInit {
       else
         t1.gapMessage = '';
     }
+    else if (index === 0 && new Date(t1.transitionTime).getFullYear() < new Date().getFullYear() + 2)
+      t1.gapMessage = `No transitions after year ${this.time.getTimeOfDayFieldsFromMillis(t1.transitionTime).y}`;
 
     return t1.gapMessage;
   }

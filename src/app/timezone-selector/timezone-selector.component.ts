@@ -335,6 +335,16 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
     this.matchZones = zones.filter(zone => zone.toLowerCase().includes(query));
   }
 
+  checkForEnter(evt: any): void {
+    if (evt.key === 'Enter' && this.matchZones.length === 1) {
+      this.searchText = this.matchZones[0];
+      setTimeout(() => {
+        evt.target.value = '';
+        this.matchZones = [];
+      }, 100);
+    }
+  }
+
   private updateTimezones(): void {
     const rAndS = Timezone.getRegionsAndSubzones();
 

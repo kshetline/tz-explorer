@@ -4,6 +4,7 @@
       [suggestions]="matchZones"
       [forceSelection]="true"
       (completeMethod)="searchSelect($event)"
+      (onKeyUp)="checkForEnter($event)"
       [autofocus]="true"
       appendTo="body"></p-autoComplete>
   <i class="pi pi-search"></i>

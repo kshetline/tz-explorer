@@ -91,7 +91,7 @@ export class AppService implements OnDestroy {
       catch {}
     }
     else {
-      Object.assign(this.prefs, newPrefs);
+      Object.assign(this.prefs, clone(newPrefs));
 
       if (!this.prefsTimer)
         this.prefsTimer = setTimeout(() => this.updatePreferences(), 5000);

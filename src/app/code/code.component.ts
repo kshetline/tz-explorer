@@ -164,6 +164,10 @@ export class CodeComponent {
     this.yearStyleChoicesIso[1].disabled = true;
   }
 
+  setNow(): void {
+    this.time = new DateTime().taiMillis;
+  }
+
   private saveSettings(): void {
     if (!this.initDone)
       return;

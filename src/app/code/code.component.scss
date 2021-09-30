@@ -1,5 +1,5 @@
 :host {
-  align-items: center;
+  align-items: stretch;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -7,80 +7,85 @@
   padding-top: 0.25em;
 }
 
-.wrapper {
+.wrapper-outer {
   flex: 1 1 0;
-  max-width: 800px;
   overflow: auto;
-  text-align: start;
+  text-align: center;
 
-  .demo {
-    .custom-config {
-      border-top: 1px solid #CCC;
-      display: flex;
-      flex-direction: column;
-      padding: 0.5em;
+  .wrapper-inner {
+    display: inline-block;
+    max-width: 800px;
+    text-align: start;
 
-      > *:not(:first-child) {
-        margin-top: 0.5em;
-      }
-
-      label {
-        align-items: baseline;
+    .demo {
+      .custom-config {
+        border-top: 1px solid #CCC;
         display: flex;
-        white-space: nowrap;
-
-        p-dropdown {
-          margin-left: 0.5em;
-        }
-      }
-
-      .bad-input ::ng-deep {
-        input, .p-dropdown-label {
-          background-color: #FBC;
-        }
-      }
-
-      .row {
-        display: flex;
-        position: relative;
+        flex-direction: column;
+        padding: 0.5em;
 
         > *:not(:first-child) {
-          margin-left: 1em;
+          margin-top: 0.5em;
         }
 
-        > p-checkbox {
+        label {
+          align-items: baseline;
+          display: flex;
+          white-space: nowrap;
+
+          p-dropdown {
+            margin-left: 0.5em;
+          }
+        }
+
+        .bad-input ::ng-deep {
+          input, .p-dropdown-label {
+            background-color: #FBC;
+          }
+        }
+
+        .row {
+          display: flex;
           position: relative;
-          top: 1px;
+
+          > *:not(:first-child) {
+            margin-left: 1em;
+          }
+
+          > p-checkbox {
+            position: relative;
+            top: 1px;
+          }
         }
       }
-    }
 
-    .custom-time {
-      padding-top: 0.5em;
-      position: relative;
-
-      tbw-time-editor {
-        font-size: 20px;
-      }
-
-      p-checkbox {
-        margin-left: 1em;
+      .custom-time {
+        padding-top: 0.5em;
         position: relative;
-        top: -0.5em;
+
+        tbw-time-editor {
+          font-size: 20px;
+        }
+
+        p-checkbox {
+          margin-left: 1em;
+          position: relative;
+          top: -0.5em;
+        }
       }
-    }
 
-    .calendar {
-      font-size: 1.5em;
-      padding: 1em 0;
-    }
+      .calendar {
+        font-size: 1.5em;
+        padding: 1em 0;
+      }
 
-    .footnote, .footnote-mark {
-      color: blue;
-    }
+      .footnote, .footnote-mark {
+        color: blue;
+      }
 
-    .footnote {
-      font-size: 0.8em;
+      .footnote {
+        font-size: 0.8em;
+      }
     }
   }
 }

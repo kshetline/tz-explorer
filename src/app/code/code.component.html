@@ -1,4 +1,4 @@
-<div class="wrapper">
+<div class="wrapper-outer"><div class="wrapper-inner">
   <h1>Open-Source Code</h1>
 
   <h2>Date/Time Library</h2>
@@ -34,6 +34,7 @@
         <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
         <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
         <p-checkbox binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()" label="ISO format"></p-checkbox>
+        <button pButton (click)="setNow()">Now</button>
       </div>
 
       <div class="row">
@@ -135,4 +136,4 @@
   <h2>Code for This Website</h2>
 
   <a href="https://github.com/kshetline/tz-explorer" target="_blank">Timezone Explorer</a>
-</div>
+</div></div>

@@ -8,6 +8,19 @@
   padding-top: 0.25em;
 }
 
+.dst-rules {
+  background-color: #EEE;
+  display: grid;
+  grid-column-gap: 1em;
+  grid-template-columns: auto auto;
+  padding: 0.5em 1em;
+  text-align: start;
+
+  div:first-child {
+    text-align: end;
+  }
+}
+
 .list-wrapper {
   align-items: stretch;
   display: flex;

@@ -1,4 +1,8 @@
 <tze-zone-selector [(ngModel)]="selectedTimezone"></tze-zone-selector>
+<div *ngIf="timezone.stdRule && timezone.dstRule" class="dst-rules">
+  <div>Standard Time begins:</div><div>{{formatDstRule(timezone.stdRule)}}</div>
+  <div>Daylight Saving Time begins:</div><div>{{formatDstRule(timezone.dstRule)}}</div>
+</div>
 <div class="list-wrapper">
   <div class="scroll-guard">&nbsp;</div>
   <div *ngIf="transitions; else simpleZone" class="transition-list">

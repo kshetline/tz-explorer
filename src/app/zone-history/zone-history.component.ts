@@ -26,6 +26,7 @@ interface TransitionExt extends Transition {
 export class ZoneHistoryComponent implements OnInit {
   NMSI = NMSI;
 
+  private _hideTransitions = false;
   private _selectedTimezone: string;
 
   time = new DateTime();
@@ -33,14 +34,20 @@ export class ZoneHistoryComponent implements OnInit {
   transitions: TransitionExt[] | null = [];
   upcomingTransition = NMSI;
 
-  @Input() hideTransitions = false;
-
   constructor() {
     this.selectedTimezone = Timezone.guess();
   }
 
   ngOnInit(): void {
     this.scrollToUpcoming();
+  }
+
+  get hideTransitions(): boolean { return this._hideTransitions; }
+  @Input() set hideTransitions(value: boolean) {
+    if (this._hideTransitions && !value)
+      setTimeout(() => this.scrollToUpcoming(), 100);
+
+    this._hideTransitions = value;
   }
 
   get selectedTimezone(): string { return this._selectedTimezone; }
@@ -70,7 +77,7 @@ export class ZoneHistoryComponent implements OnInit {
       setTimeout(() => transList.scrollBy(0, -(height1 + height2 + 4)));
     }
     else
-      setTimeout(() => transList.scrollTo(0, 0));
+      setTimeout(() => transList?.scrollTo(0, 0));
   }
 
   momentBefore(t: TransitionExt): string {
@@ -199,5 +206,9 @@ export class ZoneHistoryComponent implements OnInit {
       t.rowMessage = '';
 
     return t.rowMessage;
+  }
+
+  formatDstRule(rule: string): string {
+    return rule.replace(' begin std time', '').replace(' save -', ', subtract ').replace(' save', ', add');
   }
 }

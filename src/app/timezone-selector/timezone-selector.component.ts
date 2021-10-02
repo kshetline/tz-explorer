@@ -1,11 +1,14 @@
-import { Component, EventEmitter, forwardRef, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { abs, sign } from '@tubular/math';
+import { abs, max, sign } from '@tubular/math';
 import { Timezone, RegionAndSubzones } from '@tubular/time';
-import { noop } from '@tubular/util';
-import { timer } from 'rxjs';
+import { noop, urlEncodeParams } from '@tubular/util';
+import { Subject, Subscription, timer } from 'rxjs';
+import { throttleTime } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { AutoComplete } from 'primeng/autocomplete';
 
-export const SVC_ZONE_SELECTOR_VALUE_ACCESSOR: any = {
+const SVC_ZONE_SELECTOR_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => TimezoneSelectorComponent),
   multi: true,
@@ -20,6 +23,18 @@ const MISC = 'MISC';
 const UT   = 'UT';
 const OS   = 'OS';
 const LMT  = 'LMT';
+
+interface AtlasLocation {
+  displayName: string;
+  zone: string;
+  placeType: string;
+  matchedBySound: boolean;
+}
+
+interface AtlasResults {
+  error: string;
+  matches: AtlasLocation[];
+}
 
 function toCanonicalOffset(offset: string): string {
   let off = offset;
@@ -46,7 +61,7 @@ function toCanonicalOffset(offset: string): string {
 }
 
 function toCanonicalZone(zone: string): string {
-  return zone?.replace(/ /g, '_').replace(/\bKyiv\b/, 'Kiev');
+  return zone?.replace(/^.+:\xA0/, '').replace(/ /g, '_').replace(/\bKyiv\b/, 'Kiev');
 }
 
 function toDisplayOffset(offset: string): string {
@@ -80,6 +95,15 @@ function toDisplayZone(zone: string): string {
   return zone?.replace(/_/g, ' ').replace(/\bKiev\b/, 'Kyiv');
 }
 
+function formatSearchResult(location: AtlasLocation): string {
+  let s = location.displayName.replace(/\s*\(.+?\)\s*/g, '') + ':\xA0' + location.zone;
+
+  if (s.length > 40)
+    s = s.replace(/^[^,]+/, match => match.substr(0, max(match.length - s.length + 39, 8)) + '…');
+
+  return s;
+}
+
 @Component({
   selector: 'tze-zone-selector',
   templateUrl: './timezone-selector.component.html',
@@ -103,26 +127,62 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
   private focusCount = 0;
   private hasFocus = false;
   private knownIanaZones = new Set<string>();
+  private lastRemoteSearch: Subscription;
   private lastSubzones: Record<string, string> = {};
   private lastZones: Record<string, string> = {};
   private offsetByZone = new Map<string, string>();
   private onChangeCallback: (_: any) => void = noop;
   private onTouchedCallback: () => void = noop;
+  private searches = new Subject<string>();
   private subzonesByRegion: Record<string, string[]> = {};
   private zonesByOffset = new Map<string, string[]>();
 
+  @Input() autofocus = false;
   disabled = false;
+  emptyMessage: string;
   error: string;
   matchZones: string[] = [];
+  searching = false;
 
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() focus: EventEmitter<any> = new EventEmitter();
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() blur: EventEmitter<any> = new EventEmitter();
 
-  constructor() {
+  @ViewChild('autoComplete', { static: true }) autoComplete: AutoComplete;
+
+  constructor(private http: HttpClient) {
     this.lastSubzones[this._region] = this._subzone;
     this.subzonesByRegion[this._region] = this.subzones;
+
+    this.searches.pipe(throttleTime(1000, undefined, { leading: true, trailing: true })).subscribe(search => {
+      if (this.lastRemoteSearch)
+        this.lastRemoteSearch.unsubscribe();
+
+      const params = urlEncodeParams({
+        client: 'web',
+        pt: 'false',
+        q: search
+      });
+      const timer = setTimeout(() => this.searching = true, 500);
+
+      this.lastRemoteSearch = this.http.jsonp<AtlasResults>('https://skyviewcafe.com/atlas/?' + params, 'callback')
+        .subscribe(results => {
+          clearTimeout(timer);
+          this.searching = false;
+
+          if (!results.error) {
+            const matches = results.matches.filter(match => !match.matchedBySound &&
+                /^(A.ADM|P.PPL)/.test(match.placeType));
+            const newMatches: string[] = [];
+
+            newMatches.push(...this.matchZones, ...matches.map(match => formatSearchResult(match)));
+            this.autoComplete.loading = true;
+            this.matchZones = newMatches;
+            this.emptyMessage = 'No matching cites/timezones';
+          }
+        }, err => { this.searching = false; console.error(err); });
+    });
   }
 
   get value(): string | null {
@@ -325,7 +385,10 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
   }
 
   searchSelect(s: any): void {
-    const query = (s.query || '#').trim().replace(/\s+/g, '_').toLowerCase();
+    this.searching = false;
+
+    const remoteQuery = (s.query || '').trim().replace(/\s+/g, '_').toLowerCase();
+    const query = (remoteQuery || '#');
     const zones = Timezone.getAvailableTimezones();
     const kiev = zones.indexOf('Europe/Kiev');
 
@@ -333,14 +396,30 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
       zones.splice(kiev, 0, 'Europe/Kyiv');
 
     this.matchZones = zones.filter(zone => zone.toLowerCase().includes(query));
+
+    if (this.lastRemoteSearch) {
+      this.lastRemoteSearch.unsubscribe();
+      this.lastRemoteSearch = undefined;
+    }
+
+    if (remoteQuery.length > 3) {
+      this.emptyMessage = 'Searching...';
+      this.searches.next(remoteQuery);
+    }
+    else
+      this.emptyMessage = 'No matching timezones';
   }
 
-  checkForEnter(evt: any): void {
+  checkForEnter(evt: KeyboardEvent): void {
     if (evt.key === 'Enter' && this.matchZones.length === 1) {
       this.searchText = this.matchZones[0];
-      setTimeout(() => {
-        evt.target.value = '';
+      let count = 0;
+      const interval = setInterval(() => {
+        (evt.target as HTMLInputElement).value = '';
         this.matchZones = [];
+
+        if (++count === 3)
+          clearInterval(interval);
       }, 100);
     }
   }
@@ -365,8 +444,8 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
       hourOffsets.push('UT' + (h === 0 ? '' : (h > 0 ? '+' : '-') + (habs < 10 ? '0' : '') + habs + ':00'));
     }
 
-    rAndS.push({ region: UT_OPTION,  subzones: hourOffsets });
-    rAndS.push({ region: OS_OPTION,  subzones: [] });
+    rAndS.push({ region: UT_OPTION, subzones: hourOffsets });
+    rAndS.push({ region: OS_OPTION, subzones: [] });
     rAndS.push({ region: LMT_OPTION, subzones: [] });
 
     rAndS.forEach((region: RegionAndSubzones) => {

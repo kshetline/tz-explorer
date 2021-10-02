@@ -72,7 +72,13 @@
     "no-empty": "off",
     "no-labels": "off",
     "no-mixed-operators": "off",
-    "no-multi-spaces": "off",
+    "no-multi-spaces": ["error", {
+      "ignoreEOLComments": false,
+      "exceptions": {
+        "Property": true,
+        "VariableDeclarator": true
+      }
+    }],
     "no-new": "off",
     "no-return-assign": "off",
     "no-unexpected-multiline": "off",

@@ -1,6 +1,5 @@
 {
   "extends": "../.eslintrc.json",
-  "include": [".ts"],
   "env": {
     "browser": false,
     "jasmine": false,

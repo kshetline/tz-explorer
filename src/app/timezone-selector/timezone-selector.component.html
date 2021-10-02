@@ -1,13 +1,16 @@
 <div class="zone-search">
-  <p-autoComplete [(ngModel)]="searchText"
-      placeholder="Search timezone names"
+  <p-autoComplete #autoComplete [(ngModel)]="searchText"
+      placeholder="Search cities/timezone names"
       [suggestions]="matchZones"
       [forceSelection]="true"
+      [showEmptyMessage]="true"
+      [emptyMessage]="emptyMessage"
       (completeMethod)="searchSelect($event)"
       (onKeyUp)="checkForEnter($event)"
-      [autofocus]="true"
+      [autofocus]="autofocus"
       appendTo="body"></p-autoComplete>
   <i class="pi pi-search"></i>
+  <i class="fas fa-spinner fa-pulse fa-fw" [style.display]="searching ? 'block' : 'none'"></i>
 </div>
 
 <div class="mode-selector">

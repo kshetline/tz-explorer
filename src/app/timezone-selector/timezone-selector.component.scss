@@ -35,10 +35,17 @@
     }
   }
 
-  i {
+  i.pi-search {
     position: absolute;
     right: 0.5em;
-    top: 0.75em;
+    top: 0.65em;
+  }
+
+  i.fa-spinner {
+    display: none;
+    position: absolute;
+    right: -1.5em;
+    top: 0.65em;
   }
 }
 

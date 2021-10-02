@@ -30,6 +30,8 @@ export class AppComponent implements OnInit {
     this.checkTzVersion();
   }
 
+  get notes(): Record<string, string> { return this.app.notes; };
+
   get tabIndex(): number { return this._tabIndex; }
   set tabIndex(value: number) {
     if (this._tabIndex !== null) {

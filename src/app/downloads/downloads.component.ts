@@ -62,6 +62,10 @@ export class DownloadsComponent {
     return `/tzdata/tzdb-${version}.zip`;
   }
 
+  getTypeScriptLink(version: string, size: string): string {
+    return `/tzdata/timezone-${version}-${size}.ts`;
+  }
+
   linkValid(link: string): boolean {
     return this.app.releases.has(this.nameFromLink(link));
   }

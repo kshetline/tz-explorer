@@ -1,8 +1,10 @@
 <div class="banner">
   <h1>Timezone Database Explorer</h1>
   <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
-      class="sub-header">Latest tz database version: {{latestTzVersion}}
-    <i class="fas fa-info-circle fa-2x info-icon info-icon-adjust" (click)="releaseNote = latestTzVersion"></i>
+        class="sub-header">Latest tz database version: {{latestTzVersion}}
+    <i class="fas fa-info-circle fa-2x info-icon info-icon-adjust"
+        [class.disabled]="!notes[latestTzVersion]"
+        (click)="releaseNote = latestTzVersion"></i>
   </h2>
 </div>
 <p-tabView class="tab-view" [(activeIndex)]="tabIndex">

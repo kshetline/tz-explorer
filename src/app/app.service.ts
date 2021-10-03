@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Timezone } from '@tubular/time';
-import { clone } from '@tubular/util';
+import { clone, isAndroid, isIOS, noop } from '@tubular/util';
 import { NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { TzExplorerApi } from './api/api';
@@ -16,8 +16,10 @@ export interface TzePreferences {
 }
 
 export enum AppTab { CLOCKS, HISTORY, DOWNLOADS, CODE }
-const tabNames = ['clocks', 'history', 'downloads', 'code'];
 export const DEFAULT_EXTRA_ZONE = (Timezone.guess() === 'America/New_York' ? 'Europe/Paris' : 'America/New_York');
+export const IS_MOBILE = isAndroid() || isIOS();
+
+const tabNames = ['clocks', 'history', 'downloads', 'code'];
 
 @Injectable()
 export class AppService implements OnDestroy {
@@ -31,6 +33,8 @@ export class AppService implements OnDestroy {
   private readonly releaseTimer: any;
   private _timezones = Timezone.getAvailableTimezones();
   private _versions: string[] = [];
+
+  ensureTitleOnTop = noop;
 
   constructor(
     private router: Router,

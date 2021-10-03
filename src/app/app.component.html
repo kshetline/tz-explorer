@@ -1,5 +1,5 @@
 <div class="banner">
-  <h1>Timezone Database Explorer</h1>
+  <h1 #title [class.title-focus]="true" [tabindex]="mobile ? 0 : -1">Timezone Database Explorer</h1>
   <h2 [style.visibility]="latestTzVersion ? 'visible' : 'hidden'"
         class="sub-header">Latest tz database version: {{latestTzVersion}}
     <i class="fas fa-info-circle fa-2x info-icon info-icon-adjust"

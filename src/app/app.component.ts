@@ -1,6 +1,6 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { TzExplorerApi } from './api/api';
-import { AppService, AppTab } from './app.service';
+import { AppService, AppTab, IS_MOBILE } from './app.service';
 
 @Component({
   selector: 'tze-root',
@@ -12,21 +12,27 @@ export class AppComponent implements OnInit {
   CODE = AppTab.CODE;
   DOWNLOADS = AppTab.DOWNLOADS;
   HISTORY = AppTab.HISTORY;
+  mobile = IS_MOBILE;
 
   private _tabIndex = AppTab.CLOCKS;
+  private title: HTMLElement;
 
   latestTzVersion = '';
   releaseNote = '';
   window = window;
+
+  @ViewChild('title', { static: true }) titleRef: ElementRef;
 
   constructor(
     private app: AppService,
     private api: TzExplorerApi
   ) {
     app.getCurrentTabUpdates(tabIndex => this._tabIndex = tabIndex);
+    app.ensureTitleOnTop = (): void => this.title?.scrollIntoView();
   }
 
   ngOnInit(): void {
+    this.title = this.titleRef.nativeElement;
     this.checkTzVersion();
   }
 
@@ -37,6 +43,11 @@ export class AppComponent implements OnInit {
     if (this._tabIndex !== null) {
       this._tabIndex = value;
       this.app.currentTab = value;
+
+      if (this.mobile) {
+        this.title?.focus();
+        this.title?.scrollIntoView();
+      }
     }
   }
 

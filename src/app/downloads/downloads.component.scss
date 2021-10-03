@@ -1,17 +1,36 @@
 :host {
+  align-items: stretch;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
+}
+
+.list-wrapper {
+  align-items: stretch;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: stretch;
+  height: 100%;
+  margin: 1em 0;
+  max-width: calc(100vw - 4em);
+  overflow: auto;
+  position: relative;
+  white-space: nowrap;
 }
 
 .download-list {
   display: grid;
-  flex: 1 1 10em;
+  flex: 1 1 auto;
   grid-template-columns: auto auto auto auto auto;
   grid-column-gap: 2em;
   grid-row-gap: 1em;
   justify-content: center;
+  min-width: 50em;
   overflow: auto;
+  padding: 0 1em 1em 1em;
   position: relative;
   text-align: start;
 

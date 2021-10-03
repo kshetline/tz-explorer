@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { DateTime, Timezone, Transition } from '@tubular/time';
 import { abs, max } from '@tubular/math';
+import { AppService } from '../app.service';
 
 const NMSI = Number.MIN_SAFE_INTEGER;
 
@@ -34,7 +35,7 @@ export class ZoneHistoryComponent implements OnInit {
   transitions: TransitionExt[] | null = [];
   upcomingTransition = NMSI;
 
-  constructor() {
+  constructor(private app: AppService) {
     this.selectedTimezone = Timezone.guess();
   }
 
@@ -78,6 +79,8 @@ export class ZoneHistoryComponent implements OnInit {
     }
     else
       setTimeout(() => transList?.scrollTo(0, 0));
+
+    setTimeout(this.app.ensureTitleOnTop);
   }
 
   momentBefore(t: TransitionExt): string {

@@ -4,7 +4,7 @@ import { abs, max } from '@tubular/math';
 import { last } from '@tubular/util';
 import { HttpTimePoller } from '../http-time-poller/http-time-poller';
 import { TzExplorerApi } from '../api/api';
-import { AppService, DEFAULT_EXTRA_ZONE, ExtraClock } from '../app.service';
+import { AppService, DEFAULT_EXTRA_ZONE, ExtraClock, IS_MOBILE } from '../app.service';
 
 const EARLIEST_TAI = new DateTime('1958-01-01 UTC').taiMillis;
 const EARLIEST_UTC = EARLIEST_TAI;
@@ -123,8 +123,10 @@ export class ClocksComponent implements OnDestroy, OnInit {
           clearTimeout(this.timer);
 
         this.timer = undefined;
-        setTimeout(() => ((this.localClock.nativeElement as HTMLElement)
-          .querySelector('.tbw-dse-wrapper') as HTMLElement)?.focus());
+
+        if (!IS_MOBILE)
+          setTimeout(() => ((this.localClock.nativeElement as HTMLElement)
+            .querySelector('.tbw-dse-wrapper') as HTMLElement)?.focus());
       }
 
       this.app.updatePreferences({ runClock: newValue });

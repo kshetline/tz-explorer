@@ -1,4 +1,4 @@
-<tze-zone-selector [(ngModel)]="selectedTimezone"></tze-zone-selector>
+<tze-zone-selector [(ngModel)]="selectedTimezone" [autofocus]="false"></tze-zone-selector>
 <div *ngIf="timezone.stdRule && timezone.dstRule" class="dst-rules">
   <div>Standard Time begins:</div><div>{{formatDstRule(timezone.stdRule)}}</div>
   <div>Daylight Saving Time begins:</div><div>{{formatDstRule(timezone.dstRule)}}</div>

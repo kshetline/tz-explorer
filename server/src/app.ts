@@ -39,6 +39,7 @@ import { sendMailMessage } from './mail';
 import { codeAndDataToZip, codeToZip, dataToZip } from './archive-convert';
 import { requestText } from 'by-request';
 import { PoolConnection } from './my-sql-async';
+import JSONZ from 'json-z';
 
 const debug = require('debug')('express:server');
 
@@ -413,12 +414,12 @@ function getApp(): Express {
     noCache(res);
 
     const connection = await pool.getConnection();
-    const [, , tzVersion, , edition, ext] = tzDataUrl.exec(req.url.toLowerCase());
+    const url = req.url.toLowerCase().replace(/\?.*$/, '');
+    const [, , tzVersion, , edition, ext] = tzDataUrl.exec(url);
 
     try {
       const version = tzVersion || await getDbProperty(connection, 'tz_latest');
-      const format = (ext === 'js' || ext === 'ts' ? edition?.replace(/-/g, '_') || 'large' :
-        (edition ? '' : 'json'));
+      const format = (ext === 'js' || ext === 'ts' ? edition || 'large' : (edition || 'json')).replace(/-/g, '_');
 
       if (version && format) {
         let data = await getVersionData(connection, version, format);
@@ -427,8 +428,22 @@ function getApp(): Express {
           if (ext === 'js')
             data = data.replace(/export default/g, 'module.exports =');
 
-          res.set('Content-Type', 'text/plain');
-          res.send(data);
+          if (req.query.callback || (ext === 'json' && format !== 'json') || (ext === 'js' && edition)) {
+            const $ = /\/\* trim-file-start \*\/(.*)\/\* trim-file-end \*\//s.exec(data);
+
+            if ($)
+              data = $[1];
+          }
+
+          if (req.query.callback)
+            res.jsonp(JSONZ.parse(data));
+          else {
+            if (ext === 'js' && edition)
+              data = `window.tbTime_timezone_${edition.replace(/-/g, '_')} = ${data}`;
+
+            res.set('Content-Type', 'text/plain');
+            res.send(data);
+          }
         }
         else
           res.status(401).send('File not found');

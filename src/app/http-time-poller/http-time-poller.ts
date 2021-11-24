@@ -9,7 +9,7 @@ export class HttpTimePoller extends TimePoller {
     super();
   }
 
-  protected async getNtpData(_requestTime?: number): Promise<NtpData> {
+  async getNtpData(_requestTime?: number): Promise<NtpData> {
     const data = await this.api.getServerTime();
 
     return {

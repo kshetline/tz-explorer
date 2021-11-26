@@ -248,14 +248,12 @@ export abstract class TimePoller {
             else {
               timeInfo.time -= 1000;
               timeInfo.leapSecond = this._pendingLeapSecond = 0;
-              this.lastPollReceivedProcTime += 1000;
               this.timeAdjustmentReceivedProcTime += 1000;
             }
           }
           else { // Handle (unlikely) negative leap second
             timeInfo.time += 1000;
             timeInfo.leapSecond = this._pendingLeapSecond = 0;
-            this.lastPollReceivedProcTime -= 1000;
             this.timeAdjustmentReceivedProcTime -= 1000;
           }
         }
@@ -274,7 +272,7 @@ export abstract class TimePoller {
     return timeInfo;
   }
 
-  formatTime(time: number, leapExcess: number): string {
+  formatTime(time: number, leapExcess = 0): string {
     let text = new Date(time).toISOString().replace('T', ' ');
 
     if (leapExcess > 0)

@@ -3,7 +3,7 @@ import { NtpData } from './ntp-data';
 import { isNumber, isString, processMillis } from '@tubular/util';
 import { NtpPoller } from './ntp-poller';
 import { TimeInfo } from './shared-types';
-import { abs, max, round } from '@tubular/math';
+import { abs, round } from '@tubular/math';
 import { dateAndTimeFromMillis_SGC, millisFromDateTime_SGC } from '@tubular/time';
 
 const DAY_MSEC = 84_000_000;
@@ -29,7 +29,7 @@ function averageAndStdDev(values: number[]): number[] {
 export class NtpPoolPoller extends TimePoller {
   private mightSmear = new Set<NtpPoller>();
   private minLeapExcess = 0;
-  private minTime = Number.MIN_SAFE_INTEGER;
+  private minTime = 0;
   private ntpPollers: NtpPoller[] = [];
   private leapSecondVicinity = Number.MIN_SAFE_INTEGER;
 
@@ -112,7 +112,7 @@ export class NtpPoolPoller extends TimePoller {
       });
     }
 
-    if (this.leapSecondVicinity + DAY_MSEC / 2) {
+    if (this.leapSecondVicinity + DAY_MSEC / 2 > now) {
       this.ntpPollers.forEach((poller, index) => {
         if (this.mightSmear.has(poller))
           times[index] = null;
@@ -139,27 +139,33 @@ export class NtpPoolPoller extends TimePoller {
     averageTime = round(averageTime);
 
     if (reconstituteLeapInfo) {
+      if (this.minTime > leapBoundary)
+        averageTime += (leapSecond > 0 ? -1000 : 1000);
+
       if (leapSecond > 0 && averageTime > leapBoundary + 1000) {
-        console.log('point A');
         averageTime -= 1000;
+        leapSecond = 0;
+        this.minLeapExcess = 0;
       }
       else if (leapSecond > 0 && averageTime > leapBoundary) {
-        console.log('point B');
         leapExcess = averageTime - leapBoundary;
         averageTime = leapBoundary;
       }
-      else if (leapSecond < 0 && averageTime > leapBoundary)
+      else if (leapSecond < 0 && averageTime > leapBoundary) {
         averageTime += 1000;
+        leapSecond = 0;
+      }
     }
 
     // No backsliding!
-    averageTime = max(averageTime, this.minTime);
-    this.minTime = averageTime;
-
-    if (leapSecond > 0 && averageTime === leapBoundary && leapExcess < this.minLeapExcess)
+    if (averageTime < this.minTime || averageTime + leapExcess < this.minTime + this.minLeapExcess) {
+      averageTime = this.minTime;
       leapExcess = this.minLeapExcess;
-    else if (leapExcess === 0)
-      this.minLeapExcess = 0;
+    }
+    else {
+      this.minTime = averageTime;
+      this.minLeapExcess = leapExcess;
+    }
 
     return {
       leapExcess,

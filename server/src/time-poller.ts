@@ -1,6 +1,6 @@
 import { isNumber, processMillis } from '@tubular/util';
 import { NtpData } from './ntp-data';
-import { TimeInfo } from './shared-types';
+import { BACK_IN_TIME_THRESHOLD, TimeInfo } from './shared-types';
 
 const MILLIS_PER_DAY = 86_400_000;
 const MAX_ERRORS = 5;
@@ -11,7 +11,6 @@ const EARLY_POLLING_RATE = 150_000; // 2.5 minutes
 const NORMAL_POLLING_RATE = 1_800_000; // 30 minutes
 const RESYNC_POLLING_RATE = 500;
 const RETRY_POLLING_DELAY = 5000;
-const BACK_IN_TIME_THRESHOLD = 2000;
 const CLOCK_SPEED_WINDOW = 10_800_000; // 3 hours
 const MIDNIGHT_POLLING_AVOIDANCE = 5000;
 
@@ -152,7 +151,7 @@ export abstract class TimePoller {
         syncDelta = expectedPolledTime - this.getTimeInfo().time;
         this.lastPolledTime = this.pollingAdjustmentTime;
         this.lastPollReceivedProcTime = this.timeAdjustmentReceivedProcTime;
-        this._pendingLeapSecond = [0, 1, -1][ntpData.li] ?? 0; // No leap second, positive leap, negative leap
+        this._pendingLeapSecond = ntpData.leapExcess ? 1 : [0, 1, -1][ntpData.li] ?? 0; // No leap second, positive leap, negative leap
 
         const newReferencePt = { t: this.getTimeInfo().time, pt: processMillis() };
 
@@ -249,12 +248,16 @@ export abstract class TimePoller {
               timeInfo.time -= 1000;
               timeInfo.leapSecond = this._pendingLeapSecond = 0;
               this.timeAdjustmentReceivedProcTime += 1000;
+              this.lastPollReceivedProcTime += 1000;
+              this.lastReportedTime -= 1000;
             }
           }
           else { // Handle (unlikely) negative leap second
             timeInfo.time += 1000;
             timeInfo.leapSecond = this._pendingLeapSecond = 0;
             this.timeAdjustmentReceivedProcTime -= 1000;
+            this.lastPollReceivedProcTime -= 1000;
+            this.lastReportedTime += 1000;
           }
         }
       }

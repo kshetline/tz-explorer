@@ -2,7 +2,7 @@ import { TimePoller } from './time-poller';
 import { NtpData } from './ntp-data';
 import { isNumber, isString, processMillis } from '@tubular/util';
 import { NtpPoller } from './ntp-poller';
-import { TimeInfo } from './shared-types';
+import { BACK_IN_TIME_THRESHOLD, TimeInfo } from './shared-types';
 import { abs, round } from '@tubular/math';
 import { dateAndTimeFromMillis_SGC, millisFromDateTime_SGC } from '@tubular/time';
 
@@ -120,12 +120,14 @@ export class NtpPoolPoller extends TimePoller {
 
       times = times.filter(time => !!time);
 
-      if (leapSecond > 0)
+      if (leapSecond > 0) {
         times.forEach(time => time.time += (time.time > leapBoundary ? 1000 : time.leapExcess));
-      else
+        reconstituteLeapInfo = true;
+      }
+      else if (leapSecond < 0) {
         times.forEach(time => time.time -= (time.time > leapBoundary ? 1000 : 0));
-
-      reconstituteLeapInfo = true;
+        reconstituteLeapInfo = true;
+      }
     }
 
     let [averageTime, sd] = averageAndStdDev(times.map(time => time.time));
@@ -145,7 +147,6 @@ export class NtpPoolPoller extends TimePoller {
       if (leapSecond > 0 && averageTime > leapBoundary + 1000) {
         averageTime -= 1000;
         leapSecond = 0;
-        this.minLeapExcess = 0;
       }
       else if (leapSecond > 0 && averageTime > leapBoundary) {
         leapExcess = averageTime - leapBoundary;
@@ -157,8 +158,9 @@ export class NtpPoolPoller extends TimePoller {
       }
     }
 
-    // No backsliding!
-    if (averageTime < this.minTime || averageTime + leapExcess < this.minTime + this.minLeapExcess) {
+    // No backsliding.
+    if (averageTime > this.minTime + BACK_IN_TIME_THRESHOLD &&
+        (averageTime < this.minTime || (averageTime === this.minTime && leapExcess < this.minLeapExcess))) {
       averageTime = this.minTime;
       leapExcess = this.minLeapExcess;
     }

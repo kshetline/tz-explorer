@@ -1,5 +1,5 @@
 import { HttpClientJsonpModule, HttpClientModule } from '@angular/common/http';
-import { /* ApplicationRef, */ NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -69,17 +69,4 @@ import { PDropdownAutosizerDirective } from './util/p-dropdown-autosizer.directi
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {
-  // constructor(applicationRef: ApplicationRef) {
-  //   const originalTick = applicationRef.tick;
-  //   applicationRef.tick = function (...args: any[]): void {
-  //     const windowPerformance = window.performance;
-  //     const  before = windowPerformance.now();
-  //     const retValue = originalTick.apply(this, ...args);
-  //     const after = windowPerformance.now();
-  //     const runTime = after - before;
-  //     window.console.log('CHANGE DETECTION TIME', runTime);
-  //     return retValue;
-  //   };
-  // }
-}
+export class AppModule {}

@@ -13,7 +13,7 @@ const DEFAULT_POOL = [
 ];
 
 function average(values: number[]): number {
-  return values.reduce((sum, value) => sum + value) / values.length;
+  return values.length && values.reduce((sum, value) => sum + value) / values.length;
 }
 
 function averageAndStdDev(values: number[]): number[] {
@@ -70,20 +70,24 @@ export class NtpPoolPoller extends TimePoller {
 
   getTimeInfo(internalAdjustOrBias?: boolean | number): TimeInfo {
     let times = [] as TimeInfo[];
+    let pollers = this.ntpPollers.filter(poller => poller.isTimeAcquired());
 
-    this.ntpPollers.forEach(poller => times.push(poller.getTimeInfo(internalAdjustOrBias)));
+    if (pollers.length === 0)
+      pollers = this.ntpPollers;
+
+    pollers.forEach(poller => times.push(poller.getTimeInfo(internalAdjustOrBias)));
 
     let leapSecond = 0;
     let leapExcess = 0;
     let leapBoundary = 0;
     let reconstituteLeapInfo = false;
     const now = processMillis();
-    const leapPollerIndex = this.ntpPollers.findIndex(poller => poller.pendingLeapSecond);
+    const leapPollerIndex = pollers.findIndex(poller => poller.pendingLeapSecond);
 
     // Averaging clock times gets MUCH more complicated when leap seconds enter the picture,
     // especially if leap-smearing NTP servers are involved.
     if (leapPollerIndex >= 0) {
-      const leapPoller = this.ntpPollers[leapPollerIndex];
+      const leapPoller = pollers[leapPollerIndex];
       const time = times[leapPollerIndex].time;
       const dt = dateAndTimeFromMillis_SGC(time - DAY_MSEC / 2);
 
@@ -100,7 +104,7 @@ export class NtpPoolPoller extends TimePoller {
       if (time >= leapBoundary - DAY_MSEC / 2)
         this.leapSecondVicinity = now;
 
-      this.ntpPollers.forEach((poller, index) => {
+      pollers.forEach((poller, index) => {
         const t = times[index].time;
 
         if (t <= leapBoundary) {
@@ -113,7 +117,7 @@ export class NtpPoolPoller extends TimePoller {
     }
 
     if (this.leapSecondVicinity + DAY_MSEC / 2 > now) {
-      this.ntpPollers.forEach((poller, index) => {
+      pollers.forEach((poller, index) => {
         if (this.mightSmear.has(poller))
           times[index] = null;
       });
@@ -133,7 +137,7 @@ export class NtpPoolPoller extends TimePoller {
     let [averageTime, sd] = averageAndStdDev(times.map(time => time.time));
     const filtered = times.filter(time => abs(time.time - averageTime) <= sd);
 
-    if (filtered.length !== times.length) {
+    if (filtered.length > 0 && filtered.length !== times.length) {
       times = filtered;
       averageTime = average(filtered.map(time => time.time));
     }
@@ -159,8 +163,8 @@ export class NtpPoolPoller extends TimePoller {
     }
 
     // No backsliding.
-    if (averageTime > this.minTime + BACK_IN_TIME_THRESHOLD &&
-        (averageTime < this.minTime || (averageTime === this.minTime && leapExcess < this.minLeapExcess))) {
+    if (averageTime > this.minTime - BACK_IN_TIME_THRESHOLD &&
+      (averageTime < this.minTime || (averageTime === this.minTime && leapExcess < this.minLeapExcess))) {
       averageTime = this.minTime;
       leapExcess = this.minLeapExcess;
     }

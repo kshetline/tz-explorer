@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { NtpPoolPoller } from './ntp-pool-poller';
 import { afterEach, describe, it } from 'mocha';
-import { processMillis } from '@tubular/util';
+import { processMillis, toNumber } from '@tubular/util';
+import { round } from '@tubular/math';
 
 describe('ntp-pool-poller', () => {
   let poller: NtpPoolPoller;
@@ -14,8 +15,8 @@ describe('ntp-pool-poller', () => {
   });
 
   it('should handle averaging NTP poller, with or without leap seconds', async function () {
-    this.slow(45000);
-    this.timeout(90000);
+    this.slow(135000);
+    this.timeout(200000);
 
     for (let ii = 0; ii < 9; ++ii) {
       const i = ii % 3;
@@ -46,13 +47,24 @@ describe('ntp-pool-poller', () => {
             expect(t.time > lastTime);
             lastTime = t.time;
             const sec = t.text.substr(17, 2);
+            const nsec = toNumber(sec);
             const now = processMillis();
 
             if (!secs.endsWith(sec)) {
-              expect(now).to.be.greaterThan(change + 750, `changed too quickly from ${secs.slice(-2)} to ${sec}`);
               secs += (secs ? ',' : '') + sec;
-              change = now;
               console.log(secs);
+
+              if (nsec > 55 || nsec < 3) {
+                if (i === 2)
+                  expect(nsec).to.not.equal(59);
+
+                expect(now).to.be.greaterThan(change + 750,
+                  `changed too quickly (${round(now - change)}ms) from ${secs.slice(-5, -3)} to ${sec}`);
+                expect(now).to.be.lessThan(change + 1750,
+                  `changed too slowly (${round(now - change)}ms) from ${secs.slice(-5, -3)} to ${sec}`);
+              }
+
+              change = now;
             }
           }
 

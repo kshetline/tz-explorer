@@ -21,6 +21,7 @@ export class NtpPoller extends TimePoller {
 
     [this.server, this.port] = splitIpAndPort(server, port);
     this.ntp = new Ntp(this.server, this.port);
+    NtpPoller.allOpenPollers.add(this);
     this.reset();
   }
 

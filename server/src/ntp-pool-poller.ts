@@ -27,6 +27,12 @@ function averageAndStdDev(values: number[]): number[] {
 }
 
 export class NtpPoolPoller extends TimePoller {
+  private static allOpenPollers = new Set<NtpPoolPoller>();
+
+  static closeAll(): void {
+    NtpPoolPoller.allOpenPollers.forEach(poller => poller.close());
+  }
+
   private mightSmear = new Set<NtpPoller>();
   private minLeapExcess = 0;
   private minTime = 0;
@@ -36,6 +42,7 @@ export class NtpPoolPoller extends TimePoller {
   constructor(pool: (string | NtpPoller)[] = DEFAULT_POOL) {
     super();
     pool.forEach(poller => this.ntpPollers.push(isString(poller) ? new NtpPoller(poller) : poller));
+    NtpPoolPoller.allOpenPollers.add(this);
     this.reset();
   }
 

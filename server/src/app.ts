@@ -25,8 +25,6 @@ import express, { Express } from 'express';
 import http from 'http';
 import { asLines, isString, processMillis, toBoolean } from '@tubular/util';
 import logger from 'morgan';
-import { DEFAULT_NTP_SERVER } from './ntp';
-import { NtpPoller } from './ntp-poller';
 import fs, { ReadStream } from 'fs';
 import path from 'path';
 import { DEFAULT_LEAP_SECOND_URLS, TaiUtc } from './tai-utc';
@@ -40,6 +38,7 @@ import { codeAndDataToZip, codeToZip, dataToZip } from './archive-convert';
 import { requestText } from 'by-request';
 import { PoolConnection } from './my-sql-async';
 import JSONZ from 'json-z';
+import { NtpPoolPoller } from './ntp-pool-poller';
 
 const debug = require('debug')('express:server');
 
@@ -155,8 +154,8 @@ async function checkForUpdate(): Promise<void> {
 
 checkForUpdate().finally();
 
-const ntpServer = process.env.TZE_NTP_SERVER || DEFAULT_NTP_SERVER;
-const ntpPoller = new NtpPoller(ntpServer);
+const ntpServers = process.env.TZE_NTP_SERVERS;
+const ntpPoller = ntpServers ? new NtpPoolPoller(ntpServers.split(',')) : new NtpPoolPoller();
 const daytimeServer = process.env.TZE_DAYTIME_SERVER || DEFAULT_DAYTIME_SERVER;
 const daytime = new Daytime(daytimeServer);
 const leapSecondsUrls = process.env.TZE_LEAP_SECONDS_URL || DEFAULT_LEAP_SECOND_URLS;
@@ -266,7 +265,7 @@ async function shutdown(signal?: string): Promise<void> {
       process.exit(0);
   };
 
-  NtpPoller.closeAll();
+  NtpPoolPoller.closeAll();
   httpServer.close(exitWhenReady);
 }
 

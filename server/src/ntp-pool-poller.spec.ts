@@ -21,11 +21,11 @@ describe('ntp-pool-poller', () => {
     for (let ii = 0; ii < 9; ++ii) {
       const i = ii % 3;
       poller = new NtpPoolPoller();
-      let debugTime = new Date('2091-12-31T23:59:50Z');
+      const debugTime = new Date('2091-12-31T23:59:50Z');
       poller.setDebugTime(debugTime, [0, 1, -1][i]);
 
       await new Promise<void>(resolve => {
-        const checkAcquired = () => {
+        const checkAcquired = (): void => {
           if (poller.isTimeAcquired())
             resolve();
           else
@@ -40,7 +40,7 @@ describe('ntp-pool-poller', () => {
       let change = 0;
 
       await new Promise<void>(resolve => {
-        const checkTime = () => {
+        const checkTime = (): void => {
           const t = poller.getTimeInfo();
 
           if (/^209[12]/.test(t.text)) {

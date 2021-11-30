@@ -8,9 +8,9 @@ describe('ZoneHistoryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ZoneHistoryComponent ]
+      declarations: [ZoneHistoryComponent]
     })
-    .compileComponents();
+      .compileComponents();
   });
 
   beforeEach(() => {

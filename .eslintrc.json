@@ -16,14 +16,15 @@
   },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
+    "project": "tsconfig.spec.json",
     "sourceType": "module"
   },
   "plugins": [
     "@typescript-eslint",
     "chai-friendly"
   ],
-  "ignorePatterns": ["dist/**/*", "tsc-out/**/*", "**/polyfills.ts", "**/*.spec.ts", "**/*.html", "**/webpack*"],
+  "ignorePatterns": ["dist/**/*", "tsc-out/**/*", "**/polyfills.ts", "**/*.html", "**/webpack*"],
   "rules": {
     "brace-style": [
       "error",
@@ -73,7 +74,7 @@
     "no-labels": "off",
     "no-mixed-operators": "off",
     "no-multi-spaces": ["error", {
-      "ignoreEOLComments": false,
+      "ignoreEOLComments": true,
       "exceptions": {
         "Property": true,
         "VariableDeclarator": true
@@ -84,6 +85,7 @@
     "no-unexpected-multiline": "off",
     "no-unused-expressions": "off",
     "no-useless-constructor": "off",
+    "@typescript-eslint/no-useless-constructor": "error",
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -110,7 +112,8 @@
         "asyncArrow": "always"
       }
     ],
-    "quotes": [
+    "quotes": "off",
+    "@typescript-eslint/quotes": [
       "error",
       "single",
       {

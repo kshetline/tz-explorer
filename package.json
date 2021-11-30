@@ -8,7 +8,7 @@
     "build-all": "rimraf dist && cd server && npm run build && cd .. && npm run build && mv dist/tz-explorer dist/public && cp server/dist/app.js* dist/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "eslint 'src/**/*.ts'"
+    "lint": "eslint 'src/**/*.ts' '**/*.spec.ts'"
   },
   "private": true,
   "dependencies": {

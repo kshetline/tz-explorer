@@ -8,9 +8,9 @@ describe('ReleaseNoteComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ReleaseNoteComponent ]
+      declarations: [ReleaseNoteComponent]
     })
-    .compileComponents();
+      .compileComponents();
   });
 
   beforeEach(() => {

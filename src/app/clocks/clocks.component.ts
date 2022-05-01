@@ -143,7 +143,7 @@ export class ClocksComponent implements OnDestroy, OnInit {
 
     if (this.running)
       this.timer = setTimeout(this.updateTime, 1000 - excessMillis);
-  }
+  };
 
   now(): void {
     this.time = new DateTime().taiMillis;

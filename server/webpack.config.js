@@ -42,5 +42,6 @@ module.exports = {
   devtool: 'source-map',
   plugins: [
     new webpack.BannerPlugin({ banner: '#!/usr/bin/env node', raw: true })
-  ]
+  ],
+  ignoreWarnings: [{ message: /the request of a dependency is an expression/ }]
 };

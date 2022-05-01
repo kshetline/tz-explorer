@@ -23,5 +23,5 @@ export class PDropdownFixDirective implements OnDestroy, OnInit {
     const selected = wrapper?.querySelector('.p-dropdown-item.p-highlight') as HTMLElement;
 
     selected?.scrollIntoView();
-  }
+  };
 }

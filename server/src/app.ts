@@ -55,7 +55,9 @@ let savingZoneInfo = false;
 let shuttingDown = false;
 
 process.on('SIGINT', shutdown);
+process.on('SIGQUIT', shutdown);
 process.on('SIGTERM', shutdown);
+process.on('SIGUSR1', shutdown);
 process.on('SIGUSR2', shutdown);
 process.on('unhandledRejection', err => console.error(`${timeStamp()} -- Unhandled rejection:`, err));
 

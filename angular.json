@@ -118,5 +118,7 @@
       }
     }
   },
-  "defaultProject": "tz-explorer"
+  "cli": {
+    "analytics": false
+  }
 }

@@ -27,6 +27,6 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "./ambient.d.ts"],
   "exclude": ["node_modules", "server", "**/*.spec.ts"]
 }

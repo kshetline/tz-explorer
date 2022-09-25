@@ -20,6 +20,6 @@
       "es2020"
     ]
   },
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "../ambient.d.ts"],
   "exclude": ["node_modules", "tsc-out", "**/*.spec.ts"]
 }

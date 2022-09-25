@@ -75,9 +75,10 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
     if (!entries.has(header.name)) {
       entries.add(header.name);
       zipPack.append(stream, { name: header.name, date: header.mtime });
+      stream.on('end', next);
     }
-
-    stream.on('end', next);
+    else
+      next();
   });
 
   tarExtract.on('finish', () => zipPack.finalize());

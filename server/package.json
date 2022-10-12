@@ -1,6 +1,6 @@
 {
   "name": "tz-explorer-server",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "license": "MIT",
   "author": "Kerry Shetline <kerry@shetline.com>",
   "private": true,
@@ -17,9 +17,9 @@
   },
   "dependencies": {
     "@tubular/math": "^3.1.0",
-    "@tubular/time": "^3.8.6",
+    "@tubular/time": "^3.8.7",
     "@tubular/time-tzdb": "^1.2.3",
-    "@tubular/util": "^4.12.0",
+    "@tubular/util": "^4.13.0",
     "archiver": "^5.3.1",
     "by-request": "^1.2.7",
     "cookie-parser": "^1.4.5",

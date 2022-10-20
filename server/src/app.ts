@@ -88,7 +88,9 @@ async function checkForUpdate(): Promise<void> {
 
       if (!exists) {
         console.log(`${timeStamp()}: Creating data for ${version}`);
-        codeAndDataToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
+        await codeAndDataToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
+        await codeToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
+        await dataToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
 
         try {
           const json = await getTzData({

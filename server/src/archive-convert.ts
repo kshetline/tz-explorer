@@ -99,8 +99,11 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
 
     let outputTimer = setTimeout(() => {
       outputTimer = undefined;
+
       if (commandProc.exitCode == null)
         commandProc.kill('SIGTERM');
+
+      try { fs.unlinkSync(filePath); } catch {} // eslint-disable-line brace-style
       reject(new Error('Archive decompression timed out'));
     }, 15000);
 

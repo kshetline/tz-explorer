@@ -68,17 +68,25 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
   commandProc.stdout.pipe(tarExtract);
 
   tarExtract.on('entry', (header, stream, next) => {
-    if (header.name.replace(/^.*\//, '') === 'NEWS')
-      stream = tapStream(stream, content => parseAndUpdateReleaseNotes(content));
-
     // Skip duplicate entries - they are garbage data with bad streams.
-    if (!entries.has(header.name)) {
-      entries.add(header.name);
-      zipPack.append(stream, { name: header.name, date: header.mtime });
-      stream.on('end', next);
-    }
-    else
+    if (entries.has(header.name))
       next();
+    else {
+      entries.add(header.name);
+
+      if (/\/NEWS$/.test(header.name)) {
+        tapStream(stream, content => {
+          parseAndUpdateReleaseNotes(content).then(() => {
+            zipPack.append(content, { name: header.name, date: header.mtime });
+            next();
+          }).catch(err => deferredError = err);
+        });
+      }
+      else {
+        zipPack.append(stream, { name: header.name, date: header.mtime });
+        stream.on('end', next);
+      }
+    }
   });
 
   tarExtract.on('finish', () => zipPack.finalize());
@@ -87,10 +95,21 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
   return new Promise<ReadStream>((resolve, reject) => {
     const rejectWithError = (err: any): void =>
       reject(err instanceof Error ? err : new Error(err.message || err.toString()));
-    let finishTimer: any;
+    let tarTimer: any;
+
+    let outputTimer = setTimeout(() => {
+      outputTimer = undefined;
+      if (commandProc.exitCode == null)
+        commandProc.kill('SIGTERM');
+      reject(new Error('Archive decompression timed out'));
+    }, 15000);
+
     const finish = (): void => {
-      if (finishTimer)
-        clearTimeout(finishTimer);
+      if (tarTimer)
+        clearTimeout(tarTimer);
+
+      if (outputTimer)
+        clearTimeout(outputTimer);
 
       resolve(fs.createReadStream(filePath));
     };
@@ -113,7 +132,7 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
           console.error('Archive %s: %s', url, err.message);
 
         if (/unexpected end of data/i.test(err.message))
-          finishTimer = setTimeout(() => tarExtract.emit('finish'), 500);
+          tarTimer = setTimeout(() => tarExtract.emit('finish'), 500);
       }
       else
         reject(err);

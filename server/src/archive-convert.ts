@@ -7,8 +7,15 @@ import { spawn } from 'child_process';
 import tar from 'tar-stream';
 import { tapStream } from './stream-tap';
 import { parseAndUpdateReleaseNotes } from './db-access';
+import { fileExists } from './tze-util';
 
 const baseUrl = 'https://data.iana.org/time-zones/releases/';
+
+function urlToFilePath(url: string): string {
+  const fileName = /([-a-z0-9]+)\.tar\.[lg]?z$/i.exec(url)[1] + '.zip';
+
+  return path.join(process.env.TZE_ZIP_DIR || path.join(__dirname, 'tz-zip-cache'), fileName);
+}
 
 function adjustUrl(url: string): string {
   let origVersion = '';
@@ -33,21 +40,49 @@ function adjustUrl(url: string): string {
   return url;
 }
 
+export function adjustArchiveFileName(path: string): string {
+  return adjustUrl('/' + path.replace(/^.*\//, '')).substring(1);
+}
+
+function codeAndDataUrl(version: string): string {
+  return `${baseUrl}tzdb-${version}.tar.lz`;
+}
+
+function codeUrl(version: string): string {
+  return `${baseUrl}tzcode${version}.tar.gz`;
+}
+
+function dataUrl(version: string): string {
+  return `${baseUrl}tzdata${version}.tar.gz`;
+}
+
+export async function isFullyCached(version: string, releases?: string[]): Promise<boolean> {
+  const tzdb = urlToFilePath(codeAndDataUrl(version));
+  const tzcode = urlToFilePath(codeUrl(version));
+  const tzdata = urlToFilePath(dataUrl(version));
+  const hasRelease = (path: string): boolean => {
+    return !releases || releases.includes(adjustArchiveFileName(path));
+  };
+
+  return (!hasRelease(tzdb) || await fileExists(tzdb)) &&
+         (!hasRelease(tzcode) || await fileExists(tzcode)) &&
+         (!hasRelease(tzdata) || await fileExists(tzdata));
+}
+
 export async function codeAndDataToZip(version: string): Promise<ReadStream> {
-  return compressedTarToZip(`${baseUrl}tzdb-${version}.tar.lz`);
+  return compressedTarToZip(codeAndDataUrl(version));
 }
 
 export async function codeToZip(version: string): Promise<ReadStream> {
-  return compressedTarToZip(`${baseUrl}tzcode${version}.tar.gz`);
+  return compressedTarToZip(codeUrl(version));
 }
 
 export async function dataToZip(version: string): Promise<ReadStream> {
-  return compressedTarToZip(`${baseUrl}tzdata${version}.tar.gz`);
+  return compressedTarToZip(dataUrl(version));
 }
 
 async function compressedTarToZip(url: string): Promise<ReadStream> {
-  const fileName = /([-a-z0-9]+)\.tar\.[lg]z$/i.exec(url)[1] + '.zip';
-  const filePath = path.join(process.env.TZE_ZIP_DIR || path.join(__dirname, 'tz-zip-cache'), fileName);
+  const filePath = urlToFilePath(url);
   let stats: fs.Stats | false;
   let deferredError: any;
   let archiveError = (err: any): void => deferredError = deferredError ?? err;
@@ -93,8 +128,10 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
   zipPack.pipe(writeFile);
 
   return new Promise<ReadStream>((resolve, reject) => {
-    const rejectWithError = (err: any): void =>
+    const rejectWithError = (err: any): void => {
+      try { fs.unlinkSync(filePath); } catch {} // eslint-disable-line brace-style
       reject(err instanceof Error ? err : new Error(err.message || err.toString()));
+    };
     let tarTimer: any;
 
     let outputTimer = setTimeout(() => {
@@ -103,8 +140,7 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
       if (commandProc.exitCode == null)
         commandProc.kill('SIGTERM');
 
-      try { fs.unlinkSync(filePath); } catch {} // eslint-disable-line brace-style
-      reject(new Error('Archive decompression timed out'));
+      rejectWithError('Archive decompression timed out');
     }, 15000);
 
     const finish = (): void => {
@@ -145,5 +181,13 @@ async function compressedTarToZip(url: string): Promise<ReadStream> {
     commandProc.on('error', rejectWithError);
     commandProc.on('exit', err => err && reject(new Error(`${command} error: ${err}`)));
     originalArchive.on('error', rejectWithError);
+    originalArchive.on('header', code => {
+      if (code !== 200) {
+        if (commandProc.exitCode == null)
+          commandProc.kill('SIGTERM');
+
+        rejectWithError(`HTTP ${code}`);
+      }
+    });
   });
 }

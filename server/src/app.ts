@@ -34,7 +34,7 @@ import { getAvailableVersions } from '@tubular/time-tzdb';
 import { getDbProperty, getReleaseNote, getReleaseNotes, getVersionData, hasVersion, pool, saveVersion, setDbProperty } from './db-access';
 import { getTzData, TzFormat, TzPresets } from '@tubular/time-tzdb/dist/tz-writer';
 import { sendMailMessage } from './mail';
-import { codeAndDataToZip, codeToZip, dataToZip } from './archive-convert';
+import { adjustArchiveFileName, codeAndDataToZip, codeToZip, dataToZip, isFullyCached } from './archive-convert';
 import { requestText } from 'by-request';
 import { PoolConnection } from './my-sql-async';
 import JSONZ from 'json-z';
@@ -60,6 +60,7 @@ process.on('SIGTERM', shutdown);
 process.on('SIGUSR1', shutdown);
 process.on('SIGUSR2', shutdown);
 process.on('unhandledRejection', err => console.error(`${timeStamp()} -- Unhandled rejection:`, err));
+process.on('uncaughtException', err => console.error(`${timeStamp()} -- Unhandled exception:`, err));
 
 // Poll for tz-database updates
 const UPDATE_POLL_INTERVAL = 1_800_000; // 30 minutes
@@ -67,6 +68,13 @@ const UPDATE_POLL_RETRY_TIME = 30_000; // 5 minutes
 let updatePollTimer: any;
 let tzVersions: string[] = [];
 let tzVersionsWithCode: string[] = [];
+let tzReleases: string[] = [];
+
+async function getReleases(): Promise<string[]> {
+  return (await requestText('https://data.iana.org/time-zones/releases/'))
+    .split(/(href="tz[^"]+(?="))/g).filter(s => s.startsWith('href="tz')).map(s => s.substr(6))
+    .filter(s => !s.endsWith('.asc'));
+}
 
 async function checkForUpdate(): Promise<void> {
   updatePollTimer = undefined;
@@ -77,20 +85,16 @@ async function checkForUpdate(): Promise<void> {
 
   try {
     currentVersion = await getDbProperty(connection, 'tz_latest');
-    tzVersions = (await getAvailableVersions()).reverse();
-    tzVersionsWithCode = (await getAvailableVersions(true)).reverse();
+    tzVersions = (await getAvailableVersions()).reverse().filter((v, i, a) => i === 0 || v !== a[i - 1]);
+    tzVersionsWithCode = (await getAvailableVersions(true)).reverse().filter((v, i, a) => i === 0 || v !== a[i - 1]);
+    tzReleases = await getReleases();
 
     for (const version of tzVersions) {
       if (shuttingDown)
         break;
 
-      const exists = await hasVersion(connection, version);
-
-      if (!exists) {
+      if (!(await hasVersion(connection, version))) {
         console.log(`${timeStamp()}: Creating data for ${version}`);
-        await codeAndDataToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
-        await codeToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
-        await dataToZip(version).catch(err => console.error(`${timeStamp()} -- error processing ${version}:`, err));
 
         try {
           const json = await getTzData({
@@ -127,6 +131,34 @@ async function checkForUpdate(): Promise<void> {
         }
         catch (e) {
           console.error(`${timeStamp()}: Error while creating/saving data for ${version} - ${e.message || e.toString()}`);
+        }
+      }
+
+      if (!toBoolean(process.env.TZE_DISABLE_ARCHIVE_PRECACHING) && !(await isFullyCached(version, tzReleases))) {
+        console.log(`${timeStamp()}: Creating cached zip archives for ${version}`);
+
+        try {
+          if (tzReleases.includes(adjustArchiveFileName(`tzdb-${version}.tar.lz`)))
+            await codeAndDataToZip(version);
+        }
+        catch (err) {
+          console.error(`${timeStamp()} -- error creating tzdb for ${version}:`, err);
+        }
+
+        try {
+          if (tzReleases.includes(adjustArchiveFileName(`tzcode${version}.tar.gz`)))
+            await codeToZip(version);
+        }
+        catch (err) {
+          console.error(`${timeStamp()} -- error creating tzcode for ${version}:`, err);
+        }
+
+        try {
+          if (tzReleases.includes(adjustArchiveFileName(`tzdata${version}.tar.gz`)))
+            await dataToZip(version);
+        }
+        catch (err) {
+          console.error(`${timeStamp()} -- error creating tzdata for ${version}:`, err);
         }
       }
     }
@@ -352,11 +384,7 @@ function getApp(): Express {
     noCache(res);
 
     try {
-      const releases = (await requestText('https://data.iana.org/time-zones/releases/'))
-        .split(/(href="tz[^"]+(?="))/g).filter(s => s.startsWith('href="tz')).map(s => s.substr(6))
-        .filter(s => !s.endsWith('.asc'));
-
-      jsonOrJsonp(req, res, releases);
+      jsonOrJsonp(req, res, await getReleases());
     }
     catch (e) {
       res.status(500).send(`Error retrieving release list: ${e.message || e.toString()}`);

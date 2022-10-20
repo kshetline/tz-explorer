@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { lstat } from 'fs/promises';
 
 export function noCache(res: Response): void {
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
@@ -74,4 +75,15 @@ export function filterError(error: any): string {
   error = error?.message ?? error?.toString();
 
   return error && error.replace(/^\s*Error:\s*/i, '');
+}
+
+export async function fileExists(path: string): Promise<boolean> {
+  try {
+    await lstat(path);
+  }
+  catch {
+    return false;
+  }
+
+  return true;
 }

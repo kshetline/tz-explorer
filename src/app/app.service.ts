@@ -1,8 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Timezone } from '@tubular/time';
+import { addZonesUpdateListener, getTimezones, pollForTimezoneUpdates, Timezone, zonePollerBrowser } from '@tubular/time';
 import { clone, isAndroid, isIOS, noop } from '@tubular/util';
 import { NavigationEnd, Router } from '@angular/router';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { TzExplorerApi } from './api/api';
 
 export interface ExtraClock {
@@ -33,6 +33,7 @@ export class AppService implements OnDestroy {
   private readonly releaseTimer: any;
   private _timezones = Timezone.getAvailableTimezones();
   private _versions: string[] = [];
+  private zoneInfoObserver: Observable<void>;
 
   ensureTitleOnTop = noop;
 
@@ -65,6 +66,17 @@ export class AppService implements OnDestroy {
           this.currentTab = AppTab.CLOCKS;
       }
     });
+
+    const zoneInfo = new Subject<void>();
+
+    this.zoneInfoObserver = zoneInfo.asObservable();
+
+    addZonesUpdateListener(result => {
+      if (result)
+        zoneInfo.next();
+    });
+
+    pollForTimezoneUpdates(zonePollerBrowser, 'large-alt');
   }
 
   ngOnDestroy(): void {
@@ -81,6 +93,10 @@ export class AppService implements OnDestroy {
   get timezones(): string[] { return this._timezones; }
 
   get versions(): string[] { return this._versions; };
+
+  getZoneInfoUpdates(callback: () => void): Subscription {
+    return this.zoneInfoObserver.subscribe(callback);
+  }
 
   updatePreferences(newPrefs?: TzePreferences): void {
     if (!newPrefs) {
@@ -121,6 +137,7 @@ export class AppService implements OnDestroy {
         if (this.currentRelease !== version) {
           this.currentRelease = version;
           this.updateReleaseInfo();
+          getTimezones(zonePollerBrowser, 'large-alt').finally();
         }
       });
     }

@@ -37,6 +37,7 @@ export class ZoneHistoryComponent implements OnInit {
 
   constructor(private app: AppService) {
     this.selectedTimezone = Timezone.guess();
+    this.app.getZoneInfoUpdates(() => this.setSelectedTimezone());
   }
 
   ngOnInit(): void {
@@ -53,17 +54,20 @@ export class ZoneHistoryComponent implements OnInit {
 
   get selectedTimezone(): string { return this._selectedTimezone; }
   set selectedTimezone(value: string) {
-    if (this._selectedTimezone !== value) {
-      const now = Date.now();
-      const twentyYearsFromNow = now + 631_152_000_000;
+    if (this._selectedTimezone !== value)
+      this.setSelectedTimezone(value);
+  }
 
-      this._selectedTimezone = value;
-      this.timezone = Timezone.getTimezone(value);
-      this.time.timezone = this.timezone;
-      this.transitions = this.timezone.getAllTransitions()?.reverse().filter(t => t.transitionTime < twentyYearsFromNow);
-      this.transitions?.forEach(t => t.transitionTime > now && (this.upcomingTransition = t.transitionTime));
-      setTimeout(() => this.scrollToUpcoming());
-    }
+  private setSelectedTimezone(value = this._selectedTimezone): void {
+    const now = Date.now();
+    const twentyYearsFromNow = now + 631_152_000_000;
+
+    this._selectedTimezone = value;
+    this.timezone = Timezone.getTimezone(value);
+    this.time.timezone = this.timezone;
+    this.transitions = this.timezone.getAllTransitions()?.reverse().filter(t => t.transitionTime < twentyYearsFromNow);
+    this.transitions?.forEach(t => t.transitionTime > now && (this.upcomingTransition = t.transitionTime));
+    setTimeout(() => this.scrollToUpcoming());
   }
 
   scrollToUpcoming(): void {

@@ -16,9 +16,9 @@
     "build-win": "webpack"
   },
   "dependencies": {
-    "@tubular/math": "^3.2.0",
-    "@tubular/time": "^3.8.8",
-    "@tubular/time-tzdb": "^1.2.3",
+    "@tubular/math": "^3.3.1",
+    "@tubular/time": "^3.8.11",
+    "@tubular/time-tzdb": "^1.2.4",
     "@tubular/util": "^4.13.1",
     "archiver": "^5.3.1",
     "by-request": "^1.2.7",

@@ -313,7 +313,7 @@ function getApp(): Express {
   theApp.use(express.urlencoded({ extended: false }));
   theApp.use(cookieParser());
   theApp.use(express.static(path.join(__dirname, 'public')));
-  theApp.get('/', (req, res) => {
+  theApp.get('/', (_req, res) => {
     res.send('Static home file not found');
   });
 

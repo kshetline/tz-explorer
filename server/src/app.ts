@@ -1,6 +1,6 @@
 // #!/usr/bin/env node
 /*
-  Copyright © 2021 Kerry Shetline, kerry@shetline.com
+  Copyright © 2021-2025 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -61,6 +61,9 @@ process.on('SIGUSR1', shutdown);
 process.on('SIGUSR2', shutdown);
 process.on('unhandledRejection', err => console.error(`${timeStamp()} -- Unhandled rejection:`, err));
 process.on('uncaughtException', err => console.error(`${timeStamp()} -- Unhandled exception:`, err));
+
+// @ts-ignore
+if (typeof PhusionPassenger !== 'undefined') PhusionPassenger.on('exit', shutdown);
 
 // Poll for tz-database updates
 const UPDATE_POLL_INTERVAL = 1_800_000; // 30 minutes
@@ -224,7 +227,9 @@ function onError(error: any): void {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges');
       process.exit(1);
-      break;
+
+    // Note: Can't really fall through
+    // eslint-disable-next-line no-fallthrough
     case 'EADDRINUSE':
       console.error(bind + ' is already in use');
 

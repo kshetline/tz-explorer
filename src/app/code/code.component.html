@@ -4,158 +4,144 @@
   <h2>Date/Time Library</h2>
 
   <p><a href="https://github.com/kshetline/tubular_time#readme" target="_blank">&#64;tubular/time</a> • Not all days are
-    24 hours. Some are 23 hours, or 25, or even 23.5 or 24.5 or 47 hours. Some minutes are 61 seconds long. A Thursday
-    might be followed directly by a Saturday, with no Friday in between. A September might be only 19 days long. This
-    is a date/time library for handling both day-to-day situations (so to speak) and some weird ones too.</p>
+  24 hours. Some are 23 hours, or 25, or even 23.5 or 24.5 or 47 hours. Some minutes are 61 seconds long. A Thursday
+  might be followed directly by a Saturday, with no Friday in between. A September might be only 19 days long. This
+is a date/time library for handling both day-to-day situations (so to speak) and some weird ones too.</p>
 
-  <h2>IANA Timezone Compiler</h2>
+<h2>IANA Timezone Compiler</h2>
 
-  <p><a href="https://github.com/kshetline/tubular_time_tzdb#readme" target="_blank">&#64;tubular/time-tzdb</a> is an IANA
-    timezone compiler, specifically for generating timezone data compatible with &#64;tubular/time, but also capable of
-    generating standard zoneinfo/zic-style binaries.</p>
+<p><a href="https://github.com/kshetline/tubular_time_tzdb#readme" target="_blank">&#64;tubular/time-tzdb</a> is an IANA
+timezone compiler, specifically for generating timezone data compatible with &#64;tubular/time, but also capable of
+generating standard zoneinfo/zic-style binaries.</p>
 
-  <p>It can compile timezone source files directly from https://www.iana.org/time-zones/, using the latest release or
-    any particular requested version, or from a local .tar.gz file specified via file URL.</p>
+<p>It can compile timezone source files directly from https://www.iana.org/time-zones/, using the latest release or
+any particular requested version, or from a local .tar.gz file specified via file URL.</p>
 
-  <p>Options are available for limiting the span of years covered, adjusting and filtering timezones, and choosing
-    different output formats.</p>
+<p>Options are available for limiting the span of years covered, adjusting and filtering timezones, and choosing
+different output formats.</p>
 
-  <h2>Angular Components</h2>
+<h2>Angular Components</h2>
 
-  <p><a href="https://github.com/kshetline/tubular_ng-widgets" target="_blank">&#64;tubular/ng-widgets</a> •
-    provides, among other components, the date/time editor used on this website.</p>
+<p><a href="https://github.com/kshetline/tubular_ng-widgets" target="_blank">&#64;tubular/ng-widgets</a> •
+provides, among other components, the date/time editor used on this website.</p>
 
-  <div class="demo">
-    <div class='custom-config'>
-      <div class="row">
-        <p-dropdown tzeDropdownAutosizer [options]="styleChoices" [(ngModel)]="customStyle"
-            (onChange)="settingsUpdated()"></p-dropdown>
-        <div class="label-pair">
-          <p-checkbox #viewOnlyCB binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="viewOnlyCB">View only</label>
-        </div>
-        <div class="label-pair">
-          <p-checkbox #disabledCB binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="disabledCB">Disabled</label>
-        </div>
-        <div class="label-pair">
-          <p-checkbox #wideSpinnerCB binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="wideSpinnerCB">Wide spinner</label>
-        </div>
-        <div class="label-pair">
-          <p-checkbox #isoFormatCB binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="isoFormatCB">ISO format</label>
-        </div>
-        <button pButton (click)="setNow()">Now</button>
-      </div>
-
-      <div class="row">
-        <label>IANA timezone: <p-dropdown tzeDropdownAutosizer
-            [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
-            [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-      </div>
-
-      <div class="row">
-        <div class="label-pair">
-          <p-checkbox #showOffsetCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOffset"
-              (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="showOffsetCB">Show UTC offset</label>
-        </div>
-        <div class="label-pair">
-          <p-checkbox #showDstCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showDst"
-              (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="showDstCB">Show DST symbol</label>
-        </div>
-        <div class="label-pair">
-          <p-checkbox #showOccCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOccurrence"
-              (onChange)="settingsUpdated()"></p-checkbox>
-          <label [for]="showOccCB">Show occurrence</label>
-        </div>
-      </div>
-
-      <div class="row">
-        <label [class.tze-disabled]="iso">Locale: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
-            [options]="localeList" [(ngModel)]="customLocale" editable="true"
-            [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-        <label [class.tze-disabled]="iso">Numbering: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
-            [options]="numSystems" [(ngModel)]="numSystem" [filter]="true" filterBy="name"
-            [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
-        <label [class.tze-disabled]="iso">Date component order: <p-dropdown tzeDropdownAutosizer [disabled]="iso"
-            [options]="fieldOrderChoices" [(ngModel)]="dateFieldOrder" (onChange)="settingsUpdated()"></p-dropdown></label>
-      </div>
-
-      <div class="row">
-        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === TIME_ONLY"
-            [options]="iso ? yearStyleChoicesIso : yearStyleChoices"
-            [(ngModel)]="yearStyle" (onChange)="settingsUpdated()"></p-dropdown>
-        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === TIME_ONLY || iso"
-            [options]="yearLengthChoices"
-            [(ngModel)]="yearLength" (onChange)="settingsUpdated()"></p-dropdown>
-        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === DATE_ONLY || iso"
-            [options]="cycleChoices"
-            [(ngModel)]="customCycle" (onChange)="settingsUpdated()"></p-dropdown>
-        <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === DATE_ONLY"
-            [options]="secondsChoices" optionLabel="label" optionValue="value"
-            [(ngModel)]="secondsMode" (onChange)="settingsUpdated()"></p-dropdown>
-      </div>
-
-      <div class="row">
-        <label>Minimum value<span class="footnote-mark">*</span>:&nbsp;&nbsp;
-          <input pInputText autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
-        <label>Maximum value<span class="footnote-mark">*</span>:&nbsp;&nbsp;
-          <input pInputText autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
-      </div>
-      <div class="row footnote">
-        *A full or partial ISO date/time value, e.g. 2010-10 to mean nothing earlier or later than October 2010.
-      </div>
-    </div>
-
-    <div class='custom-time'>
-      &nbsp;<span>{{ getCustomCaption() }}</span><br>
-
-      <tbw-time-editor #sample="ngModel" name="sample" id="sample"
-          tai
-          [max]="max"
-          [min]="min"
-          [viewOnly]="viewOnly && !float"
-          [disabled]="timeDisabled || float"
-          [wideSpinner]="wideSpinner"
-          [options]="getOptions()"
-          [timezone]="customTimezone"
-          [(ngModel)]="time"></tbw-time-editor>
+<div class="demo">
+  <div class='custom-config'>
+    <div class="row">
+      <p-dropdown tzeDropdownAutosizer [options]="styleChoices" [(ngModel)]="customStyle"
+        (onChange)="settingsUpdated()"></p-dropdown>
       <div class="label-pair">
-        <p-checkbox #floatCB binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)"></p-checkbox>
-        <label [for]="floatCB">Float</label>
+        <p-checkbox #viewOnlyCB binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="viewOnlyCB">View only</label>
       </div>
-      <tbw-time-editor *ngIf="float"
-          tai
-          [max]="max"
-          [min]="min"
-          [viewOnly]="viewOnly"
-          [disabled]="timeDisabled"
-          [wideSpinner]="wideSpinner"
-          [options]="getOptions()"
-          [timezone]="customTimezone"
-          floating
-          showCloser
-          (close)="setFloat(false)"
-          [(position)]="floatPosition"
-          [(ngModel)]="time"></tbw-time-editor>
-     <tbw-form-error-display [control]="sample"></tbw-form-error-display>
+      <div class="label-pair">
+        <p-checkbox #disabledCB binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="disabledCB">Disabled</label>
+      </div>
+      <div class="label-pair">
+        <p-checkbox #wideSpinnerCB binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="wideSpinnerCB">Wide spinner</label>
+      </div>
+      <div class="label-pair">
+        <p-checkbox #isoFormatCB binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="isoFormatCB">ISO format</label>
+      </div>
+      <button pButton (click)="setNow()">Now</button>
     </div>
 
-    <div class='calendar'>
-      <tbw-calendar minYear=-9999
-          [locale]="customLocale"
-          showDst
-          weekDayFormat="dd"
-          yearMonthFormat="MMM~y~n"
-          [(ngModel)]="calendarDate"></tbw-calendar>
+    <div class="row">
+      <label>IANA timezone:
+        <p-dropdown tzeDropdownAutosizer [options]="timezones" optionLabel="label" optionValue="value" [(ngModel)]="customTimezone"
+          [filter]="true" filterBy="value" [class.bad-input]="!timezoneGood" (onChange)="settingsUpdated()"></p-dropdown>
+      </label>
+    </div>
+
+    <div class="row">
+      <div class="label-pair">
+        <p-checkbox #showOffsetCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOffset"
+          (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="showOffsetCB">Show UTC offset</label>
+      </div>
+      <div class="label-pair">
+        <p-checkbox #showDstCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showDst"
+          (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="showDstCB">Show DST symbol</label>
+      </div>
+      <div class="label-pair">
+        <p-checkbox #showOccCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOccurrence"
+          (onChange)="settingsUpdated()"></p-checkbox>
+        <label [for]="showOccCB">Show occurrence</label>
+      </div>
+    </div>
+
+    <div class="row">
+      <label [class.tze-disabled]="iso">Locale:
+      <p-dropdown tzeDropdownAutosizer [disabled]="iso"
+        [options]="localeList" [(ngModel)]="customLocale" editable="true"
+        [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-dropdown>
+      </label>
+      <label [class.tze-disabled]="iso">Numbering:
+      <p-dropdown tzeDropdownAutosizer [disabled]="iso"
+        [options]="numSystems" [(ngModel)]="numSystem" [filter]="true" filterBy="name"
+        [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-dropdown></label>
+      <label [class.tze-disabled]="iso">Date component order:
+      <p-dropdown tzeDropdownAutosizer [disabled]="iso"
+        [options]="fieldOrderChoices" [(ngModel)]="dateFieldOrder" (onChange)="settingsUpdated()"></p-dropdown>
+      </label>
+    </div>
+
+    <div class="row">
+      <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === TIME_ONLY"
+        [options]="iso ? yearStyleChoicesIso : yearStyleChoices"
+        [(ngModel)]="yearStyle" (onChange)="settingsUpdated()"></p-dropdown>
+      <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === TIME_ONLY || iso"
+        [options]="yearLengthChoices"
+        [(ngModel)]="yearLength" (onChange)="settingsUpdated()"></p-dropdown>
+      <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === DATE_ONLY || iso"
+        [options]="cycleChoices"
+        [(ngModel)]="customCycle" (onChange)="settingsUpdated()"></p-dropdown>
+      <p-dropdown tzeDropdownAutosizer [disabled]="customStyle === DATE_ONLY"
+        [options]="secondsChoices" optionLabel="label" optionValue="value"
+        [(ngModel)]="secondsMode" (onChange)="settingsUpdated()"></p-dropdown>
+    </div>
+
+    <div class="row">
+      <label>Minimum value<span class="footnote-mark">*</span>:&nbsp;&nbsp;
+      <input pInputText autocorrect="off" [(ngModel)]="min" [style.background-color]="inputBackground(minGood)"></label>
+      <label>Maximum value<span class="footnote-mark">*</span>:&nbsp;&nbsp;
+      <input pInputText autocorrect="off" [(ngModel)]="max" [style.background-color]="inputBackground(maxGood)"></label>
+    </div>
+    <div class="row footnote">
+      *A full or partial ISO date/time value, e.g. 2010-10 to mean nothing earlier or later than October 2010.
     </div>
   </div>
 
-  <p>No API documentation yet exists for these components, but sample code for their use can be found below, and also
-    in the code for <a href="https://github.com/kshetline/sky-view-cafe-astronomy">Sky View Café</a>.
+  <div class='custom-time'>
+    &nbsp;<span>{{ getCustomCaption() }}</span><br>
+
+    <tbw-time-editor #sample="ngModel" name="sample" id="sample" tai [max]="max" [min]="min"
+      [viewOnly]="viewOnly && !float" [disabled]="timeDisabled || float" [wideSpinner]="wideSpinner"
+      [options]="getOptions()" [timezone]="customTimezone" [(ngModel)]="time"></tbw-time-editor>
+    <div class="label-pair">
+      <p-checkbox #floatCB binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)"></p-checkbox>
+      <label [for]="floatCB">Float</label>
+    </div>
+    @if (float) {
+      <tbw-time-editor tai [max]="max" [min]="min" [viewOnly]="viewOnly" [disabled]="timeDisabled" [wideSpinner]="wideSpinner"
+        [options]="getOptions()" [timezone]="customTimezone" floating showCloser
+        (close)="setFloat(false)" [(position)]="floatPosition" [(ngModel)]="time"></tbw-time-editor>
+    }
+    <tbw-form-error-display [control]="sample"></tbw-form-error-display>
+  </div>
+
+  <div class='calendar'>
+    <tbw-calendar minYear=-9999 [locale]="customLocale" showDst weekDayFormat="dd" yearMonthFormat="MMM~y~n"
+      [(ngModel)]="calendarDate"></tbw-calendar>
+  </div>
+</div>
+
+<p>No API documentation yet exists for these components, but sample code for their use can be found below, and also
+  in the code for <a href="https://github.com/kshetline/sky-view-cafe-astronomy">Sky View Café</a>.
 
   <h2>Code for This Website</h2>
 

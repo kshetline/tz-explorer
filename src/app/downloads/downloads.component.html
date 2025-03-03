@@ -6,7 +6,8 @@
     <div>.zip format</div>
     <div>&#64;tubular/time</div>
   </div>
-  <ng-container *ngFor="let version of versions">
+
+  @for (version of versions; track version) {
     <div class="version">{{version}}</div>
     <i class="fas fa-info-circle fa-2x info-icon" [class.disabled]="!notes[version]" (click)="releaseNote = version"></i>
     <div class="links">
@@ -19,12 +20,15 @@
       <a [class.invalid-link]="!linkValid(getTarCodeLink(version))" download [href]="getZipCodeLink(version)">{{nameFromLink(getZipCodeLink(version))}}</a>
       <a [class.invalid-link]="!linkValid(getTarDataLink(version))" download [href]="getZipDataLink(version)">{{nameFromLink(getZipDataLink(version))}}</a>
     </div>
-    <div *ngIf="version >= '2021'; else noCode" class="links">
-      <a [href]="getTypeScriptLink(version, 'small')" target="_blank">{{nameFromLink(getTypeScriptLink(version, 'small'))}}</a>
-      <a [href]="getTypeScriptLink(version, 'large')" target="_blank">{{nameFromLink(getTypeScriptLink(version, 'large'))}}</a>
-      <a [href]="getTypeScriptLink(version, 'large-alt')" target="_blank">{{nameFromLink(getTypeScriptLink(version, 'large-alt'))}}</a>
-    </div>
-    <ng-template #noCode><div class="tze-disabled"><br>n/a</div></ng-template>
-  </ng-container>
+    @if (version >= '2021') {
+      <div class="links">
+        <a [href]="getTypeScriptLink(version, 'small')" target="_blank">{{nameFromLink(getTypeScriptLink(version, 'small'))}}</a>
+        <a [href]="getTypeScriptLink(version, 'large')" target="_blank">{{nameFromLink(getTypeScriptLink(version, 'large'))}}</a>
+        <a [href]="getTypeScriptLink(version, 'large-alt')" target="_blank">{{nameFromLink(getTypeScriptLink(version, 'large-alt'))}}</a>
+      </div>
+    } @else {
+      <div class="tze-disabled"><br>n/a</div>
+    }
+  }
 </div></div>
 <tze-release-note [(release)]="releaseNote"></tze-release-note>

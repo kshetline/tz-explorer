@@ -1,46 +1,53 @@
 <tze-zone-selector [(ngModel)]="selectedTimezone" [autofocus]="false"></tze-zone-selector>
-<div *ngIf="timezone.stdRule && timezone.dstRule" class="dst-rules">
-  <div>Standard Time begins:</div><div>{{formatDstRule(timezone.stdRule)}}</div>
-  <div>Daylight Saving Time begins:</div><div>{{formatDstRule(timezone.dstRule)}}</div>
-</div>
+@if (timezone.stdRule && timezone.dstRule) {
+  <div class="dst-rules">
+    <div>Standard Time begins:</div><div>{{formatDstRule(timezone.stdRule)}}</div>
+    <div>Daylight Saving Time begins:</div><div>{{formatDstRule(timezone.dstRule)}}</div>
+  </div>
+}
 <div class="list-wrapper">
   <div class="scroll-guard">&nbsp;</div>
-  <div *ngIf="transitions; else simpleZone" class="transition-list">
-    <div class="header-1">
-      <div class="header-elem-1" style="grid-column: 1 / span 3">Local time before transition</div>
-      <div>&nbsp;</div>
-      <div style="grid-column: 5 / span 3">Local time after transition</div>
-      <div>&nbsp;</div>
-    </div>
-
-    <div class="header-2">
-      <div class="header-elem-2">Time</div>
-      <div>UTC offset</div>
-      <div>DST</div>
-      <div>&nbsp;</div>
-      <div>Time</div>
-      <div>UTC offset</div>
-      <div>DST</div>
-      <div>Abbr.</div>
-    </div>
-
-    <ng-container *ngFor="let t of (hideTransitions ? [] : transitions); index as i">
-      <div *ngIf="getGapMessage(t, i) as msg" class="gap-row">{{ msg }}</div>
-      <div *ngIf="t.transitionTime === upcomingTransition" class="upcoming-row">&nbsp;</div>
-      <div *ngIf="getRowMessage(t) as msg" class="message-row">{{ msg }}</div>
-      <div class="trans-row" [class.upcoming]="t.transitionTime === upcomingTransition">
-        <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentBefore(t) }}</div>
-        <div [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ offsetBefore(t) }}</div>
-        <div [class.no-dst]="!dstBefore(t, true)" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ dstBefore(t) }}</div>
-        <div class="change-icon"><i [ngClass]="getTransitionIcon(t)"></i></div>
-        <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentAfter(t) }}</div>
-        <div>{{ offsetAfter(t) }}</div>
-        <div [class.no-dst]="!dstAfter(t, true)" [ngClass]="dstAfterStyle(t)">{{ dstAfter(t) }}</div>
-        <div>{{ abbreviationAfter(t) }}</div>
+  @if (transitions) {
+    <div class="transition-list">
+      <div class="header-1">
+        <div class="header-elem-1" style="grid-column: 1 / span 3">Local time before transition</div>
+        <div>&nbsp;</div>
+        <div style="grid-column: 5 / span 3">Local time after transition</div>
+        <div>&nbsp;</div>
       </div>
-    </ng-container>
-  </div>
-  <ng-template #simpleZone>
+      <div class="header-2">
+        <div class="header-elem-2">Time</div>
+        <div>UTC offset</div>
+        <div>DST</div>
+        <div>&nbsp;</div>
+        <div>Time</div>
+        <div>UTC offset</div>
+        <div>DST</div>
+        <div>Abbr.</div>
+      </div>
+      @for (t of (hideTransitions ? [] : transitions); track t; let i = $index) {
+        @if (getGapMessage(t, i); as msg) {
+          <div class="gap-row">{{ msg }}</div>
+        }
+        @if (t.transitionTime === upcomingTransition) {
+          <div class="upcoming-row">&nbsp;</div>
+        }
+        @if (getRowMessage(t); as msg) {
+          <div class="message-row">{{ msg }}</div>
+        }
+        <div class="trans-row" [class.upcoming]="t.transitionTime === upcomingTransition">
+          <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentBefore(t) }}</div>
+          <div [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ offsetBefore(t) }}</div>
+          <div [class.no-dst]="!dstBefore(t, true)" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ dstBefore(t) }}</div>
+          <div class="change-icon"><i [ngClass]="getTransitionIcon(t)"></i></div>
+          <div class="date-time" [style.text-align]="t.transitionTime === NMSI ? 'center' : undefined">{{ momentAfter(t) }}</div>
+          <div>{{ offsetAfter(t) }}</div>
+          <div [class.no-dst]="!dstAfter(t, true)" [ngClass]="dstAfterStyle(t)">{{ dstAfter(t) }}</div>
+          <div>{{ abbreviationAfter(t) }}</div>
+        </div>
+      }
+    </div>
+  } @else {
     <div class="simple">This timezone has a fixed UTC offset of {{timezone.getFormattedOffset(0)}}</div>
-  </ng-template>
+  }
 </div>

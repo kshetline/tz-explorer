@@ -2,7 +2,7 @@ import { Component, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild }
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { abs, max, sign } from '@tubular/math';
 import { Timezone, RegionAndSubzones } from '@tubular/time';
-import { noop, urlEncodeParams } from '@tubular/util';
+import { noop, padLeft, urlEncodeParams } from '@tubular/util';
 import { Subject, Subscription, timer } from 'rxjs';
 import { throttleTime } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -23,6 +23,21 @@ const MISC = 'MISC';
 const UT   = 'UT';
 const OS   = 'OS';
 const LMT  = 'LMT';
+
+let zoneExtras = ['Etc/Greenwich', 'Etc/UTC', 'Etc/UCT', 'Etc/Universal', 'Etc/Zulu', 'Etc/GMT', 'Etc/GMT0', 'Etc/GMT+0'];
+const zoneExtrasLookup: Record<string, string> = {};
+
+zoneExtras.forEach(zone => zoneExtrasLookup[zone] = 'UTC');
+
+for (let i = -12; i <= 14; ++i) {
+  const match = i ? 'UT' + (i < 0 ? '-' : '+') + padLeft(abs(i), 2, '0') + ':00' : 'UTC';
+
+  zoneExtrasLookup[('Etc/GMT' + (i < 0 ? '+' : '-') + abs(i))] = match;
+  zoneExtrasLookup[match] = match;
+  zoneExtrasLookup['UTC' + match.substr(2)] = match;
+}
+
+zoneExtras = Object.keys(zoneExtrasLookup);
 
 interface AtlasLocation {
   displayName: string;
@@ -404,6 +419,8 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
       zones.splice(kiev, 0, 'Europe/Kyiv');
 
     this.matchZones = zones.filter(zone => zone.toLowerCase().includes(query));
+    this.matchZones.push(...Array.from(new Set(zoneExtras
+      .filter(zone => zone.toLowerCase().includes(query)).map(zone => zoneExtrasLookup[zone]))));
 
     if (this.lastRemoteSearch) {
       this.lastRemoteSearch.unsubscribe();

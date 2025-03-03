@@ -1,6 +1,6 @@
 {
   "name": "tz-explorer",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
@@ -24,7 +24,7 @@
     "@fortawesome/fontawesome-free": "^6.2.1",
     "@tubular/math": "^3.3.1",
     "@tubular/ng-widgets": "^2.2.5",
-    "@tubular/time": "^3.9.4",
+    "@tubular/time": "^3.9.6",
     "@tubular/util": "^4.16.1",
     "primeicons": "^6.0.1",
     "primeng": "^15.0.1",

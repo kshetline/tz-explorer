@@ -26,14 +26,16 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": [
+              "detect-resize",
+              "lodash"
+            ],
             "assets": [
               "src/favicon.ico",
               "src/assets"
             ],
             "styles": [
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "node_modules/primeng/resources/themes/nova/theme.css",
-              "node_modules/primeng/resources/primeng.min.css",
               "node_modules/primeicons/primeicons.css",
               "node_modules/@tubular/ng-widgets/assets/styles.css",
               "src/styles.scss"
@@ -105,9 +107,8 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/primeng/resources/themes/fluent-light/theme.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "node_modules/primeng/resources/themes/nova/theme.css",
-              "node_modules/primeng/resources/primeng.min.css",
               "node_modules/primeicons/primeicons.css",
               "node_modules/@tubular/ng-widgets/assets/styles.css",
               "src/styles.scss"

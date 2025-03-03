@@ -1,4 +1,4 @@
-import { HttpClientJsonpModule, HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withJsonpSupport } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -30,6 +30,7 @@ import { ZoneHistoryComponent } from './zone-history/zone-history.component';
 import { ReleaseNoteComponent } from './release-note/release-note.component';
 import { CodeComponent } from './code/code.component';
 import { PDropdownAutosizerDirective } from './util/p-dropdown-autosizer.directive';
+import { appConfig } from './mytheme';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { PDropdownAutosizerDirective } from './util/p-dropdown-autosizer.directi
     ReleaseNoteComponent,
     CodeComponent
   ],
+  bootstrap: [AppComponent],
   imports: [
     AppRoutingModule,
     AutoCompleteModule,
@@ -54,19 +56,19 @@ import { PDropdownAutosizerDirective } from './util/p-dropdown-autosizer.directi
     DialogModule,
     DropdownModule,
     FormsModule,
-    HttpClientJsonpModule,
-    HttpClientModule,
     InputTextModule,
     RadioButtonModule,
     RippleModule,
     TabViewModule,
-    TubularNgWidgetsModule,
+    TubularNgWidgetsModule
   ],
   providers: [
     AppService,
     HttpTimePoller,
-    TzExplorerApi
-  ],
-  bootstrap: [AppComponent]
+    TzExplorerApi,
+    appConfig.providers[1],
+    provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())
+  ]
 })
+
 export class AppModule {}

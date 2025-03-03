@@ -78,10 +78,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "tz-explorer:build:production"
+              "buildTarget": "tz-explorer:build:production"
             },
             "development": {
-              "browserTarget": "tz-explorer:build:development"
+              "buildTarget": "tz-explorer:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -89,7 +89,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "tz-explorer:build"
+            "buildTarget": "tz-explorer:build"
           }
         },
         "test": {

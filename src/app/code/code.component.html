@@ -30,10 +30,22 @@
       <div class="row">
         <p-dropdown tzeDropdownAutosizer [options]="styleChoices" [(ngModel)]="customStyle"
             (onChange)="settingsUpdated()"></p-dropdown>
-        <p-checkbox binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()" label="View only"></p-checkbox>
-        <p-checkbox binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()" label="Disabled"></p-checkbox>
-        <p-checkbox binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()" label="Wide spinner"></p-checkbox>
-        <p-checkbox binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()" label="ISO format"></p-checkbox>
+        <div class="label-pair">
+          <p-checkbox #viewOnlyCB binary="true" [(ngModel)]="viewOnly" (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="viewOnlyCB">View only</label>
+        </div>
+        <div class="label-pair">
+          <p-checkbox #disabledCB binary="true" [(ngModel)]="timeDisabled" (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="disabledCB">Disabled</label>
+        </div>
+        <div class="label-pair">
+          <p-checkbox #wideSpinnerCB binary="true" [(ngModel)]="wideSpinner" (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="wideSpinnerCB">Wide spinner</label>
+        </div>
+        <div class="label-pair">
+          <p-checkbox #isoFormatCB binary="true" [(ngModel)]="iso" (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="isoFormatCB">ISO format</label>
+        </div>
         <button pButton (click)="setNow()">Now</button>
       </div>
 
@@ -44,12 +56,21 @@
       </div>
 
       <div class="row">
-        <p-checkbox [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOffset"
-            (onChange)="settingsUpdated()" label="Show UTC offset"></p-checkbox>
-        <p-checkbox [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showDst"
-            (onChange)="settingsUpdated()" label="Show DST symbol"></p-checkbox>
-        <p-checkbox [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOccurrence"
-            (onChange)="settingsUpdated()" label="Show occurrence"></p-checkbox>
+        <div class="label-pair">
+          <p-checkbox #showOffsetCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOffset"
+              (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="showOffsetCB">Show UTC offset</label>
+        </div>
+        <div class="label-pair">
+          <p-checkbox #showDstCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showDst"
+              (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="showDstCB">Show DST symbol</label>
+        </div>
+        <div class="label-pair">
+          <p-checkbox #showOccCB [disabled]="customStyle === DATE_ONLY" binary="true" [(ngModel)]="showOccurrence"
+              (onChange)="settingsUpdated()"></p-checkbox>
+          <label [for]="showOccCB">Show occurrence</label>
+        </div>
       </div>
 
       <div class="row">
@@ -102,7 +123,10 @@
           [options]="getOptions()"
           [timezone]="customTimezone"
           [(ngModel)]="time"></tbw-time-editor>
-      <p-checkbox binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)" label="Float"></p-checkbox>
+      <div class="label-pair">
+        <p-checkbox #floatCB binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)"></p-checkbox>
+        <label [for]="floatCB">Float</label>
+      </div>
       <tbw-time-editor *ngIf="float"
           tai
           [max]="max"

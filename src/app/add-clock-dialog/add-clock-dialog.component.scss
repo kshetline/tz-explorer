@@ -6,9 +6,6 @@
   .clock-format {
     display: flex;
     padding: 1em 0;
-
-    p-radioButton:not(:first-child) {
-      margin-left: 2em;
-    }
+    gap: 1em;
   }
 }

@@ -3,11 +3,14 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { RippleModule } from 'primeng/ripple';
@@ -56,6 +59,8 @@ import { appConfig } from './mytheme';
     DialogModule,
     DropdownModule,
     FormsModule,
+    IconField,
+    InputIcon,
     InputTextModule,
     RadioButtonModule,
     RippleModule,
@@ -63,10 +68,11 @@ import { appConfig } from './mytheme';
     TubularNgWidgetsModule
   ],
   providers: [
+    provideAnimationsAsync(),
+    appConfig.providers[1],
     AppService,
     HttpTimePoller,
     TzExplorerApi,
-    appConfig.providers[1],
     provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())
   ]
 })

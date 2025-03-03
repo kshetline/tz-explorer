@@ -9,7 +9,7 @@
   }
 }
 
-::ng-deep .p-dropdown {
+p-dropdown {
   width: 100%;
 }
 
@@ -29,10 +29,8 @@
   padding-bottom: 1em;
   position: relative;
 
-  p-autoComplete ::ng-deep {
-    span, input {
-      width: 100%;
-    }
+  p-autoComplete {
+    width: 100%;
   }
 
   i.pi-search {
@@ -51,13 +49,9 @@
 
 .mode-selector {
   display: flex;
+  gap: 1em;
   justify-content: center;
   padding-bottom: 0.5em;
-
-  ::ng-deep .p-radiobutton-label {
-    font-size: 0.9em;
-    margin-left: 0.25em;
-  }
 }
 
 .zone-selector {

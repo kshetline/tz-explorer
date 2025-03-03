@@ -1,8 +1,14 @@
 <div class="top-panel">
   <div class="edit-mode">
-    <p-radioButton name="editMode" [value]="true" [(ngModel)]="running" label="Track current time"></p-radioButton>
-    <p-radioButton name="editMode" [value]="false" [(ngModel)]="running" label="Allow time to be edited"></p-radioButton>
-    <button pButton type="button" label="Now" [disabled]="running" (click)="now()"></button>
+    <div class="label-pair">
+      <p-radioButton #trackCurrent name="editMode" [value]="true" [(ngModel)]="running"></p-radioButton>
+      <label [for]="trackCurrent">Track current time</label>
+    </div>
+    <div class="label-pair">
+      <p-radioButton #allowEdit name="editMode" [value]="false" [(ngModel)]="running"></p-radioButton>
+      <label [for]="allowEdit">Allow time to be edited</label>
+    </div>
+    <button pButton type="button" [disabled]="running" (click)="now()">Now</button>
   </div>
 </div>
 <div #clocksScroller class="clocks">
@@ -84,9 +90,8 @@
   <button *ngIf="window.innerWidth > 740"
       class="tze-dont-wrap-label"
       pButton type="button"
-      label="Add clock"
       icon="pi pi-plus"
-      (click)="openNewClockDialog()"></button>
+      (click)="openNewClockDialog()">Add&nbsp;clock</button>
   <button *ngIf="window.innerWidth <= 740"
       pButton type="button"
       icon="pi pi-plus"

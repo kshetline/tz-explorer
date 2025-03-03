@@ -38,13 +38,14 @@
           }
         }
 
-        .bad-input ::ng-deep {
+        .bad-input ::ng-deep { // TODO
           input, .p-dropdown-label {
             background-color: #FBC;
           }
         }
 
         .row {
+          align-items: center;
           display: flex;
           position: relative;
 
@@ -67,10 +68,13 @@
           font-size: 20px;
         }
 
-        p-checkbox {
+        .label-pair {
+          align-items: center;
+          display: inline-flex;
+          gap: 0.35em;
           margin-left: 1em;
           position: relative;
-          top: -0.5em;
+          top: -0.2em;
         }
       }
 

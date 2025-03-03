@@ -15,27 +15,45 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.p-button.p-button-sm {
-  font-size: 0.75rem;
-  padding: 0.32rem 0.75rem;
+.label-pair {
+  align-items: center;
+  display: flex;
+  gap: 0.35em;
+}
 
-  &.p-button-icon-only {
-    width: 2rem;
-  }
+.p-tabpanels {
+  height: 100%;
+}
 
-  &.p-button-icon-only.p-button-rounded {
-    border-radius: 50%;
-    height: 2rem;
-  }
+.wide > .p-autocomplete {
+  width: 100%;
 
-  .p-button-icon {
-    font-size: 0.75rem;
+  > input {
+    width: 100%;
   }
 }
 
-.tze-dont-wrap-label .p-button-label {
-  white-space: nowrap;
-}
+//.p-button.p-button-sm {
+//  font-size: 0.75rem;
+//  padding: 0.32rem 0.75rem;
+//
+//  &.p-button-icon-only {
+//    width: 2rem;
+//  }
+//
+//  &.p-button-icon-only.p-button-rounded {
+//    border-radius: 50%;
+//    height: 2rem;
+//  }
+//
+//  .p-button-icon {
+//    font-size: 0.75rem;
+//  }
+//}
+
+//.tze-dont-wrap-label .p-button-label {
+//  white-space: nowrap;
+//}
 
 .info-icon {
   cursor: pointer;

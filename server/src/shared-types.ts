@@ -1,6 +1,3 @@
-const { version } = require('../package.json');
-
-export const TZE_VERSION = version;
 export const BACK_IN_TIME_THRESHOLD = 4000;
 
 export interface CurrentDelta {

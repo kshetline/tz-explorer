@@ -32,7 +32,8 @@ const defaultSettings = {
 @Component({
   selector: 'tze-code',
   templateUrl: './code.component.html',
-  styleUrls: ['./code.component.scss']
+  styleUrls: ['./code.component.scss'],
+  standalone: false
 })
 export class CodeComponent {
   DATE_ONLY = DateTimeStyle.DATE_ONLY;

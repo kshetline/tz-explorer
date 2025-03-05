@@ -3,7 +3,8 @@ import { Component, EventEmitter, HostListener, Input, Output } from '@angular/c
 @Component({
   selector: 'tze-add-clock-dialog',
   templateUrl: './add-clock-dialog.component.html',
-  styleUrls: ['./add-clock-dialog.component.scss']
+  styleUrls: ['./add-clock-dialog.component.scss'],
+  standalone: false
 })
 export class AddClockDialogComponent {
   private _visible = false;

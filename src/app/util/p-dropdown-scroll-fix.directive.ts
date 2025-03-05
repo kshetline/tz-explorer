@@ -1,7 +1,8 @@
 import { Directive, ElementRef, OnDestroy, OnInit } from '@angular/core';
 
 @Directive({
-  selector: '[tzeDropdownFix]'
+  selector: '[tzeDropdownFix]',
+  standalone: false
 })
 export class PDropdownFixDirective implements OnDestroy, OnInit {
   private dropdown: HTMLElement;

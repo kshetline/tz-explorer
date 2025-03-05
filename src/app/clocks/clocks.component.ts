@@ -15,7 +15,8 @@ const EARLIEST_GPS = new DateTime('1980-01-06 UTC').taiMillis;
 @Component({
   selector: 'tze-clocks',
   templateUrl: './clocks.component.html',
-  styleUrls: ['./clocks.component.scss']
+  styleUrls: ['./clocks.component.scss'],
+  standalone: false
 })
 export class ClocksComponent implements OnDestroy, OnInit {
   ISO_OPTS = ['ISO', { millisDigits: 3, showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true }];

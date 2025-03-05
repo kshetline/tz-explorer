@@ -4,8 +4,9 @@ import { AppService } from '../app.service';
 
 @Component({
   selector: 'tze-release-note',
-  templateUrl: './release-note.component.html'
+  templateUrl: './release-note.component.html',
   // Due to use of dynamically generated HTML, this component works better using global CSS classes.
+  standalone: false
 })
 export class ReleaseNoteComponent {
   private _release = '';

@@ -22,7 +22,8 @@ interface TransitionExt extends Transition {
 @Component({
   selector: 'tze-zone-history',
   templateUrl: './zone-history.component.html',
-  styleUrls: ['./zone-history.component.scss']
+  styleUrls: ['./zone-history.component.scss'],
+  standalone: false
 })
 export class ZoneHistoryComponent implements OnInit {
   NMSI = NMSI;

@@ -14,7 +14,8 @@ function adjustVersion(version: string): string {
 @Component({
   selector: 'tze-downloads',
   templateUrl: './downloads.component.html',
-  styleUrls: ['./downloads.component.scss']
+  styleUrls: ['./downloads.component.scss'],
+  standalone: false
 })
 export class DownloadsComponent {
   releaseNote = '';

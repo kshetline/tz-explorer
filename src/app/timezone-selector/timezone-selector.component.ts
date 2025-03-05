@@ -127,6 +127,7 @@ function formatSearchResult(location: AtlasLocation): string {
   templateUrl: './timezone-selector.component.html',
   styleUrls: ['./timezone-selector.component.scss'],
   providers: [SVC_ZONE_SELECTOR_VALUE_ACCESSOR],
+  standalone: false
 })
 export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
   regions: string[] = [UT_OPTION];

@@ -5,7 +5,8 @@ import { AppService, AppTab, IS_MOBILE } from './app.service';
 @Component({
   selector: 'tze-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  standalone: false
 })
 export class AppComponent implements OnInit {
   CLOCKS = AppTab.CLOCKS;

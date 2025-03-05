@@ -4,7 +4,8 @@ import { getCssValues, getTextWidth, isObject } from '@tubular/util';
 import { max } from '@tubular/math';
 
 @Directive({
-  selector: '[tzeDropdownAutosizer]'
+  selector: '[tzeDropdownAutosizer]',
+  standalone: false
 })
 export class PDropdownAutosizerDirective implements AfterViewInit {
   private calcWidthTries = 0;

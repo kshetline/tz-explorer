@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AppService } from '../app.service';
+import { ReleaseNoteComponent } from '../release-note/release-note.component';
 
 function adjustVersion(version: string): string {
   if (version < '1996l')
@@ -15,7 +16,7 @@ function adjustVersion(version: string): string {
   selector: 'tze-downloads',
   templateUrl: './downloads.component.html',
   styleUrls: ['./downloads.component.scss'],
-  standalone: false
+  imports: [ReleaseNoteComponent]
 })
 export class DownloadsComponent {
   releaseNote = '';

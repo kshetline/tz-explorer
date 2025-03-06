@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ZoneHistoryComponent } from './zone-history.component';
 
 describe('ZoneHistoryComponent', () => {
@@ -8,7 +7,7 @@ describe('ZoneHistoryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ZoneHistoryComponent]
+      imports: [ZoneHistoryComponent]
     })
       .compileComponents();
   });

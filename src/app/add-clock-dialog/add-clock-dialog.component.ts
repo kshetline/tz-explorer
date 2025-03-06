@@ -1,10 +1,16 @@
 import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Dialog } from 'primeng/dialog';
+import { TimezoneSelectorComponent } from '../timezone-selector/timezone-selector.component';
+import { FormsModule } from '@angular/forms';
+import { RadioButton } from 'primeng/radiobutton';
+import { PrimeTemplate } from 'primeng/api';
+import { ButtonDirective } from 'primeng/button';
 
 @Component({
   selector: 'tze-add-clock-dialog',
   templateUrl: './add-clock-dialog.component.html',
   styleUrls: ['./add-clock-dialog.component.scss'],
-  standalone: false
+  imports: [Dialog, TimezoneSelectorComponent, FormsModule, RadioButton, PrimeTemplate, ButtonDirective]
 })
 export class AddClockDialogComponent {
   private _visible = false;

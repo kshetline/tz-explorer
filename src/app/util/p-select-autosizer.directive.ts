@@ -3,10 +3,7 @@ import { Select } from 'primeng/select';
 import { getCssValues, getTextWidth, isObject } from '@tubular/util';
 import { max } from '@tubular/math';
 
-@Directive({
-  selector: '[tzeSelectAutosizer]',
-  standalone: false
-})
+@Directive({ selector: '[tzeSelectAutosizer]' })
 export class PSelectAutosizerDirective implements AfterViewInit {
   private calcWidthTries = 0;
 

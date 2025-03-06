@@ -35,17 +35,7 @@ import { PSelectAutosizerDirective } from './util/p-select-autosizer.directive';
 import { appConfig } from './mytheme';
 
 @NgModule({
-  declarations: [
-    AddClockDialogComponent,
-    AppComponent,
-    ClocksComponent,
-    PSelectAutosizerDirective,
-    TimezoneSelectorComponent,
-    DownloadsComponent,
-    ZoneHistoryComponent,
-    ReleaseNoteComponent,
-    CodeComponent
-  ],
+  declarations: [AppComponent],
   bootstrap: [AppComponent],
   imports: [
     AppRoutingModule,
@@ -63,7 +53,15 @@ import { appConfig } from './mytheme';
     RippleModule,
     SelectModule,
     TabsModule,
-    TubularNgWidgetsModule
+    TubularNgWidgetsModule,
+    AddClockDialogComponent,
+    ClocksComponent,
+    PSelectAutosizerDirective,
+    TimezoneSelectorComponent,
+    DownloadsComponent,
+    ZoneHistoryComponent,
+    ReleaseNoteComponent,
+    CodeComponent
   ],
   providers: [
     provideAnimationsAsync(),

@@ -1,9 +1,15 @@
 import { Component } from '@angular/core';
-import { DateFieldOrder, DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle } from '@tubular/ng-widgets';
+import { DateFieldOrder, DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle, TubularNgWidgetsModule } from '@tubular/ng-widgets';
 import { clone, isEqual, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
 import { DateAndTime, DateTime, Timezone, YMDDate } from '@tubular/time';
 import { AppService } from '../app.service';
+import { Select } from 'primeng/select';
+import { PSelectAutosizerDirective } from '../util/p-select-autosizer.directive';
+import { FormsModule } from '@angular/forms';
+import { Checkbox } from 'primeng/checkbox';
+import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 
 const intl_DisplayNames = (Intl as any).DisplayNames;
 const defaultSettings = {
@@ -33,7 +39,7 @@ const defaultSettings = {
   selector: 'tze-code',
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss'],
-  standalone: false
+  imports: [Select, PSelectAutosizerDirective, FormsModule, Checkbox, ButtonDirective, InputText, TubularNgWidgetsModule]
 })
 export class CodeComponent {
   DATE_ONLY = DateTimeStyle.DATE_ONLY;
@@ -55,7 +61,6 @@ export class CodeComponent {
   private timezoneChoices: any[];
   private updateTimer: any;
 
-  blank = false;
   customCycle = HourStyle.PER_LOCALE;
   customStyle = DateTimeStyle.DATE_AND_TIME;
   defaultLocale = DateTime.getDefaultLocale();

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { abs, max, sign } from '@tubular/math';
 import { Timezone, RegionAndSubzones } from '@tubular/time';
 import { noop, padLeft, urlEncodeParams } from '@tubular/util';
@@ -7,6 +7,10 @@ import { Subject, Subscription, timer } from 'rxjs';
 import { throttleTime } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { AutoComplete } from 'primeng/autocomplete';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
+import { RadioButton } from 'primeng/radiobutton';
+import { Select } from 'primeng/select';
 
 const SVC_ZONE_SELECTOR_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -125,7 +129,7 @@ function formatSearchResult(location: AtlasLocation): string {
   templateUrl: './timezone-selector.component.html',
   styleUrls: ['./timezone-selector.component.scss'],
   providers: [SVC_ZONE_SELECTOR_VALUE_ACCESSOR],
-  standalone: false
+  imports: [IconField, AutoComplete, FormsModule, InputIcon, RadioButton, Select]
 })
 export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
   regions: string[] = [UT_OPTION];

@@ -76,14 +76,14 @@ provides, among other components, the date/time editor used on this website.</p>
 
     <div class="row">
       <label [class.tze-disabled]="iso">Locale:
-      <p-select tzeSelectAutosizer [disabled]="iso"
+      <p-select [disabled]="iso"
         [options]="localeList" [(ngModel)]="customLocale" editable="true"
-        [class.bad-input]="!localeGood" (onChange)="settingsUpdated()"></p-select>
+        [class.bad-input]="!localeGood" (onChange)="settingsUpdated()" (onBlur)="localeBlurred()"></p-select>
       </label>
       <label [class.tze-disabled]="iso">Numbering:
-      <p-select tzeSelectAutosizer [disabled]="iso"
-        [options]="numSystems" [(ngModel)]="numSystem" [filter]="true" filterBy="name"
-        [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()"></p-select></label>
+      <p-select [disabled]="iso"
+        [options]="numSystems" [(ngModel)]="numSystem" editable="true"
+        [class.bad-input]="!numSystemGood" (onChange)="settingsUpdated()" (onBlur)="numSystemBlurred()"></p-select></label>
       <label [class.tze-disabled]="iso">Date component order:
       <p-select tzeSelectAutosizer [disabled]="iso"
         [options]="fieldOrderChoices" [(ngModel)]="dateFieldOrder" (onChange)="settingsUpdated()"></p-select>

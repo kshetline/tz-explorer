@@ -328,16 +328,16 @@ const MyPreset = definePreset(Material, {
     },
     formField: {
       paddingX: '0.5rem',
-      paddingY: '0.5rem',
+      paddingY: '0.4286rem', // Default override
       sm: {
         fontSize: '0.875rem',
         paddingX: '0.625rem',
-        paddingY: '0.375rem'
+        paddingY: '0.3214rem' // Default override
       },
       lg: {
         fontSize: '1.125rem',
         paddingX: '0.875rem',
-        paddingY: '0.625rem'
+        paddingY: '0.5357rem' // Default override
       },
       borderRadius: '{border.radius.md}',
       focusRing: {
@@ -663,9 +663,17 @@ const MyPreset = definePreset(Material, {
   // ⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄ My UI tweaks ⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄
   components: {
     button: {
-      paddingX: '1rem',
+      paddingX: '0.81rem',
       paddingY: '0.429rem',
-      iconOnlyWidth: '2rem'
+      iconOnlyWidth: '2rem',
+      sm: {
+        paddingX: '0.625rem',
+        paddingY: '0.3218rem'
+      },
+      lg: {
+        paddingX: '1rem',
+        paddingY: '0.5363rem'
+      }
     }
   }
   // ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃ My UI tweaks ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃

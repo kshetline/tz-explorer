@@ -40,7 +40,7 @@ export class CodeComponent {
   TIME_ONLY = DateTimeStyle.TIME_ONLY;
 
   private _calendarDate: YMDDate;
-  private _customLocale = navigator.language;
+  private _customLocale = 'default';
   private _customTimezone = 'America/New_York';
   // noinspection TypeScriptFieldCanBeMadeReadonly
   private initDone = false;
@@ -49,7 +49,7 @@ export class CodeComponent {
   private _max = '';
   private millis = 0;
   private _min = '';
-  private _numSystem = '';
+  private _numSystem = 'default';
   private _secondsMode = 0;
   private showSeconds = false;
   private timezoneChoices: any[];
@@ -94,7 +94,7 @@ export class CodeComponent {
   ];
 
   localeList = [
-    '',
+    'default',
     'af', 'ar', 'ar-dz', 'ar-eg', 'ar-kw', 'ar-ly', 'ar-ma', 'ar-sa', 'ar-tn', 'az', 'be', 'bg', 'bm', 'bn',
     'bn-bd', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'de-at', 'de-ch', 'el', 'en', 'en-au', 'en-ca',
     'en-gb', 'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et', 'eu',
@@ -102,16 +102,18 @@ export class CodeComponent {
     'is', 'it', 'it-ch', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lb', 'lo', 'lt', 'lv',
     'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'ms-my', 'mt', 'my', 'nb', 'ne', 'nl', 'nl-be', 'nn', 'pl', 'pt',
     'pt-br', 'ro', 'ru', 'sd', 'se', 'si', 'sk', 'sl', 'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'tg', 'th',
-    'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw'
-  ].map(s => ({ label: s || 'default', value: s }));
+    'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw',
+    ''
+  ].map(s => ({ label: s, value: s }));
 
   /* cspell:disable */ // noinspection SpellCheckingInspection
   numSystems = [
-    '',
+    'default',
     'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'grek', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
     'lanatham', 'laoo', 'latn', 'lepc', 'limb', 'mlym', 'mong', 'mtei', 'mymr', 'mymrshan', 'mymrtlng', 'nkoo',
-    'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii'
-  ].map(s => ({ label: s || 'default', value: s }));
+    'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii',
+    ''
+  ].map(s => ({ label: s, value: s }));
   /* cspell:enable */
 
   secondsChoices = [
@@ -153,6 +155,13 @@ export class CodeComponent {
     settings = settings ?? defaultSettings;
     this.updateTimer = null;
     Object.keys(defaultSettings).forEach(key => (this as any)[key] = settings[key]);
+
+    if (!this.customLocale)
+      this.customLocale = 'default';
+
+    if (!this.numSystem)
+      this.numSystem = 'default';
+
     this.updateTimer = undefined;
     window.addEventListener('visibilitychange', () => {
       if (this.updateTimer)
@@ -188,6 +197,16 @@ export class CodeComponent {
     }
   }
 
+  localeBlurred(): void {
+    if (!this.customLocale)
+      this.customLocale = 'default';
+  }
+
+  numSystemBlurred(): void {
+    if (!this.numSystem)
+      this.numSystem = 'default';
+  }
+
   get timezones(): any[] {
     if (this.lastZones !== this.appService.timezones || !this.timezoneChoices) {
       this.lastZones = this.appService.timezones;
@@ -219,11 +238,12 @@ export class CodeComponent {
 
   get customLocale(): string { return this._customLocale; }
   set customLocale(newValue: string) {
-    newValue = newValue ?? defaultSettings.customLocale;
+    newValue = newValue || '';
 
     if (this._customLocale !== newValue || !this.localeGood) {
       try {
-        if (newValue) new Intl.DateTimeFormat(newValue);
+        if (newValue && newValue !== 'default')
+          new Intl.DateTimeFormat(newValue);
       }
       catch {
         this.localeGood = false;
@@ -298,9 +318,13 @@ export class CodeComponent {
 
   get numSystem(): string { return this._numSystem; }
   set numSystem(newValue: string) {
-    newValue = newValue ?? defaultSettings.numSystem;
+    newValue = newValue || '';
 
-    if (this._numSystem !== newValue || !this.numSystemGood) {
+    if (!newValue || newValue === 'default') {
+      this.numSystemGood = true;
+      this._numSystem = newValue;
+    }
+    else if (this._numSystem !== newValue || !this.numSystemGood) {
       try {
         if (!newValue || new Intl.NumberFormat('en-u-nu-' + newValue).resolvedOptions().numberingSystem === newValue) {
           this.numSystemGood = true;
@@ -332,9 +356,9 @@ export class CodeComponent {
         dateFieldOrder: this.dateFieldOrder || DateFieldOrder.PER_LOCALE,
         dateTimeStyle: this.customStyle || DateTimeStyle.DATE_AND_TIME,
         hourStyle: this.customCycle || HourStyle.PER_LOCALE,
-        locale: this.customLocale || this.defaultLocale,
+        locale: !this.customLocale || this.customLocale === 'default' ? this.defaultLocale : this.customLocale,
         millisDigits: this.millis,
-        numbering: this.numSystem || undefined,
+        numbering: !this.numSystem || this.numSystem === 'default' ? undefined : this.numSystem,
         showDstSymbol: this.showDst,
         showOccurrence: this.showOccurrence,
         showSeconds: this.showSeconds,
@@ -355,7 +379,7 @@ export class CodeComponent {
     try {
       result = intl_DisplayNames &&
         // eslint-disable-next-line new-cap
-        new (intl_DisplayNames)(lang, { type: 'language' }).of(this.customLocale || navigator.language);
+        new (intl_DisplayNames)(lang, { type: 'language' }).of(this.customLocale || this.defaultLocale);
     }
     catch {}
 

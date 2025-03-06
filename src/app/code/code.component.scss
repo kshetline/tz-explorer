@@ -38,8 +38,8 @@
           }
         }
 
-        .bad-input ::ng-deep { // TODO
-          input, .p-dropdown-label {
+        .bad-input ::ng-deep {
+          input, .p-select-label {
             background-color: #FBC;
           }
         }

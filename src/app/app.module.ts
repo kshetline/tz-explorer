@@ -32,7 +32,7 @@ import { ZoneHistoryComponent } from './zone-history/zone-history.component';
 import { ReleaseNoteComponent } from './release-note/release-note.component';
 import { CodeComponent } from './code/code.component';
 import { PSelectAutosizerDirective } from './util/p-select-autosizer.directive';
-import { appConfig } from './mytheme';
+import { themeProvider } from './mytheme';
 
 @NgModule({
   declarations: [AppComponent],
@@ -65,7 +65,7 @@ import { appConfig } from './mytheme';
   ],
   providers: [
     provideAnimationsAsync(),
-    appConfig.providers[1],
+    themeProvider,
     AppService,
     HttpTimePoller,
     TzExplorerApi,

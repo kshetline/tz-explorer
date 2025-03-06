@@ -28,26 +28,26 @@
 
 <div class="zone-selector">
   <div class="by-region" [style.opacity]="+!selectByOffset" [style.pointer-events]="selectByOffset ? 'none' : 'auto'">
-    <p-dropdown tzeDropdownFix [autoDisplayFirst]="false"
-         [options]="regions" [(ngModel)]="region"  [disabled]="disabled || selectByOffset" (focus)="onDropdownFocus($event)"
-         appendTo="body" (blur)="onDropdownBlur($event)"></p-dropdown>
+    <p-select tzeSelectFix
+         [options]="regions" [(ngModel)]="region"  [disabled]="disabled || selectByOffset" (focus)="onSelectFocus($event)"
+         appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">Timezone region/category</div>
 
-    <p-dropdown tzeDropdownFix [autoDisplayFirst]="false"
-         [options]="subzones" [(ngModel)]="subzone" [disabled]="disabled || selectByOffset" (focus)="onDropdownFocus($event)"
-         appendTo="body" (blur)="onDropdownBlur($event)"></p-dropdown>
+    <p-select tzeSelectFix
+         [options]="subzones" [(ngModel)]="subzone" [disabled]="disabled || selectByOffset" (focus)="onSelectFocus($event)"
+         appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">Specific timezone</div>
   </div>
 
   <div class="by-offset" [style.opacity]="+selectByOffset" [style.pointer-events]="selectByOffset ? 'auto' : 'none'">
-    <p-dropdown tzeDropdownFix [autoDisplayFirst]="false"
-         [options]="offsets"  [(ngModel)]="offset"  [disabled]="disabled || !selectByOffset" (focus)="onDropdownFocus($event)"
-         appendTo="body" (blur)="onDropdownBlur($event)"></p-dropdown>
+    <p-select tzeSelectFix
+         [options]="offsets"  [(ngModel)]="offset"  [disabled]="disabled || !selectByOffset" (focus)="onSelectFocus($event)"
+         appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">UTC offset/DST</div>
 
-    <p-dropdown tzeDropdownFix [autoDisplayFirst]="false"
-         [options]="zones" [(ngModel)]="zone" [disabled]="disabled || !selectByOffset" (focus)="onDropdownFocus($event)"
-         appendTo="body" (blur)="onDropdownBlur($event)"></p-dropdown>
+    <p-select tzeSelectFix
+         [options]="zones" [(ngModel)]="zone" [disabled]="disabled || !selectByOffset" (focus)="onSelectFocus($event)"
+         appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">Specific timezone</div>
   </div>
   <p [hidden]="!error" class="error">{{error}}</p>

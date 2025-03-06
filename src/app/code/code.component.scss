@@ -32,10 +32,6 @@
           align-items: baseline;
           display: flex;
           white-space: nowrap;
-
-          p-dropdown {
-            margin-left: 0.5em;
-          }
         }
 
         .bad-input ::ng-deep { // TODO

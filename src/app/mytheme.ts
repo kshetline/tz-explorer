@@ -9,10 +9,10 @@ const MyPreset = definePreset(Material, {
     borderRadius: {
       none: '0',
       xs: '2px',
-      sm: '4px',
-      md: '6px',
-      lg: '8px',
-      xl: '12px'
+      sm: '2px', // Default override
+      md: '3px', // Default override
+      lg: '4px', // Default override
+      xl: '6px'  // Default override
     },
     emerald: {
       50: '#ecfdf5',
@@ -659,7 +659,16 @@ const MyPreset = definePreset(Material, {
         }
       }
     }
+  },
+  // ⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄ My UI tweaks ⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄⌄
+  components: {
+    button: {
+      paddingX: '1rem',
+      paddingY: '0.429rem',
+      iconOnlyWidth: '2rem'
+    }
   }
+  // ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃ My UI tweaks ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
 });
 
 export const appConfig: ApplicationConfig = {

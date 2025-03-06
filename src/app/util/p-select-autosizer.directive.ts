@@ -1,19 +1,17 @@
 import { AfterViewInit, Directive, ElementRef } from '@angular/core';
-import { Dropdown } from 'primeng/dropdown';
+import { Select } from 'primeng/select';
 import { getCssValues, getTextWidth, isObject } from '@tubular/util';
 import { max } from '@tubular/math';
 
 @Directive({
-  selector: '[tzeDropdownAutosizer]',
+  selector: '[tzeSelectAutosizer]',
   standalone: false
 })
-export class PDropdownAutosizerDirective implements AfterViewInit {
+export class PSelectAutosizerDirective implements AfterViewInit {
   private calcWidthTries = 0;
 
-  hostComponent: any;
-
   constructor(
-    private host: Dropdown,
+    private host: Select,
     private elementRef: ElementRef
   ) {}
 
@@ -23,7 +21,7 @@ export class PDropdownAutosizerDirective implements AfterViewInit {
 
   private calcWidth(): void {
     const elem = this.elementRef.nativeElement as HTMLElement;
-    const trigger = elem.querySelector('.p-dropdown-trigger');
+    const trigger = elem.querySelector('.p-select-trigger');
     const triggerWidth = trigger?.getBoundingClientRect()?.width;
 
     if (!triggerWidth || !this.host.options || this.host.options.length === 0) {
@@ -34,7 +32,7 @@ export class PDropdownAutosizerDirective implements AfterViewInit {
     }
 
     let maxWidth = 0;
-    const label = elem.querySelector('.p-dropdown-label') as HTMLElement;
+    const label = elem.querySelector('.p-select-label') as HTMLElement;
 
     for (const opt of this.host.options) {
       let text: string;
@@ -47,7 +45,7 @@ export class PDropdownAutosizerDirective implements AfterViewInit {
       maxWidth = max(getTextWidth(text, label), maxWidth);
     }
 
-    const comp = elem.querySelector('.p-dropdown.p-component');
+    const comp = elem.querySelector('.p-select.p-component');
 
     maxWidth += (comp && getCssValues(comp, ['border-left-width', 'border-right-width'])
       .reduce((sum, curr) => sum + parseFloat(curr), 0)) ?? 2;

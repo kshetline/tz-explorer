@@ -307,14 +307,14 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
     }
   }
 
-  onDropdownFocus(event: any): void {
+  onSelectFocus(event: any): void {
     this.hasFocus = true;
 
     if (this.focusCount++ === 0)
       this.focus.emit(event);
   }
 
-  onDropdownBlur(event: any): void {
+  onSelectBlur(event: any): void {
     this.hasFocus = false;
     // If focus is lost and hasn't come back to a different selection on the next event cycle, assume
     // the selector as a whole has lost focus.

@@ -17,12 +17,10 @@ const SVC_ZONE_SELECTOR_VALUE_ACCESSOR: any = {
 const MISC_OPTION = '- Miscellaneous -';
 const UT_OPTION   = '- UTC hour offsets -';
 const OS_OPTION   = '- Your OS timezone -';
-const LMT_OPTION  = '- Local Mean Time -';
 
 const MISC = 'MISC';
 const UT   = 'UT';
 const OS   = 'OS';
-const LMT  = 'LMT';
 
 let zoneExtras = ['Etc/Greenwich', 'Etc/UTC', 'Etc/UCT', 'Etc/Universal', 'Etc/Zulu', 'Etc/GMT', 'Etc/GMT0', 'Etc/GMT+0'];
 const zoneExtrasLookup: Record<string, string> = {};
@@ -209,8 +207,6 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
       return null;
     else if (this._region === MISC_OPTION || this._region === UT_OPTION)
       return this._subzone;
-    else if (this._region === LMT_OPTION)
-      return LMT;
     else if (this._region === OS_OPTION)
       return OS;
     else if (this._subzone.startsWith('UT'))
@@ -250,7 +246,7 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
       let g1 = groups[1];
       let g2 = groups[2];
 
-      if (!this.knownIanaZones.has(newZone) && g1 !== LMT && g1 !== OS && !g1.startsWith(UT)) {
+      if (!this.knownIanaZones.has(newZone) && g1 !== OS && !g1.startsWith(UT)) {
         g1 = OS;
         g2 = undefined;
       }
@@ -262,10 +258,6 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
         if (g1.startsWith(UT)) {
           this.setRegion(UT_OPTION);
           this.subzone = g1;
-        }
-        else if (g1 === LMT) {
-          this.setRegion(LMT_OPTION);
-          this.subzone = '';
         }
         else if (g1 === OS) {
           this.setRegion(OS_OPTION);
@@ -472,7 +464,6 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
 
     rAndS.push({ region: UT_OPTION, subzones: hourOffsets });
     rAndS.push({ region: OS_OPTION, subzones: [] });
-    rAndS.push({ region: LMT_OPTION, subzones: [] });
 
     rAndS.forEach((region: RegionAndSubzones) => {
       if (region.region === MISC)
@@ -568,8 +559,6 @@ export class TimezoneSelectorComponent implements ControlValueAccessor, OnInit {
 
       if (this.subzones.length > 0 && this.subzone)
         this._value = this.value;
-      else if (newRegion === LMT_OPTION)
-        this._value = LMT;
       else if (this._region === OS_OPTION)
         this._value = OS;
 

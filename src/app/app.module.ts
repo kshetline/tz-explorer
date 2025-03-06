@@ -14,7 +14,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { RippleModule } from 'primeng/ripple';
 import { SelectModule } from 'primeng/select';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 
 import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
 
@@ -62,7 +62,7 @@ import { appConfig } from './mytheme';
     RadioButtonModule,
     RippleModule,
     SelectModule,
-    TabViewModule,
+    TabsModule,
     TubularNgWidgetsModule
   ],
   providers: [

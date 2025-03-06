@@ -109,7 +109,7 @@ export class CodeComponent {
   /* cspell:disable */ // noinspection SpellCheckingInspection
   numSystems = [
     'default',
-    'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'grek', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
+    'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
     'lanatham', 'laoo', 'latn', 'lepc', 'limb', 'mlym', 'mong', 'mtei', 'mymr', 'mymrshan', 'mymrtlng', 'nkoo',
     'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii',
     ''
@@ -372,14 +372,17 @@ export class CodeComponent {
     if (this.iso)
       return 'ISO 8601 format';
 
-    lang = lang || this.customLocale.toLowerCase().substr(0, 2) || navigator.language;
+    const locale = this.customLocale;
+
+    lang = lang || (locale !== 'default' && locale.substr(0, 2)) || navigator.language;
 
     let result = '?';
 
     try {
       result = intl_DisplayNames &&
         // eslint-disable-next-line new-cap
-        new (intl_DisplayNames)(lang, { type: 'language' }).of(this.customLocale || this.defaultLocale);
+        new (intl_DisplayNames)(lang, { type: 'language' })
+          .of(!this.customLocale || this.customLocale === 'default' ? this.defaultLocale : this.customLocale);
     }
     catch {}
 

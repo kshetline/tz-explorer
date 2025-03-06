@@ -23,7 +23,6 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppService } from './app.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-import { PSelectFixDirective } from './util/p-select-scroll-fix.directive';
 import { TimezoneSelectorComponent } from './timezone-selector/timezone-selector.component';
 import { TzExplorerApi } from './api/api';
 import { HttpTimePoller } from './http-time-poller/http-time-poller';
@@ -41,7 +40,6 @@ import { appConfig } from './mytheme';
     AppComponent,
     ClocksComponent,
     PSelectAutosizerDirective,
-    PSelectFixDirective,
     TimezoneSelectorComponent,
     DownloadsComponent,
     ZoneHistoryComponent,

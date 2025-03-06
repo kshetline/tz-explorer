@@ -28,24 +28,24 @@
 
 <div class="zone-selector">
   <div class="by-region" [style.opacity]="+!selectByOffset" [style.pointer-events]="selectByOffset ? 'none' : 'auto'">
-    <p-select tzeSelectFix
+    <p-select
          [options]="regions" [(ngModel)]="region"  [disabled]="disabled || selectByOffset" (focus)="onSelectFocus($event)"
          appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">Timezone region/category</div>
 
-    <p-select tzeSelectFix
+    <p-select
          [options]="subzones" [(ngModel)]="subzone" [disabled]="disabled || selectByOffset" (focus)="onSelectFocus($event)"
          appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">Specific timezone</div>
   </div>
 
   <div class="by-offset" [style.opacity]="+selectByOffset" [style.pointer-events]="selectByOffset ? 'auto' : 'none'">
-    <p-select tzeSelectFix
+    <p-select
          [options]="offsets"  [(ngModel)]="offset"  [disabled]="disabled || !selectByOffset" (focus)="onSelectFocus($event)"
          appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">UTC offset/DST</div>
 
-    <p-select tzeSelectFix
+    <p-select
          [options]="zones" [(ngModel)]="zone" [disabled]="disabled || !selectByOffset" (focus)="onSelectFocus($event)"
          appendTo="body" (blur)="onSelectBlur($event)"></p-select>
     <div class="caption">Specific timezone</div>

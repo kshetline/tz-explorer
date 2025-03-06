@@ -21,7 +21,7 @@ export class PSelectAutosizerDirective implements AfterViewInit {
 
   private calcWidth(): void {
     const elem = this.elementRef.nativeElement as HTMLElement;
-    const trigger = elem.querySelector('.p-select-trigger');
+    const trigger = elem.querySelector('.p-select-dropdown');
     const triggerWidth = trigger?.getBoundingClientRect()?.width;
 
     if (!triggerWidth || !this.host.options || this.host.options.length === 0) {

@@ -22,7 +22,8 @@
         border-top: 1px solid #CCC;
         display: flex;
         flex-direction: column;
-        padding: 0.5em;
+        margin-top: 1.5em;
+        padding: 1em 0.5em;
 
         > *:not(:first-child) {
           margin-top: 0.5em;

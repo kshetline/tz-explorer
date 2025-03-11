@@ -29,10 +29,6 @@
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "allowedCommonJsDependencies": [
-              "detect-resize",
-              "lodash"
-            ],
             "assets": [
               "src/favicon.ico",
               "src/assets"

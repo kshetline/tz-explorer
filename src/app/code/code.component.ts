@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
-import { DateFieldOrder, DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle, TubularNgWidgetsModule } from '@tubular/ng-widgets';
-import { clone, isEqual, toNumber } from '@tubular/util';
+import {
+  CalendarPanelComponent, DateFieldOrder, DateTimeStyle, FormErrorDisplayComponent, HourStyle, MixedTimeEditorOptions,
+  TimeEditorComponent, TimeEditorLimit, YearStyle
+} from '@tubular/ng-widgets';
+import { clone, isArray, isEqual, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
 import { DateAndTime, DateTime, Timezone, YMDDate } from '@tubular/time';
 import { AppService } from '../app.service';
@@ -39,7 +42,8 @@ const defaultSettings = {
   selector: 'tze-code',
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss'],
-  imports: [Select, PSelectAutosizerDirective, FormsModule, Checkbox, ButtonDirective, InputText, TubularNgWidgetsModule]
+  imports: [Select, PSelectAutosizerDirective, FormsModule, Checkbox, ButtonDirective, InputText,
+            TimeEditorComponent, FormErrorDisplayComponent, CalendarPanelComponent, FormsModule]
 })
 export class CodeComponent {
   DATE_ONLY = DateTimeStyle.DATE_ONLY;
@@ -102,9 +106,9 @@ export class CodeComponent {
     'default',
     'af', 'ar', 'ar-dz', 'ar-eg', 'ar-kw', 'ar-ly', 'ar-ma', 'ar-sa', 'ar-tn', 'az', 'be', 'bg', 'bm', 'bn',
     'bn-bd', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'de-at', 'de-ch', 'el', 'en', 'en-au', 'en-ca',
-    'en-gb', 'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et', 'eu',
-    'fa', 'fi', 'fil', 'fo', 'fr', 'fr-ca', 'fr-ch', 'fy', 'ga', 'gd', 'gl', 'gu', 'hi', 'hr', 'hu', 'hy-am',
-    'is', 'it', 'it-ch', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lb', 'lo', 'lt', 'lv',
+    'en-gb', 'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'en-us', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et',
+    'eu', 'fa', 'fi', 'fil', 'fo', 'fr', 'fr-ca', 'fr-ch', 'fy', 'ga', 'gd', 'gl', 'gu', 'hi', 'hr', 'hu',
+    'hy-am', 'is', 'it', 'it-ch', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lb', 'lo', 'lt', 'lv',
     'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'ms-my', 'mt', 'my', 'nb', 'ne', 'nl', 'nl-be', 'nn', 'pl', 'pt',
     'pt-br', 'ro', 'ru', 'sd', 'se', 'si', 'sk', 'sl', 'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'tg', 'th',
     'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw',
@@ -261,6 +265,13 @@ export class CodeComponent {
     }
   }
 
+  getCustomLocale(): string {
+    if (this.customLocale === 'default')
+      return isArray(this.defaultLocale) ? this.defaultLocale[0] : this.defaultLocale;
+    else
+      return this.customLocale;
+  }
+
   get customTimezone(): string { return this._customTimezone; }
   set customTimezone(newValue: string) {
     newValue = newValue ?? defaultSettings.customTimezone;
@@ -361,7 +372,7 @@ export class CodeComponent {
         dateFieldOrder: this.dateFieldOrder || DateFieldOrder.PER_LOCALE,
         dateTimeStyle: this.customStyle || DateTimeStyle.DATE_AND_TIME,
         hourStyle: this.customCycle || HourStyle.PER_LOCALE,
-        locale: !this.customLocale || this.customLocale === 'default' ? this.defaultLocale : this.customLocale,
+        locale: this.getCustomLocale(),
         millisDigits: this.millis,
         numbering: !this.numSystem || this.numSystem === 'default' ? undefined : this.numSystem,
         showDstSymbol: this.showDst,

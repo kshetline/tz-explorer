@@ -121,22 +121,22 @@ provides, among other components, the date/time editor used on this website.</p>
 
     <tbw-time-editor #sample="ngModel" name="sample" id="sample" tai [max]="max" [min]="min"
       [viewOnly]="viewOnly && !float" [disabled]="timeDisabled || float" [wideSpinner]="wideSpinner"
-      [options]="getOptions()" [timezone]="customTimezone" [(ngModel)]="time"></tbw-time-editor>
+      [options]="getOptions()" [timezone]="getCustomLocale()" [(ngModel)]="time"></tbw-time-editor>
     <div class="label-pair">
       <p-checkbox #floatCB binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)"></p-checkbox>
       <label [for]="floatCB">Float</label>
     </div>
     @if (float) {
       <tbw-time-editor tai [max]="max" [min]="min" [viewOnly]="viewOnly" [disabled]="timeDisabled" [wideSpinner]="wideSpinner"
-        [options]="getOptions()" [timezone]="customTimezone" floating showCloser
+        [options]="getOptions()" [timezone]="getCustomLocale()" floating showCloser
         (close)="setFloat(false)" [(position)]="floatPosition" [(ngModel)]="time"></tbw-time-editor>
     }
     <tbw-form-error-display [control]="sample"></tbw-form-error-display>
   </div>
 
   <div class='calendar'>
-    <tbw-calendar minYear=-9999 [locale]="customLocale" showDst weekDayFormat="dd" yearMonthFormat="MMM~y~n"
-      [(ngModel)]="calendarDate"></tbw-calendar>
+    <tbw-calendar minYear=-9999 [locale]="getCustomLocale()" showDst weekDayFormat="dd" yearMonthFormat="MMM~y~n"
+      [timezone]="customTimezone" [(ngModel)]="calendarDate"></tbw-calendar>
   </div>
 </div>
 

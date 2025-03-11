@@ -7,7 +7,7 @@ import { AppService, DEFAULT_EXTRA_ZONE, ExtraClock, IS_MOBILE } from '../app.se
 import { RadioButton } from 'primeng/radiobutton';
 import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
-import { TubularNgWidgetsModule } from '@tubular/ng-widgets';
+import { TimeEditorComponent } from '@tubular/ng-widgets';
 import { NgTemplateOutlet } from '@angular/common';
 import { Ripple } from 'primeng/ripple';
 import { AddClockDialogComponent } from '../add-clock-dialog/add-clock-dialog.component';
@@ -22,8 +22,8 @@ const EARLIEST_GPS = new DateTime('1980-01-06 UTC').taiMillis;
   selector: 'tze-clocks',
   templateUrl: './clocks.component.html',
   styleUrls: ['./clocks.component.scss'],
-  imports: [RadioButton, FormsModule, ButtonDirective, TubularNgWidgetsModule, NgTemplateOutlet, Ripple,
-            AddClockDialogComponent]
+  imports: [RadioButton, FormsModule, ButtonDirective, NgTemplateOutlet, Ripple,
+            AddClockDialogComponent, TimeEditorComponent]
 })
 export class ClocksComponent implements OnDestroy, OnInit {
   ISO_OPTS = ['ISO', { millisDigits: 3, showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true }];

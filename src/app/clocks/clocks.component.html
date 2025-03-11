@@ -51,8 +51,8 @@
     <div class="clock-label">{{clock.zone.replace('/Kiev', '/Kyiv')}}</div>
     <div #clockRow class="clock-row">{{checkIfNewClock(index, clockRow)}}
       <div class="extra-on-left"><div>
-        <button pButton pRipple type="button" pButtonIcon="pi pi-times" (click)="closeClock(index)"
-        class="p-button-rounded p-button-danger p-button-outlined p-button-sm"></button>
+        <p-button pRipple icon="pi pi-times" (click)="closeClock(index)" variant="outlined" [rounded]="true"
+                  severity="danger"></p-button>
       </div></div>
       <tbw-time-editor tai [options]="clock.localFormat ? LOCAL_OPTS : ISO_OPTS" [min]="MIN_YEAR" [max]="MAX_YEAR"
         [viewOnly]="running" [(ngModel)]="time" [timezone]="clock.zone"></tbw-time-editor>
@@ -67,17 +67,10 @@
 
 <ng-template #addButton>
   @if (window.innerWidth > 740) {
-    <button
-      class="tze-dont-wrap-label"
-      pButton type="button"
-      pButtonIcon="pi pi-plus"
-    (click)="openNewClockDialog()">Add&nbsp;clock</button>
+    <p-button icon="pi pi-plus" label="Add&nbsp;clock" (click)="openNewClockDialog()"></p-button>
   }
   @if (window.innerWidth <= 740) {
-    <button
-      pButton type="button"
-      pButtonIcon="pi pi-plus"
-    (click)="openNewClockDialog()"></button>
+    <p-button class="clock-add" icon="pi pi-plus" (click)="openNewClockDialog()"></p-button>
   }
 </ng-template>
 

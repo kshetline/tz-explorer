@@ -7,19 +7,26 @@
         (click)="releaseNote = latestTzVersion"></i>
   </h2>
 </div>
-<p-tabView class="tab-view" [(activeIndex)]="tabIndex">
-  <p-tabPanel [header]="'Current Time/Time Conv' + (window.innerWidth < 620 ? '.' : 'ersions')"
-      [class.tze-tab-selected]="tabIndex === CLOCKS">
-    <tze-clocks></tze-clocks>
-  </p-tabPanel>
-  <p-tabPanel [header]="(window.innerWidth < 620 ? 'TZ' : 'Timezone') + ' History'" [class.tze-tab-selected]="tabIndex === HISTORY">
-    <tze-zone-history [hideTransitions]="tabIndex !== HISTORY"></tze-zone-history>
-  </p-tabPanel>
-  <p-tabPanel header="Downloads" [class.tze-tab-selected]="tabIndex === DOWNLOADS">
-    <tze-downloads></tze-downloads>
-  </p-tabPanel>
-  <p-tabPanel header="Code" [class.tze-tab-selected]="tabIndex === CODE">
-    <tze-code></tze-code>
-  </p-tabPanel>
-</p-tabView>
+<p-tabs class="tab-view" [(value)]="tabIndex">
+  <p-tablist>
+    <p-tab [value]="CLOCKS">{{ 'Current Time/Time Conv' + (window.innerWidth < 620 ? '.' : 'ersions') }}</p-tab>
+    <p-tab [value]="HISTORY">{{ (window.innerWidth < 620 ? 'TZ' : 'Timezone') + ' History' }}</p-tab>
+    <p-tab [value]="DOWNLOADS">Downloads</p-tab>
+    <p-tab [value]="CODE">Code</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <p-tabpanel [value]="CLOCKS">
+      <tze-clocks></tze-clocks>
+    </p-tabpanel>
+    <p-tabpanel [value]="HISTORY">
+      <tze-zone-history [hideTransitions]="tabIndex !== HISTORY"></tze-zone-history>
+    </p-tabpanel>
+    <p-tabpanel [value]="DOWNLOADS">
+      <tze-downloads></tze-downloads>
+    </p-tabpanel>
+    <p-tabpanel [value]="CODE">
+      <tze-code></tze-code>
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
 <tze-release-note [(release)]="releaseNote"></tze-release-note>

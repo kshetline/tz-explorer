@@ -111,6 +111,7 @@ export class AppService implements OnDestroy {
       catch {}
     }
     else {
+      Object.keys(this.prefs).forEach(key => delete (this.prefs as any)[key]);
       Object.assign(this.prefs, clone(newPrefs));
 
       if (!this.prefsTimer)

@@ -6,9 +6,7 @@ describe('ClocksComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
-      ],
-      declarations: [
+        RouterTestingModule,
         ClocksComponent
       ],
     }).compileComponents();

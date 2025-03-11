@@ -2,6 +2,9 @@ import { Component, Input, OnInit } from '@angular/core';
 import { DateTime, Timezone, Transition } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 import { AppService } from '../app.service';
+import { TimezoneSelectorComponent } from '../timezone-selector/timezone-selector.component';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
 
 const NMSI = Number.MIN_SAFE_INTEGER;
 
@@ -22,7 +25,8 @@ interface TransitionExt extends Transition {
 @Component({
   selector: 'tze-zone-history',
   templateUrl: './zone-history.component.html',
-  styleUrls: ['./zone-history.component.scss']
+  styleUrls: ['./zone-history.component.scss'],
+  imports: [TimezoneSelectorComponent, FormsModule, NgClass]
 })
 export class ZoneHistoryComponent implements OnInit {
   NMSI = NMSI;

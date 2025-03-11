@@ -1,11 +1,19 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { TzExplorerApi } from './api/api';
 import { AppService, AppTab, IS_MOBILE } from './app.service';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
+import { ClocksComponent } from './clocks/clocks.component';
+import { ZoneHistoryComponent } from './zone-history/zone-history.component';
+import { DownloadsComponent } from './downloads/downloads.component';
+import { CodeComponent } from './code/code.component';
+import { ReleaseNoteComponent } from './release-note/release-note.component';
 
 @Component({
   selector: 'tze-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  imports: [Tabs, TabList, Tab, TabPanels, TabPanel, ClocksComponent, ZoneHistoryComponent, DownloadsComponent,
+            CodeComponent, ReleaseNoteComponent]
 })
 export class AppComponent implements OnInit {
   CLOCKS = AppTab.CLOCKS;

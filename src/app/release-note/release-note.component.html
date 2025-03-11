@@ -1,5 +1,7 @@
-<div *ngIf="release" class="note-wrapper" (click)="release = ''">
-  <div style="flex: 1 1 0">&nbsp;</div>
-  <div class="note-display" [innerHTML]="getNote(release)" (click)="onNoteClick($event)"></div>
-  <div style="flex: 3 3 0">&nbsp;</div>
-</div>
+@if (release) {
+  <div class="note-wrapper" (click)="release = ''">
+    <div style="flex: 1 1 0">&nbsp;</div>
+    <div class="note-display" [innerHTML]="getNote(release)" (click)="onNoteClick($event)"></div>
+    <div style="flex: 3 3 0">&nbsp;</div>
+  </div>
+}

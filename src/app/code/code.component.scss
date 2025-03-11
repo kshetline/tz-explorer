@@ -22,7 +22,8 @@
         border-top: 1px solid #CCC;
         display: flex;
         flex-direction: column;
-        padding: 0.5em;
+        margin-top: 1.5em;
+        padding: 1em 0.5em;
 
         > *:not(:first-child) {
           margin-top: 0.5em;
@@ -33,18 +34,19 @@
           display: flex;
           white-space: nowrap;
 
-          p-dropdown {
+          p-select {
             margin-left: 0.5em;
           }
         }
 
         .bad-input ::ng-deep {
-          input, .p-dropdown-label {
+          input, .p-select-label {
             background-color: #FBC;
           }
         }
 
         .row {
+          align-items: center;
           display: flex;
           position: relative;
 
@@ -67,10 +69,13 @@
           font-size: 20px;
         }
 
-        p-checkbox {
+        .label-pair {
+          align-items: center;
+          display: inline-flex;
+          gap: 0.35em;
           margin-left: 1em;
           position: relative;
-          top: -0.5em;
+          top: -0.2em;
         }
       }
 

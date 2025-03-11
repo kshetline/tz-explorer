@@ -1,9 +1,18 @@
 import { Component } from '@angular/core';
-import { DateFieldOrder, DateTimeStyle, HourStyle, MixedTimeEditorOptions, TimeEditorLimit, YearStyle } from '@tubular/ng-widgets';
-import { clone, isEqual, toNumber } from '@tubular/util';
+import {
+  CalendarPanelComponent, DateFieldOrder, DateTimeStyle, FormErrorDisplayComponent, HourStyle, MixedTimeEditorOptions,
+  TimeEditorComponent, TimeEditorLimit, YearStyle
+} from '@tubular/ng-widgets';
+import { clone, isArray, isEqual, toNumber } from '@tubular/util';
 import { max, Point } from '@tubular/math';
 import { DateAndTime, DateTime, Timezone, YMDDate } from '@tubular/time';
 import { AppService } from '../app.service';
+import { Select } from 'primeng/select';
+import { PSelectAutosizerDirective } from '../util/p-select-autosizer.directive';
+import { FormsModule } from '@angular/forms';
+import { Checkbox } from 'primeng/checkbox';
+import { ButtonDirective } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 
 const intl_DisplayNames = (Intl as any).DisplayNames;
 const defaultSettings = {
@@ -32,14 +41,16 @@ const defaultSettings = {
 @Component({
   selector: 'tze-code',
   templateUrl: './code.component.html',
-  styleUrls: ['./code.component.scss']
+  styleUrls: ['./code.component.scss'],
+  imports: [Select, PSelectAutosizerDirective, FormsModule, Checkbox, ButtonDirective, InputText,
+            TimeEditorComponent, FormErrorDisplayComponent, CalendarPanelComponent, FormsModule]
 })
 export class CodeComponent {
   DATE_ONLY = DateTimeStyle.DATE_ONLY;
   TIME_ONLY = DateTimeStyle.TIME_ONLY;
 
   private _calendarDate: YMDDate;
-  private _customLocale = navigator.language;
+  private _customLocale = 'default';
   private _customTimezone = 'America/New_York';
   // noinspection TypeScriptFieldCanBeMadeReadonly
   private initDone = false;
@@ -48,13 +59,12 @@ export class CodeComponent {
   private _max = '';
   private millis = 0;
   private _min = '';
-  private _numSystem = '';
+  private _numSystem = 'default';
   private _secondsMode = 0;
   private showSeconds = false;
   private timezoneChoices: any[];
   private updateTimer: any;
 
-  blank = false;
   customCycle = HourStyle.PER_LOCALE;
   customStyle = DateTimeStyle.DATE_AND_TIME;
   defaultLocale = DateTime.getDefaultLocale();
@@ -93,24 +103,26 @@ export class CodeComponent {
   ];
 
   localeList = [
-    '',
+    'default',
     'af', 'ar', 'ar-dz', 'ar-eg', 'ar-kw', 'ar-ly', 'ar-ma', 'ar-sa', 'ar-tn', 'az', 'be', 'bg', 'bm', 'bn',
     'bn-bd', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'de-at', 'de-ch', 'el', 'en', 'en-au', 'en-ca',
-    'en-gb', 'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et', 'eu',
-    'fa', 'fi', 'fil', 'fo', 'fr', 'fr-ca', 'fr-ch', 'fy', 'ga', 'gd', 'gl', 'gu', 'hi', 'hr', 'hu', 'hy-am',
-    'is', 'it', 'it-ch', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lb', 'lo', 'lt', 'lv',
+    'en-gb', 'en-ie', 'en-il', 'en-in', 'en-nz', 'en-sg', 'en-us', 'eo', 'es', 'es-do', 'es-mx', 'es-us', 'et',
+    'eu', 'fa', 'fi', 'fil', 'fo', 'fr', 'fr-ca', 'fr-ch', 'fy', 'ga', 'gd', 'gl', 'gu', 'hi', 'hr', 'hu',
+    'hy-am', 'is', 'it', 'it-ch', 'ja', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lb', 'lo', 'lt', 'lv',
     'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'ms-my', 'mt', 'my', 'nb', 'ne', 'nl', 'nl-be', 'nn', 'pl', 'pt',
     'pt-br', 'ro', 'ru', 'sd', 'se', 'si', 'sk', 'sl', 'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'tg', 'th',
-    'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw'
-  ].map(s => ({ label: s || 'default', value: s }));
+    'tk', 'tr', 'tzm', 'ug-cn', 'uk', 'ur', 'uz', 'vi', 'yo', 'zh-cn', 'zh-hk', 'zh-tw',
+    ''
+  ].map(s => ({ label: s, value: s }));
 
   /* cspell:disable */ // noinspection SpellCheckingInspection
   numSystems = [
-    '',
-    'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'grek', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
+    'default',
+    'arab', 'arabext', 'bali', 'beng', 'cham', 'deva', 'guru', 'java', 'kali', 'khmr', 'knda', 'lana',
     'lanatham', 'laoo', 'latn', 'lepc', 'limb', 'mlym', 'mong', 'mtei', 'mymr', 'mymrshan', 'mymrtlng', 'nkoo',
-    'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii'
-  ].map(s => ({ label: s || 'default', value: s }));
+    'olck', 'orya', 'saur', 'sund', 'talu', 'tamldec', 'telu', 'thai', 'tibt', 'vaii',
+    ''
+  ].map(s => ({ label: s, value: s }));
   /* cspell:enable */
 
   secondsChoices = [
@@ -152,6 +164,13 @@ export class CodeComponent {
     settings = settings ?? defaultSettings;
     this.updateTimer = null;
     Object.keys(defaultSettings).forEach(key => (this as any)[key] = settings[key]);
+
+    if (!this.customLocale)
+      this.customLocale = 'default';
+
+    if (!this.numSystem)
+      this.numSystem = 'default';
+
     this.updateTimer = undefined;
     window.addEventListener('visibilitychange', () => {
       if (this.updateTimer)
@@ -187,6 +206,16 @@ export class CodeComponent {
     }
   }
 
+  localeBlurred(): void {
+    if (!this.customLocale)
+      this.customLocale = 'default';
+  }
+
+  numSystemBlurred(): void {
+    if (!this.numSystem)
+      this.numSystem = 'default';
+  }
+
   get timezones(): any[] {
     if (this.lastZones !== this.appService.timezones || !this.timezoneChoices) {
       this.lastZones = this.appService.timezones;
@@ -218,11 +247,12 @@ export class CodeComponent {
 
   get customLocale(): string { return this._customLocale; }
   set customLocale(newValue: string) {
-    newValue = newValue ?? defaultSettings.customLocale;
+    newValue = newValue || '';
 
     if (this._customLocale !== newValue || !this.localeGood) {
       try {
-        if (newValue) new Intl.DateTimeFormat(newValue);
+        if (newValue && newValue !== 'default')
+          new Intl.DateTimeFormat(newValue);
       }
       catch {
         this.localeGood = false;
@@ -233,6 +263,13 @@ export class CodeComponent {
       this._customLocale = newValue;
       this.settingsUpdated();
     }
+  }
+
+  getCustomLocale(): string {
+    if (this.customLocale === 'default')
+      return isArray(this.defaultLocale) ? this.defaultLocale[0] : this.defaultLocale;
+    else
+      return this.customLocale;
   }
 
   get customTimezone(): string { return this._customTimezone; }
@@ -297,9 +334,13 @@ export class CodeComponent {
 
   get numSystem(): string { return this._numSystem; }
   set numSystem(newValue: string) {
-    newValue = newValue ?? defaultSettings.numSystem;
+    newValue = newValue || '';
 
-    if (this._numSystem !== newValue || !this.numSystemGood) {
+    if (!newValue || newValue === 'default') {
+      this.numSystemGood = true;
+      this._numSystem = newValue;
+    }
+    else if (this._numSystem !== newValue || !this.numSystemGood) {
       try {
         if (!newValue || new Intl.NumberFormat('en-u-nu-' + newValue).resolvedOptions().numberingSystem === newValue) {
           this.numSystemGood = true;
@@ -331,9 +372,9 @@ export class CodeComponent {
         dateFieldOrder: this.dateFieldOrder || DateFieldOrder.PER_LOCALE,
         dateTimeStyle: this.customStyle || DateTimeStyle.DATE_AND_TIME,
         hourStyle: this.customCycle || HourStyle.PER_LOCALE,
-        locale: this.customLocale || this.defaultLocale,
+        locale: this.getCustomLocale(),
         millisDigits: this.millis,
-        numbering: this.numSystem || undefined,
+        numbering: !this.numSystem || this.numSystem === 'default' ? undefined : this.numSystem,
         showDstSymbol: this.showDst,
         showOccurrence: this.showOccurrence,
         showSeconds: this.showSeconds,
@@ -347,14 +388,17 @@ export class CodeComponent {
     if (this.iso)
       return 'ISO 8601 format';
 
-    lang = lang || this.customLocale.toLowerCase().substr(0, 2) || navigator.language;
+    const locale = this.customLocale;
+
+    lang = lang || (locale !== 'default' && locale.substr(0, 2)) || navigator.language;
 
     let result = '?';
 
     try {
       result = intl_DisplayNames &&
         // eslint-disable-next-line new-cap
-        new (intl_DisplayNames)(lang, { type: 'language' }).of(this.customLocale || navigator.language);
+        new (intl_DisplayNames)(lang, { type: 'language' })
+          .of(!this.customLocale || this.customLocale === 'default' ? this.defaultLocale : this.customLocale);
     }
     catch {}
 

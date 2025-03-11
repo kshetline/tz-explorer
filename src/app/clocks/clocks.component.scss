@@ -17,8 +17,8 @@
   .edit-mode {
     display: flex;
 
-    p-radioButton:not(:first-child), button {
-      margin-left: 2em;
+    .label-pair, button {
+      margin-left: 1.5em;
     }
   }
 }

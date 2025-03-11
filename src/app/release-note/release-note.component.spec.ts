@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ReleaseNoteComponent } from './release-note.component';
 
 describe('ReleaseNoteComponent', () => {
@@ -8,7 +7,7 @@ describe('ReleaseNoteComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ReleaseNoteComponent]
+      imports: [ReleaseNoteComponent]
     })
       .compileComponents();
   });

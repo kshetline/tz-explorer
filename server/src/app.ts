@@ -317,7 +317,7 @@ function getApp(): Express {
   theApp.use(express.json());
   theApp.use(express.urlencoded({ extended: false }));
   theApp.use(cookieParser());
-  theApp.use(express.static(path.join(__dirname, 'public')));
+  theApp.use(express.static(path.join(__dirname, 'public/browser')));
   theApp.get('/', (_req, res) => {
     res.send('Static home file not found');
   });

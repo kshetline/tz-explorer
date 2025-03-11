@@ -3,8 +3,14 @@ import { DateTime, Timezone, utToTaiMillis } from '@tubular/time';
 import { abs, max } from '@tubular/math';
 import { last } from '@tubular/util';
 import { HttpTimePoller } from '../http-time-poller/http-time-poller';
-import { TzExplorerApi } from '../api/api';
 import { AppService, DEFAULT_EXTRA_ZONE, ExtraClock, IS_MOBILE } from '../app.service';
+import { RadioButton } from 'primeng/radiobutton';
+import { FormsModule } from '@angular/forms';
+import { Button } from 'primeng/button';
+import { TimeEditorComponent } from '@tubular/ng-widgets';
+import { NgTemplateOutlet } from '@angular/common';
+import { Ripple } from 'primeng/ripple';
+import { AddClockDialogComponent } from '../add-clock-dialog/add-clock-dialog.component';
 
 const EARLIEST_TAI = new DateTime('1958-01-01 UTC').taiMillis;
 const EARLIEST_UTC = EARLIEST_TAI;
@@ -15,7 +21,9 @@ const EARLIEST_GPS = new DateTime('1980-01-06 UTC').taiMillis;
 @Component({
   selector: 'tze-clocks',
   templateUrl: './clocks.component.html',
-  styleUrls: ['./clocks.component.scss']
+  styleUrls: ['./clocks.component.scss'],
+  imports: [AddClockDialogComponent, Button, FormsModule, NgTemplateOutlet, RadioButton, Ripple,
+            TimeEditorComponent]
 })
 export class ClocksComponent implements OnDestroy, OnInit {
   ISO_OPTS = ['ISO', { millisDigits: 3, showDstSymbol: true, showOccurrence: true, showSeconds: true, showUtcOffset: true }];
@@ -44,7 +52,6 @@ export class ClocksComponent implements OnDestroy, OnInit {
 
   constructor(
     private app: AppService,
-    private api: TzExplorerApi,
     private timePoller: HttpTimePoller
   ) {
     const prefs = app.preferences;

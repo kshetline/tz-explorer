@@ -8,8 +8,7 @@
     "build-all": "rimraf dist && cd server && npm run build && cd .. && npm run build && mv dist/tz-explorer dist/public && cp server/dist/app.js* dist/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "eslint 'src/**/*.ts' '**/*.spec.ts'",
-    "postinstall": "patch-package"
+    "lint": "eslint 'src/**/*.ts' '**/*.spec.ts'"
   },
   "private": true,
   "dependencies": {
@@ -60,7 +59,6 @@
     "karma-coverage-istanbul-reporter": "~3.0.3",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "^1.7.0",
-    "patch-package": "^8.0.0",
     "protractor": "~7.0.0",
     "rimraf": "^4.0.7",
     "ts-node": "^10.9.1",

@@ -8,7 +8,7 @@
       <p-radioButton #allowEdit name="editMode" [value]="false" [(ngModel)]="running"></p-radioButton>
       <label [for]="allowEdit">Allow time to be edited</label>
     </div>
-    <button pButton type="button" [disabled]="running" (click)="now()">Now</button>
+    <button pButton [disabled]="running" class="p-button" (click)="now()">Now</button>
   </div>
 </div>
 <div #clocksScroller class="clocks">

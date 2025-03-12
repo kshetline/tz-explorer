@@ -125,15 +125,16 @@ provides, among other components, the date/time editor used on this website.</p>
 
     <tbw-time-editor #sample="ngModel" name="sample" id="sample" tai [max]="max" [min]="min"
       [viewOnly]="viewOnly && !float" [disabled]="timeDisabled || float" [wideSpinner]="wideSpinner"
-      [options]="getOptions()" [timezone]="getCustomLocale()" [(ngModel)]="time"></tbw-time-editor>
+      [options]="getOptions()" [timezone]="customTimezone" [(ngModel)]="time"></tbw-time-editor>
     <div class="label-pair">
       <p-checkbox #floatCB binary="true" [(ngModel)]="float" (onChange)="setFloat($event.checked)"></p-checkbox>
       <label [for]="floatCB">Float</label>
     </div>
     @if (float) {
-      <tbw-time-editor tai [max]="max" [min]="min" [viewOnly]="viewOnly" [disabled]="timeDisabled" [wideSpinner]="wideSpinner"
-        [options]="getOptions()" [timezone]="getCustomLocale()" floating showCloser
-        (close)="setFloat(false)" [(position)]="floatPosition" [(ngModel)]="time"></tbw-time-editor>
+      <tbw-time-editor tai [max]="max" [min]="min" [viewOnly]="viewOnly" [disabled]="timeDisabled"
+          [wideSpinner]="wideSpinner"
+          [options]="getOptions()" [timezone]="customTimezone" floating showCloser
+          (close)="setFloat(false)" [(position)]="floatPosition" [(ngModel)]="time"></tbw-time-editor>
     }
     <tbw-form-error-display [control]="sample"></tbw-form-error-display>
   </div>

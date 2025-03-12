@@ -10,7 +10,7 @@ import { provideHttpClient, withInterceptorsFromDi, withJsonpSupport } from '@an
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, Routes } from '@angular/router';
+import { provideRouter, Routes, withHashLocation } from '@angular/router';
 import { ClocksComponent } from './app/clocks/clocks.component';
 import { ZoneHistoryComponent } from './app/zone-history/zone-history.component';
 import { DownloadsComponent } from './app/downloads/downloads.component';
@@ -32,7 +32,7 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes),
+    provideRouter(routes, withHashLocation()),
     themeProvider,
     AppService,
     HttpTimePoller,

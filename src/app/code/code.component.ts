@@ -436,7 +436,7 @@ export class CodeComponent {
     value.hrs = 12;
     value.min = value.sec = value.millis = 0;
 
-    const dt = new DateTime(value);
+    const dt = new DateTime(value, this.customTimezone);
     const newDate = dt.wallTimeSparse;
 
     delete newDate.hrs;

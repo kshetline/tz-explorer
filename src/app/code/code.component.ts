@@ -20,7 +20,7 @@ const defaultSettings = {
   customCycle: HourStyle.PER_LOCALE,
   customLocale: '',
   customStyle: DateTimeStyle.DATE_AND_TIME,
-  customTimezone: 'America/New_York',
+  customTimezone: Timezone.guess(),
   darkMode: false,
   dateFieldOrder: DateFieldOrder.PER_LOCALE,
   float: false,
@@ -51,7 +51,7 @@ export class CodeComponent {
 
   private _calendarDate: YMDDate;
   private _customLocale = 'default';
-  private _customTimezone = 'America/New_York';
+  private _customTimezone = defaultSettings.customTimezone;
   // noinspection TypeScriptFieldCanBeMadeReadonly
   private initDone = false;
   // noinspection JSMismatchedCollectionQueryUpdate
@@ -417,7 +417,7 @@ export class CodeComponent {
   }
 
   get calendarDate(): YMDDate {
-    const currDate = new DateTime({ tai: this.time }, Timezone.guess()).wallTimeSparse;
+    const currDate = new DateTime({ tai: this.time }, this.customTimezone).wallTimeSparse;
 
     delete currDate.hrs;
     delete currDate.min;

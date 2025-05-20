@@ -2,7 +2,7 @@ import { enableProdMode } from '@angular/core';
 
 import { environment } from './environments/environment';
 import { initTimezoneLarge } from '@tubular/time';
-import { themeProvider } from './app/mytheme';
+import { MyTheme } from './app/mytheme';
 import { AppService } from './app/app.service';
 import { HttpTimePoller } from './app/http-time-poller/http-time-poller';
 import { TzExplorerApi } from './app/api/api';
@@ -15,6 +15,7 @@ import { ClocksComponent } from './app/clocks/clocks.component';
 import { ZoneHistoryComponent } from './app/zone-history/zone-history.component';
 import { DownloadsComponent } from './app/downloads/downloads.component';
 import { CodeComponent } from './app/code/code.component';
+import { providePrimeNG } from 'primeng/config';
 
 if (environment.production)
   enableProdMode();
@@ -33,7 +34,7 @@ const routes: Routes = [
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes, withHashLocation()),
-    themeProvider,
+    providePrimeNG({ theme: { preset: MyTheme } }),
     AppService,
     HttpTimePoller,
     TzExplorerApi,
